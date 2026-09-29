@@ -1,0 +1,22 @@
+{
+"bg_darkroom": "1ba6f4ab-3a86-4138-9b2c-38f2698d2a2a",
+"bg_departure": "4677ae92-75a0-4028-b7fa-4d88eff3dd44",
+"bg_evolve": "8bc2fa8f-3628-4858-be61-a87788e9fd47",
+"bg_onboarding": "918ea009-55ad-4e0b-978b-2c86397ba8c1",
+"dest_sky": "52430943-90a2-4003-b918-9c11525f594c",
+"dest_cup": "d1ba4b28-3200-4150-9c94-15aacce8ae87",
+"dest_feet": "d54aa697-e0f7-4055-8eb4-8f40cf4e8b19",
+"dest_window": "95d33dfd-f0d4-43ff-ba6e-4d7d183e1be4",
+"dest_lunch": "5cd94fa3-a4e0-47fe-bcad-7caaa9b99ddd",
+"dest_shadow": "b57c9101-5107-40f6-839a-b891ded20162",
+"dest_green": "63cb1f20-7fef-48c6-b5f7-33aa2e7503e4",
+"dest_drift": "af845439-dbf8-49c5-b2c8-8367310b1553",
+"tab_station": "3d40fed9-341f-4409-8c61-98e77cd0f58b",
+"tab_darkroom": "a0bad44b-3349-43f5-80db-a93ad69395bf",
+"tab_crew": "7f6d4c32-6966-44a1-8110-812211f426d3",
+"tab_room": "76f34d66-6d19-4844-8f3e-72b866a0b7d4",
+"st_heart": "72a35952-5286-457d-b19e-d87635dc5259",
+"st_sparkle": "b1f2f51e-404c-4141-8559-78e45937f1d5",
+"st_cloud": "86ccece9-7995-4f76-86a4-b3c0d8ec9f61",
+"st_laugh": "7bef8995-16b4-43b8-b2e7-ee266690aa06"
+}

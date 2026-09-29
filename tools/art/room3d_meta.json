@@ -1,0 +1,20 @@
+{
+ "floor": {
+  "x": 12,
+  "y": 933,
+  "w": 2024,
+  "h": 1035
+ },
+ "ratios": {
+  "left-bed": 1.1915,
+  "left-sofa": 1.2933,
+  "left-tent": 0.9429,
+  "right-plant": 0.8625,
+  "right-beanbag": 1.1499,
+  "right-shelf": 1.3759,
+  "rug-cloud": 2.1456,
+  "rug-heart": 2.0818,
+  "rug-film": 1.9858,
+  "light-stand": 0.3339
+ }
+}

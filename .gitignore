@@ -1,0 +1,64 @@
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# local env files
+.env*.local
+
+# typescript
+*.tsbuildinfo
+
+example
+
+# generated native folders
+/ios
+/android
+
+# local env
+.env
+
+# Firebase 설정 (로컬 빌드용, EAS 빌드 때는 파일 환경변수로 올린다)
+google-services.json
+
+# FCM 서비스 계정 키 (절대 커밋하지 않는다, 업로드 후 삭제)
+fcm-key.json
+*-firebase-adminsdk-*.json
+
+# 아트 생성 결과 URL (생성 서비스 계정 ID가 들어 있어 로컬에만 둔다)
+tools/art/urls.json
+
+# 실제로 찍은 사진이 들어간 스토어 스크린샷 (로컬에만 둔다)
+docs/store/*_01_station.png
+docs/store/*_04_album.png
+docs/store/*_06_room.png
+
+# 파이썬 캐시
+__pycache__/
