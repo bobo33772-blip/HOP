@@ -217,7 +217,8 @@ export default function Room() {
           </Card>
         )}
 
-        {__DEV__ && <Button variant="ghost" label="캐릭터 도감 (개발용)" onPress={() => router.push('/dev-gallery')} />}
+        {/* 서버 dev_tools가 켜져 있으면 실사용 빌드에서도 보인다. 출시 전에 dev_tools=false로 숨긴다 */}
+        {(__DEV__ || state.devTools) && <Button variant="ghost" label="캐릭터 도감 (개발용)" onPress={() => router.push('/dev-gallery')} />}
 
         <Card style={{ gap: 8 }}>
           <Text style={s.section}>계정 삭제</Text>
