@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "찜 공구 — 카페24 판매자용 찜 고객 예약 공동구매 앱 (MVP)",
+  "packageManager": "pnpm@11.25.0",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
