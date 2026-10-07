@@ -10,7 +10,9 @@ export type Db = PgDatabase<PgQueryResultHKT, typeof schema>;
 const g = globalThis as unknown as { __jjimDb?: Promise<Db> };
 
 async function create(dataDir?: string): Promise<Db> {
-  const url = process.env.DATABASE_URL;
+  // 데모 모드는 .env.local에 운영 DATABASE_URL이 있어도 절대 쓰지 않는다 (모의 데이터가 운영 DB에 섞이지 않게)
+  const mock = (process.env.CAFE24_MOCK ?? "1") === "1";
+  const url = mock ? undefined : process.env.DATABASE_URL;
   if (url) {
     const { default: postgres } = await import("postgres");
     const { drizzle } = await import("drizzle-orm/postgres-js");
@@ -22,7 +24,7 @@ async function create(dataDir?: string): Promise<Db> {
   const { PGlite } = await import("@electric-sql/pglite");
   const { drizzle } = await import("drizzle-orm/pglite");
   const { migrate } = await import("drizzle-orm/pglite/migrator");
-  const dir = dataDir ?? ((process.env.CAFE24_MOCK ?? "1") === "1" ? "memory://" : ".data/pg");
+  const dir = dataDir ?? (mock ? "memory://" : ".data/pg");
   if (dir === ".data/pg") (await import("node:fs")).mkdirSync(".data", { recursive: true });
   const client = new PGlite(dir);
   const db = drizzle(client, { schema });
