@@ -90,6 +90,13 @@ export async function reconcileRecent(ctx: Ctx) {
   return rows.length;
 }
 
+/** 결제 기간 중인 공구만 대사한다. 주문 웹훅을 못 받는 몰(개발 단계 앱 등)에서도 결제가 1시간 안에 반영되게 한다 */
+export async function reconcilePaying(ctx: Ctx) {
+  const rows = await ctx.db.select({ id: schema.campaigns.id }).from(schema.campaigns).where(eq(schema.campaigns.state, "reached"));
+  for (const r of rows) await reconcileCampaign(ctx, r.id);
+  return rows.length;
+}
+
 /** 결제 기간이 끝난 공구를 확정한다. 확정 직전에 한 번 더 대사한다 */
 export async function settleDue(ctx: Ctx): Promise<string[]> {
   const now = ctx.clock.now();

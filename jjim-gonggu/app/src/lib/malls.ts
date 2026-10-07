@@ -6,7 +6,7 @@ import { env, requireReal } from "./env";
 import { decrypt, encrypt } from "./crypto";
 import { Cafe24Client, type TokenProvider } from "./cafe24/client";
 import { Cafe24Api, type ShopApi } from "./cafe24/api";
-import { refreshTokens, type TokenSet } from "./cafe24/oauth";
+import { refreshTokens, TokenError, type TokenSet } from "./cafe24/oauth";
 
 export async function saveInstall(mallId: string, t: TokenSet, shopNo = 1) {
   const { TOKEN_ENC_KEY } = requireReal();
@@ -44,6 +44,31 @@ function tokenProvider(mallId: string): TokenProvider {
       return t.accessToken;
     },
   };
+}
+
+/**
+ * 앱 삭제 웹훅(90077)을 받았을 때. 본문은 위조될 수 있으니 토큰 갱신을 직접 시도해 보고,
+ * 카페24가 토큰을 거절(4xx)할 때만 삭제로 확정해 저장된 토큰을 지운다. 갱신이 되면 아직 설치된 것이다.
+ */
+export async function confirmUninstall(mallId: string): Promise<boolean> {
+  const e = requireReal();
+  const db = await getDb();
+  const [m] = await db.select().from(schema.malls).where(eq(schema.malls.mallId, mallId));
+  if (!m || m.uninstalledAt) return false;
+  if (m.refreshTokenEnc) {
+    try {
+      const t = await refreshTokens(mallId, e.CAFE24_CLIENT_ID, e.CAFE24_CLIENT_SECRET, decrypt(m.refreshTokenEnc, e.TOKEN_ENC_KEY));
+      await saveInstall(mallId, t, m.shopNo);
+      return false;
+    } catch (err) {
+      if (!(err instanceof TokenError) || err.status >= 500) throw err;
+    }
+  }
+  await db.update(schema.malls)
+    .set({ uninstalledAt: new Date(), accessTokenEnc: null, refreshTokenEnc: null, accessExpiresAt: null, refreshExpiresAt: null, scriptTagNo: null })
+    .where(eq(schema.malls.mallId, mallId));
+  await db.insert(schema.auditLogs).values({ mallId, actor: "cafe24", action: "app.uninstalled", detail: {} });
+  return true;
 }
 
 export async function realShopApi(mallId: string): Promise<ShopApi> {
