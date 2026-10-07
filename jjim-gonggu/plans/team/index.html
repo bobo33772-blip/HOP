@@ -487,7 +487,7 @@ code{font-family:var(--mono);font-size:.88em;background:var(--soft);padding:1px 
       <thead><tr><th>기준</th><th>A. 스토어 출시 준비</th><th>B. 신청 수요만 확인</th><th>C. 확정 결제 → 생산 결정 <span class="pill g">선택</span></th></tr></thead>
       <tbody>
         <tr><td><b>가장 큰 불확실성을 줄이는가</b></td><td>✕ 기술은 공식 API로 이미 확인</td><td>△ 신청에는 구속력이 없음</td><td>○ 신청 → 결제 → 생산 결정을 한 번에 검증</td></tr>
-        <tr><td><b>4주 안에 끝나는가</b></td><td>✕ 심사만 4~6주</td><td>○</td><td>○ 공구 1회(모집 5일 + 결제 72시간)가 들어감</td></tr>
+        <tr><td><b>4주 안에 끝나는가</b></td><td>△ 심사는 3~5일(길면 1주)이지만 결제·생산 결정은 검증 못 함</td><td>○</td><td>○ 공구 1회(모집 5일 + 결제 72시간)가 들어감</td></tr>
         <tr><td><b>판매자의 돈과 바로 이어지는가</b></td><td>✕</td><td>△</td><td>○ 확정 결제액이 성공 수수료의 기준</td></tr>
         <tr><td><b>투자자에게 증거가 되는가</b></td><td>△</td><td>△</td><td>○ 실제 결제 데이터</td></tr>
       </tbody></table></div>
@@ -723,7 +723,7 @@ code{font-family:var(--mono);font-size:.88em;background:var(--soft);padding:1px 
       <thead><tr><th></th><th>A. 카페24 스토어 단독 <span class="pill g">권장 1단계</span></th><th>B. 카페24 공식 제휴 <span class="pill g">권장 2단계</span></th><th>C. 멀티 플랫폼 독립 SaaS</th></tr></thead>
       <tbody>
         <tr><td>방식</td><td>일반 앱 심사 후 판매</td><td>공동 마케팅, 추천 앱 지정, 수익 배분</td><td>아임웹 등으로 확장, 자체 PG로 구독 과금</td></tr>
-        <tr><td>기간</td><td>4~6주</td><td>3~6개월</td><td>6~12개월</td></tr>
+        <tr><td>기간</td><td>심사 3~5일 (길면 1주)</td><td>3~6개월</td><td>6~12개월</td></tr>
         <tr><td>장점</td><td>가장 빠르고 유입 채널이 바로 생김</td><td>'카페24가 직접 출시' 리스크를 협력으로 전환</td><td>플랫폼 의존 분산</td></tr>
         <tr><td>단점</td><td>수수료율 ⚪, 카페24 종속</td><td>협상력이 성과에 좌우됨</td><td>공수 2배, 집중도 하락</td></tr>
       </tbody></table></div>
@@ -763,7 +763,7 @@ code{font-family:var(--mono);font-size:.88em;background:var(--soft);padding:1px 
   <section class="sec" id="s-p8">
     <div class="sec-head"><span class="sec-no">Phase 8</span><h2>실행 계획</h2></div>
     <h3>로드맵</h3>
-    <figure class="fig"><div class="scroll" id="d-roadmap"></div><figcaption>첫 달은 4주 MVP와 파일럿 공구에 씁니다. Go 판정이 나면 5주 차에 스토어 심사를 제출합니다. 심사 기간(4~6주)과 PoC는 [추정]이고, 지정 몰 설치(P7)가 막히면 수동 쿠폰 방식으로 같은 파일럿을 진행합니다.</figcaption></figure>
+    <figure class="fig"><div class="scroll" id="d-roadmap"></div><figcaption>첫 달은 4주 MVP와 파일럿 공구에 씁니다. Go 판정이 나면 5주 차에 스토어 심사를 제출합니다. 심사 기간(보통 3~5일, 길면 1주)은 카페24 안내 기준, PoC 기간은 [추정]이고, 지정 몰 설치(P7)가 막히면 수동 쿠폰 방식으로 같은 파일럿을 진행합니다.</figcaption></figure>
 
     <h3>KPI</h3>
     <div class="callout"><b>첫 4주</b> 아래 파일럿 목표 가운데 성사율·신청 전환·결제 전환은 4주 MVP의 성공 기준과 같은 숫자입니다. 판정 규칙은 '4주 MVP · 목표' 섹션에 있습니다.</div>
@@ -915,7 +915,7 @@ code{font-family:var(--mono);font-size:.88em;background:var(--soft);padding:1px 
       <tr><td>P1 재입고 신청자</td><td><span class="pill w">⚪</span></td><td>신청자 목록을 API로 받을 수 있는가</td><td>카페24 문의, 관리자 엑셀 내보내기 확인</td><td>API가 있거나 엑셀 업로드 가능</td><td>1주</td></tr>
       <tr><td>P2 회원 식별 검증</td><td><span class="pill g">🟢 방식 ⚪</span></td><td>암호화 회원 ID를 위조 없이 검증할 수 있는가</td><td>테스트몰에서 Service Key로 검증</td><td>위조 member_id 100% 거부</td><td>3일</td></tr>
       <tr><td>P3 쿠폰 대량 발급</td><td><span class="pill w">⚪</span></td><td>1회 몇 명, 얼마나 빨리 발급되는가</td><td>테스트몰에서 1,000명 발급</td><td>5분 안, 누락 0</td><td>2일</td></tr>
-      <tr><td>P4 스토어 심사</td><td><span class="pill y">🟡</span></td><td>권한 범위와 서비스 성격이 통과하는가</td><td>사전 문의 후 최소 기능으로 조기 제출</td><td>승인, 기간 측정</td><td>4~6주</td></tr>
+      <tr><td>P4 스토어 심사</td><td><span class="pill y">🟡</span></td><td>권한 범위와 서비스 성격이 통과하는가</td><td>사전 문의 후 최소 기능으로 조기 제출</td><td>승인, 기간 측정</td><td>3~5일 (길면 1주)</td></tr>
       <tr><td>P5 결과 문자 성격</td><td><span class="pill w">⚪</span></td><td>결과 안내가 정보성인가</td><td>법무 자문</td><td>수신동의 없이 발송 가능한지 결론</td><td>1~2주</td></tr>
       <tr><td>P6 앱 과금 수수료</td><td><span class="pill w">⚪</span></td><td>스토어 수수료율과 정산 주기</td><td>개발사 제휴 문의</td><td>수치 확보</td><td>1주</td></tr>
       <tr><td>P7 심사 전 파일럿</td><td><span class="pill w">⚪</span></td><td>심사 전에 특정 몰에만 설치할 수 있는가</td><td>'적용 쇼핑몰 등록' 확인·테스트</td><td>파일럿 몰 3곳 설치</td><td>2일</td></tr>
@@ -929,7 +929,7 @@ code{font-family:var(--mono);font-size:.88em;background:var(--soft);padding:1px 
   <div class="tsec">
     <h3>3-7 개발 공수 &amp; 리스크</h3>
     <figure class="fig"><div id="ch-effort"></div><figcaption>기능별 인·주. 합계 약 38인·주이고, 개발 인원 4명 기준 약 10주입니다. 첫 4주는 이 중 핵심 경로만 약 12인·주로 줄여 만듭니다 (4주 MVP · 목표 섹션). 팀은 PM 겸 디자이너 1, 프론트엔드 1, 백엔드 2, 풀스택 겸 QA 1입니다.</figcaption></figure>
-    <div class="callout"><b>크리티컬 패스</b> PoC P2·P3·P7 (1주) → F1 설치 → F4 대상 추출·발송 → F6 신청·검증 → F8 쿠폰 발급 → F9 주문 대사 → 기능 동결 후 심사 제출 (4~6주) → 공개 출시. 파일럿은 심사 기간에 병행합니다.</div>
+    <div class="callout"><b>크리티컬 패스</b> PoC P2·P3·P7 (1주) → F1 설치 → F4 대상 추출·발송 → F6 신청·검증 → F8 쿠폰 발급 → F9 주문 대사 → 기능 동결 후 심사 제출 (3~5일, 길면 1주) → 공개 출시. 파일럿은 심사 기간에 병행합니다.</div>
     <div class="tblwrap"><table class="tbl"><thead><tr><th>기술 리스크</th><th>가능성</th><th>영향</th><th>대응</th></tr></thead><tbody>
       <tr><td>스토어 심사 반려 (권한, 경쟁 충돌)</td><td><span class="lv m">중</span></td><td><span class="lv h">높음</span></td><td>사전 문의, 권한 최소화, 반려 시 개별 설치</td></tr>
       <tr><td>카페24 API 변경</td><td><span class="lv m">중</span></td><td><span class="lv m">중</span></td><td>API 버전 헤더 고정, 공지 모니터링</td></tr>
@@ -1107,7 +1107,7 @@ webhooks:                                   # 판매자가 연결한 외부 도�
       <tr><td>인프라 월 300만 원 (300몰)</td><td>소형 DB + 컨테이너 2~3개 + Redis + CDN</td><td>파일럿 실제 청구액</td></tr>
       <tr><td>SMS 1건 약 19원, LMS 약 57원</td><td>알림톡 13.3원 = SMS 0.7건에서 역산, LMS는 SMS 3건으로 가정</td><td>카페24 SMS 요금 확인</td></tr>
       <tr><td>CAC 15만 원, 월 이탈 5%</td><td>가정</td><td>3~6개월 코호트</td></tr>
-      <tr><td>심사 4~6주</td><td>문서에 기간 명시 없음</td><td>P4</td></tr>
+      <tr><td>심사 3~5일 (길면 1주)</td><td>카페24 안내 기준, 반려 시 재제출 기간 추가</td><td>P4</td></tr>
       <tr><td>공수 38인·주 (4주 MVP 약 12인·주)</td><td>기능별 추정 합계, 4주 범위는 핵심 경로만</td><td>1~2주 차 속도로 보정</td></tr>
     </tbody></table></div></div>
 </section>
@@ -1423,7 +1423,7 @@ const SS={
    <div class="pc hl"><h4>찜만 쌓인 수요를 확정 주문으로</h4><p class="psub">카페24 쇼핑몰과 연결하면 찜·장바구니 고객에게 목표 수량 공동구매를 열 수 있어요.</p></div>
    <div class="pc"><h4>요청하는 권한과 이유</h4>
      <div class="psub">상품 · 찜 · 장바구니: 수요를 집계해요</div><div class="psub">회원 수신동의: 동의한 고객에게만 문자를 보내요</div><div class="psub">쿠폰 · 주문: 할인 쿠폰을 발급하고 결제를 집계해요</div><div class="psub">문자: 쇼핑몰 SMS로 초대와 결과를 보내요</div>
-     ${T('I-01','y','카페24 OAuth · 스토어 심사','조건: 카페24 스토어 심사(4~6주 추정)와 READ_PRIVACY 권한 소명이 필요. 대체 경로: 심사 전에는 특정 몰 지정 설치로 파일럿 운영.')}</div>
+     ${T('I-01','y','카페24 OAuth · 스토어 심사','조건: 카페24 스토어 심사(3~5일, 길면 1주)와 READ_PRIVACY 권한 소명이 필요. 대체 경로: 심사 전에는 특정 몰 지정 설치로 파일럿 운영.')}</div>
    <p class="psub">개인정보 처리 위탁 안내 · 이용약관</p><div style="flex:1"></div>
    <button class="pbtn" data-act="oauth">카페24에서 권한 동의하기</button></div>`,
  'S-02':()=>{const s=st.setup,done=s.filter(Boolean).length,items=[['문자 발신번호 확인','등록된 번호 02-000-0000',T('I-06','g','SMS 발신자 조회')],['실시간 주문 알림 동의','결제 추적에 필요해요',T('I-09','g','웹훅 설정')],['상품 페이지 위젯 설치','상품명 아래에 진행률이 보여요',T('I-08','g','스크립트태그')]];
@@ -1766,7 +1766,7 @@ $('src-tech').innerHTML=INV.flatMap(i=>i.docs.map(([t,u])=>[i.id+' '+i.n+' · '+
 
 /* ---------- D8 roadmap gantt ---------- */
 (()=>{const W=860,L=200,mw=(W-L-14)/12,x=m=>L+m*mw;
-  const rows=[['PoC P2·P3·P7·P8 (1주)',0,.23,'warning'],['카페24 · 법무 문의 (P1·P5·P6)',0,.8,'warning'],['4주 MVP 핵심 경로 (약 12인·주)',.1,.55,'primary'],['홈리빙 파일럿 공구 3건',.55,.93,'success'],['나머지 범위 개발 (26인·주)',1,2.6,'primary'],['카페24 스토어 심사',1.1,2.5,'warning'],['파일럿 10몰 확대 (무료)',1,3,'success'],['정식 출시 · 유료 전환',3,6,'success'],['대기열 · 목표 추천 · 알림톡',3.4,6,'primary'],['카페24 공식 제휴 협상',6,12,'ink'],['내부 운영 MCP → 판매자 MCP',6,12,'primary'],['아임웹 확장 타당성',9,12,'muted']];
+  const rows=[['PoC P2·P3·P7·P8 (1주)',0,.23,'warning'],['카페24 · 법무 문의 (P1·P5·P6)',0,.8,'warning'],['4주 MVP 핵심 경로 (약 12인·주)',.1,.55,'primary'],['홈리빙 파일럿 공구 3건',.55,.93,'success'],['나머지 범위 개발 (26인·주)',1,2.6,'primary'],['카페24 스토어 심사 (3~5일)',1.1,1.35,'warning'],['파일럿 10몰 확대 (무료)',1,3,'success'],['정식 출시 · 유료 전환',3,6,'success'],['대기열 · 목표 추천 · 알림톡',3.4,6,'primary'],['카페24 공식 제휴 협상',6,12,'ink'],['내부 운영 MCP → 판매자 MCP',6,12,'primary'],['아임웹 확장 타당성',9,12,'muted']];
   const top=56,rh=30,H=top+rows.length*rh+40;let s='';
   [[0,1,'0~1개월 · 4주 MVP'],[1,6,'1~6개월 · 심사 · 출시 · 50몰'],[6,12,'6~12개월 · 제휴 · 300몰']].forEach(([a,b,t],i)=>{s+=`<rect x="${x(a)}" y="6" width="${x(b)-x(a)-3}" height="24" rx="5" fill="${i===0?'var(--ink)':'var(--soft)'}"/>`+text(x(a)+8,22,t,{fs:11.5,fw:600,fill:i===0?'var(--surface)':'var(--fg2)'})});
   for(let m=0;m<=12;m++){s+=`<line x1="${x(m)}" x2="${x(m)}" y1="${top-14}" y2="${H-30}" stroke="var(--line)"/>`+text(x(m),top-18+0,m+'M',{fs:10.5,fill:'var(--muted)',a:'middle'})}

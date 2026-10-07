@@ -521,7 +521,7 @@ body.record #rec{display:grid;grid-template-columns:560px 1fr;width:1280px;heigh
   <div class="ch-head"><span class="ch-no">08 · 실현 가능성</span><h2>공식 API만으로 만들 수 있습니다.<br>남은 관문은 네 개이고, 모두 1주 안에 검증할 수 있습니다.</h2></div>
   <div class="verdict"><strong>조건부 실현 가능</strong><p>찜·장바구니·수신동의·쿠폰·문자·주문 웹훅을 모두 카페24 공식 문서로 확인했고(2026-10-06), 같은 권한 조합으로 스토어에서 판매 중인 앱도 있습니다. <b>결제금을 받지 않는 구조</b>라 PG나 전자금융업 인허가가 필요 없습니다. 현재 불가(🔴) 항목은 없습니다.</p></div>
   <div class="gates">
-    <div class="gate"><b>관문 1</b><h4>카페24 스토어 심사</h4><p>개인정보 조회 권한을 소명해야 합니다. 같은 권한 조합으로 승인된 선례가 있습니다. 4~6주 [추정].</p></div>
+    <div class="gate"><b>관문 1</b><h4>카페24 스토어 심사</h4><p>개인정보 조회 권한을 소명해야 합니다. 같은 권한 조합으로 승인된 선례가 있습니다. 심사는 보통 3~5일, 길면 1주.</p></div>
     <div class="gate"><b>관문 2</b><h4>찜 데이터 수집</h4><p>상품 단위 조회라 첫 수집에 수 분~수 시간이 걸립니다. 찜 100명 초과분은 회원별 찜 + 로그인 웹훅으로 보완합니다.</p></div>
     <div class="gate ok"><b>관문 3</b><h4>위젯 회원 검증</h4><p>카페24 SDK의 암호화 회원 ID로 위조 신청을 막습니다. 테스트 몰에서 3일 안에 검증합니다.</p></div>
     <div class="gate ok"><b>관문 4</b><h4>쿠폰 대량 발급</h4><p>회원 지정 쿠폰을 1,000명 단위로 발급하는 속도와 누락 여부를 2일 안에 검증합니다.</p></div>
@@ -671,7 +671,7 @@ function addPledges(n){const c=st.camp;for(let i=0;i<Math.min(n,3);i++)st.feed.u
 const S={
  'S-01':()=>sbar()+top('찜 공구 설치')+`<div class="s-body">
    <div class="sc blue" style="padding:18px"><span class="chip">카페24 앱</span><div style="font-size:21px;font-weight:700;line-height:1.3">찜만 쌓인 수요를<br>확정 주문으로</div><p class="sub">쇼핑몰과 연결하면 찜·장바구니 고객에게 목표 수량 공동구매를 열 수 있어요.</p></div>
-   <div class="sc"><h4>연결하면 이런 권한을 써요</h4><div class="checks"><div>상품 · 찜 · 장바구니 수 집계</div><div>문자 수신 동의 고객 확인</div><div>할인 쿠폰 발급 · 결제 집계</div><div>쇼핑몰 문자로 초대 · 결과 발송</div></div>${T('I-01','y','카페24 OAuth · 스토어 심사','개발은 즉시 가능, 공개 판매는 카페24 스토어 심사(4~6주 추정) 필요. 같은 권한 조합으로 승인된 앱 선례 있음.')}</div>
+   <div class="sc"><h4>연결하면 이런 권한을 써요</h4><div class="checks"><div>상품 · 찜 · 장바구니 수 집계</div><div>문자 수신 동의 고객 확인</div><div>할인 쿠폰 발급 · 결제 집계</div><div>쇼핑몰 문자로 초대 · 결과 발송</div></div>${T('I-01','y','카페24 OAuth · 스토어 심사','개발은 즉시 가능, 공개 판매는 카페24 스토어 심사(3~5일, 길면 1주) 필요. 같은 권한 조합으로 승인된 앱 선례 있음.')}</div>
    <p class="sub" style="text-align:center">개인정보 처리 위탁 안내 · 이용약관</p><div style="flex:1"></div>
    <button class="pb" data-act="oauth">카페24에서 권한 동의하기</button></div>`+foot('S-01 설치','Ⓓ 프로모션 설계'),
  'S-E2':()=>{const v=st.sync,done=v>=100,n=Math.round(500*v/100);return sbar()+top('첫 수집 중')+`<div class="s-body">
