@@ -9,6 +9,7 @@ import { isValidOptOutNumber } from "./core/messaging";
 import { getCampaign, getMall, type Campaign } from "./engine/campaigns";
 import { buildReport } from "./engine/report";
 import { getRadar, latestRun, runCollection, startCollection } from "./radar";
+import { env } from "./env";
 
 export async function mallProfile(ctx: Ctx, mallId: string) {
   const m = await getMall(ctx, mallId);
@@ -44,6 +45,17 @@ export async function startRadar(ctx: Ctx, mallId: string) {
     after(() => runCollection(ctx.db, api, mallId, run.id));
   }
   return { run, started };
+}
+
+/** 상품 페이지 위젯 스크립트 설치(카페24 스크립트태그). 설치 직후 실패했을 때 앱을 다시 설치하지 않고 이것만 다시 한다 */
+export async function installWidget(ctx: Ctx, mallId: string) {
+  await getMall(ctx, mallId);
+  const e = env();
+  const api = await ctx.shop(mallId);
+  // 위젯은 몰 ID와 앱 Client ID(공개값)로 카페24 Front SDK를 초기화해 암호화 회원 ID를 받는다
+  const scriptNo = await api.installScriptTag(`${e.APP_BASE_URL}/widget.js?mall=${encodeURIComponent(mallId)}&client_id=${encodeURIComponent(e.CAFE24_CLIENT_ID)}`);
+  await ctx.db.update(schema.malls).set({ scriptTagNo: scriptNo }).where(eq(schema.malls.mallId, mallId));
+  return scriptNo;
 }
 
 /** 공구 상세: 리포트 · 문자 · 확인할 일. mallId를 주면 그 몰의 공구만 (판매자용) */

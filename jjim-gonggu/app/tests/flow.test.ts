@@ -246,6 +246,7 @@ describe("개인정보 권한 없는 몰 (장바구니 고객 공구)", () => {
     const sms = env.world.smsLog[0];
     expect(sms.isAd).toBe(true);
     expect(sms.memberIds).toHaveLength(20); // m100~m139 중 수신 동의(짝수)만 실제로 받는다
+    expect(sms.content).toMatch(/장바구니에 담아 두신 스톤웨어/);
     expect(sms.memberIds.every((id) => Number(id.slice(1)) % 2 === 0)).toBe(true);
   });
 });

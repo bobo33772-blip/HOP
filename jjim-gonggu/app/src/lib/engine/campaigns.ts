@@ -56,10 +56,11 @@ export async function buildAudience(ctx: Ctx, mallId: string, productNo: number)
 
 type InviteFields = Pick<Campaign, "productName" | "targetQty" | "dealPrice" | "listPrice" | "deadlineAt" | "shipEta">;
 
-export function inviteContent(mall: Pick<Mall, "mallId" | "brandName" | "optOutNumber">, c: InviteFields, link: string): string {
+/** wishlistIncluded=false면 장바구니 고객만 초대하므로 '찜하신' 대신 '장바구니에 담아 두신'으로 쓴다 */
+export function inviteContent(mall: Pick<Mall, "mallId" | "brandName" | "optOutNumber">, c: InviteFields, link: string, wishlistIncluded = true): string {
   return formatAdMessage({
     mallName: `[${mall.brandName || mall.mallId}]`,
-    body: `찜하신 ${c.productName} 공동구매가 열렸어요. ${c.targetQty}개가 모이면 ${won(c.dealPrice)}(정가 ${won(c.listPrice)}). ${fmtKst(c.deadlineAt)} 마감, 결제는 목표 달성 후에 해요. 예상 출고 ${c.shipEta}.\n${link}`,
+    body: `${wishlistIncluded ? "찜하신" : "장바구니에 담아 두신"} ${c.productName} 공동구매가 열렸어요. ${c.targetQty}개가 모이면 ${won(c.dealPrice)}(정가 ${won(c.listPrice)}). ${fmtKst(c.deadlineAt)} 마감, 결제는 목표 달성 후에 해요. 예상 출고 ${c.shipEta}.\n${link}`,
     optOutNumber: mall.optOutNumber ?? "",
   });
 }
@@ -72,7 +73,7 @@ async function prepare(ctx: Ctx, mallId: string, input: CampaignInput) {
   const issues = validateCampaignInput(input, product.price, ctx.clock.now());
   const aud = await buildAudience(ctx, mallId, product.productNo);
   const draft: InviteFields = { productName: product.name, targetQty: input.targetQty, dealPrice: input.dealPrice, listPrice: product.price, deadlineAt: input.deadlineAt, shipEta: input.shipEta };
-  return { mall, product, issues, aud, message: inviteContent(mall, draft, ctx.productUrl(mallId, product.productNo)) };
+  return { mall, product, issues, aud, message: inviteContent(mall, draft, ctx.productUrl(mallId, product.productNo), aud.consentChecked) };
 }
 
 /** 열기 전 미리보기: 초대 인원, 문자 내용, 발송 시각, 개당 마진 */

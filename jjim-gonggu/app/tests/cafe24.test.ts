@@ -117,3 +117,12 @@ describe("위젯 암호화 회원 ID (P2)", () => {
     expect(await api.verifyMember(signMemberToken({ iat: Math.floor(Date.now() / 1000), member_id: "a" }, KEY))).toBeNull();
   });
 });
+
+describe("카페24 쿠폰 기간 (정시만 허용)", () => {
+  it("시작은 정시로 내림, 끝은 정시로 올림 (KST)", async () => {
+    const { kstHourIso } = await import("@/lib/cafe24/api");
+    expect(kstHourIso(new Date("2026-10-10T05:00:00Z"), "floor")).toBe("2026-10-10T14:00:00+09:00");
+    expect(kstHourIso(new Date("2026-10-10T05:12:34Z"), "floor")).toBe("2026-10-10T14:00:00+09:00");
+    expect(kstHourIso(new Date("2026-10-10T05:12:34Z"), "ceil")).toBe("2026-10-10T15:00:00+09:00");
+  });
+});

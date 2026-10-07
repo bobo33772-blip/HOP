@@ -61,6 +61,10 @@ export async function allProducts(api: ShopApi, max = 5_000): Promise<Product[]>
 }
 
 const kstIso = (d: Date) => new Date(d.getTime() + 9 * 3_600_000).toISOString().slice(0, 19) + "+09:00";
+/** 카페24 쿠폰 기간은 정시(:00:00)만 받는다 (테스트몰 확인) → 시작은 내림, 끝은 올림 */
+const HOUR_MS = 3_600_000;
+export const kstHourIso = (d: Date, mode: "floor" | "ceil") =>
+  kstIso(new Date((mode === "floor" ? Math.floor : Math.ceil)(d.getTime() / HOUR_MS) * HOUR_MS));
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function mapOrder(o: any): OrderInfo | null {
@@ -127,21 +131,30 @@ export class Cafe24Api implements ShopApi {
   }
 
   async createCoupon(spec: CouponSpec) {
-    // VERIFY(P3): 쿠폰 생성 필드명. 정액 할인, 특정 상품 한정, 기간 지정, 회원 지정 발급용
+    // 공식 문서(쿠폰 등록 POST /coupons, 2026-09-01 버전) + 테스트몰 실제 호출로 확인(2026-10-08, PoC P3):
+    // available_site 필수, 할인액은 discount_amount.benefit_price 정수, 기간은 정시(:00:00)만 허용
+    // 정액 할인(A) · 대상자 지정 발급(M/회원대상 M) · 일반 기간(F) · 상품 쿠폰(P) + 선택 상품(I) · 웹·모바일
     const r = await this.c.request<{ coupon: { coupon_no: string } }>("POST", "/coupons", {
       body: {
         shop_no: this.shopNo,
         request: {
-          coupon_name: spec.name,
-          benefit_type: "A", // 정액 할인
-          benefit_price: spec.discountAmount,
-          issue_type: "M", // 대상자 지정 발급
+          coupon_name: spec.name.slice(0, 50),
+          benefit_type: "A",
+          discount_amount: { benefit_price: Math.round(spec.discountAmount) },
+          issue_type: "M",
+          issue_sub_type: "M",
           available_period_type: "F",
-          available_begin_datetime: kstIso(spec.availableFrom),
-          available_end_datetime: kstIso(spec.availableUntil),
+          available_begin_datetime: kstHourIso(spec.availableFrom, "floor"),
+          available_end_datetime: kstHourIso(spec.availableUntil, "ceil"),
+          available_site: ["W", "M"],
+          available_scope: "P",
           available_product: "I",
           available_product_list: [spec.productNo],
+          available_category: "U",
+          available_amount_type: "E",
+          available_coupon_count_by_order: 1,
           issue_max_count_by_user: 1,
+          issue_reserved: "F",
         },
       },
     });

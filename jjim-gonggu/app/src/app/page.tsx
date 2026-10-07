@@ -3,6 +3,7 @@
 import { desc, eq } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import { fmtKst } from "@/lib/time";
+import WidgetInstallButton from "./components/widget-install-button";
 import { env } from "@/lib/env";
 import { getSession } from "@/lib/session";
 import { requestedScopes } from "@/lib/cafe24/scopes";
@@ -39,6 +40,7 @@ export default async function Home() {
         <div className="row"><span>앱 연결</span><span className="ok">연결됨 ✓</span></div>
         <div className="row"><span>요금제</span><span>{mall?.plan ?? "trial"}</span></div>
         <div className="row"><span>상품 페이지 위젯</span><span>{mall?.scriptTagNo || mock ? "설치됨" : "설치 필요"}</span></div>
+        {!mall?.scriptTagNo && !mock && <WidgetInstallButton />}
       </div>
       <div className="card">
         <strong>내 공구</strong>

@@ -5,7 +5,9 @@ import { eq } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import { requireReal } from "@/lib/env";
 import { exchangeCode } from "@/lib/cafe24/oauth";
-import { realShopApi, saveInstall } from "@/lib/malls";
+import { saveInstall } from "@/lib/malls";
+import { installWidget } from "@/lib/console-actions";
+import { getCtx } from "@/lib/server";
 import { setSession } from "@/lib/session";
 
 const STATE_TTL_MS = 10 * 60_000;
@@ -24,12 +26,9 @@ export async function GET(req: NextRequest) {
   await saveInstall(s.mallId, tokens);
 
   try {
-    const api = await realShopApi(s.mallId);
-    // 위젯은 몰 ID와 앱 Client ID(공개값)로 카페24 Front SDK를 초기화해 암호화 회원 ID를 받는다
-    const scriptNo = await api.installScriptTag(`${e.APP_BASE_URL}/widget.js?mall=${encodeURIComponent(s.mallId)}&client_id=${encodeURIComponent(e.CAFE24_CLIENT_ID)}`);
-    await db.update(schema.malls).set({ scriptTagNo: scriptNo }).where(eq(schema.malls.mallId, s.mallId));
+    await installWidget(await getCtx(), s.mallId);
   } catch (err) {
-    // 위젯 설치 실패는 설치 자체를 막지 않는다 — 초기 설정 마법사(S-02)에서 재시도
+    // 위젯 설치 실패는 설치 자체를 막지 않는다 — 판매자 홈의 '위젯 설치하기'로 다시 시도
     console.error("scripttag install failed", err);
   }
 
