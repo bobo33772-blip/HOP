@@ -1,0 +1,18 @@
+# 비밀값 — 절대 커밋하지 않아요
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# 의존성 · 빌드 결과 · 로컬 데이터
+node_modules/
+.next/
+.data/
+coverage/
+*.tsbuildinfo
+
+# 개인 도구 설정
+.claude/
+.DS_Store
+Thumbs.db
