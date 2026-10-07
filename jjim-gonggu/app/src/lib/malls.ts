@@ -2,7 +2,7 @@
 
 import { eq } from "drizzle-orm";
 import { getDb, schema } from "@/db";
-import { requireReal } from "./env";
+import { env, requireReal } from "./env";
 import { decrypt, encrypt } from "./crypto";
 import { Cafe24Client, type TokenProvider } from "./cafe24/client";
 import { Cafe24Api, type ShopApi } from "./cafe24/api";
@@ -49,5 +49,5 @@ function tokenProvider(mallId: string): TokenProvider {
 export async function realShopApi(mallId: string): Promise<ShopApi> {
   const db = await getDb();
   const [m] = await db.select().from(schema.malls).where(eq(schema.malls.mallId, mallId));
-  return new Cafe24Api(new Cafe24Client(mallId, tokenProvider(mallId)), m?.shopNo ?? 1);
+  return new Cafe24Api(new Cafe24Client(mallId, tokenProvider(mallId)), m?.shopNo ?? 1, env().CAFE24_SERVICE_KEY);
 }

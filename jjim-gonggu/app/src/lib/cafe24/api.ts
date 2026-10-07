@@ -3,6 +3,7 @@
 //    요청·응답 필드명은 테스트몰에서 아직 확인하지 못한 부분이다 → 1단계 PoC에서 확정하고 tests/fixtures/에 응답 샘플을 저장할 것.
 
 import { Cafe24Client } from "./client";
+import { verifyEncryptedMemberId } from "./member";
 
 export interface Product { productNo: number; name: string; price: number; soldOut?: boolean; imageUrl?: string }
 export interface MemberConsent { memberId: string; sms: boolean }
@@ -75,7 +76,7 @@ function mapOrder(o: any): OrderInfo | null {
 }
 
 export class Cafe24Api implements ShopApi {
-  constructor(private c: Cafe24Client, private shopNo = 1) {}
+  constructor(private c: Cafe24Client, private shopNo = 1, private serviceKey = "") {}
 
   async listProducts(offset: number, limit: number) {
     const r = await this.c.request<{ products: { product_no: number; product_name: string; price: string; sold_out?: "T" | "F"; list_image?: string }[] }>("GET", "/products", {
@@ -208,9 +209,13 @@ export class Cafe24Api implements ShopApi {
     return out;
   }
 
-  async verifyMember(_token: string): Promise<string | null> {
-    // VERIFY(P2): Front SDK의 암호화 회원 ID를 서버에서 검증·복호화하는 방법을 PoC로 확정하기 전까지는
-    // 모든 신청을 거절한다 (fail-closed). 위조 신청이 확정 수량을 부풀리는 것을 막기 위해서다.
-    return null;
+  async verifyMember(token: string): Promise<string | null> {
+    // 암호화 회원 ID(JWT, HS512)를 Service Key로 검증한다. Service Key가 없으면 모든 신청을 거절한다 (fail-closed).
+    if (!this.serviceKey) return null;
+    const r = verifyEncryptedMemberId(token, this.serviceKey, this.c.mallId);
+    if (!r.ok) return null;
+    // VERIFY(P2): 토큰에 몰 ID가 없으면 다른 몰 회원 토큰 재사용을 서명만으로는 막지 못한다 → 클레임 이름만 남겨 PoC에서 확인
+    if (!r.mallBound) console.warn(`[P2] ${this.c.mallId}: 암호화 회원 ID에 몰 ID 클레임이 없어요. 클레임: ${r.claims.join(",")}`);
+    return r.memberId;
   }
 }

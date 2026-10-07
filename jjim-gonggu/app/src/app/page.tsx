@@ -1,4 +1,4 @@
-// 판매자 홈: 연결 상태 · 내 공구(리포트 링크) · 수요 레이더. 파일럿 기간에는 공구 개설을 운영팀이 함께 한다.
+// 판매자 홈: 연결 상태 · 내 공구(리포트 링크) · 공구 관리 · 수요 레이더.
 
 import { desc, eq } from "drizzle-orm";
 import { getDb, schema } from "@/db";
@@ -42,13 +42,14 @@ export default async function Home() {
       </div>
       <div className="card">
         <strong>내 공구</strong>
-        {camps.length === 0 ? <p className="muted">아직 연 공구가 없어요. 파일럿 기간에는 운영팀이 통화로 조건을 함께 정해 열어 드려요.</p> : camps.map((c) => (
+        {camps.length === 0 ? <p className="muted">아직 연 공구가 없어요. 찜이 많은 상품으로 첫 공구를 열어 보세요.</p> : camps.map((c) => (
           <a key={c.id} className="row" href={`/r/${c.reportToken}`} style={{ color: "inherit", textDecoration: "none" }}>
             <span>{c.productName}<br /><span className="small">마감 {fmtKst(c.deadlineAt)}</span></span><span className="pill">{STATE[c.state] ?? c.state} ›</span>
           </a>
         ))}
       </div>
-      <a className="btn" href="/radar">수요 레이더 보기</a>
+      <a className="btn" href="/campaigns">공구 관리 · 새 공구 열기</a>
+      <a className="ghost" href="/radar" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none" }}>수요 레이더 보기</a>
       <div className="card">
         <strong>찜꽁이 쓰는 권한 {SCOPES.length}개</strong>
         {SCOPES.map((s) => (

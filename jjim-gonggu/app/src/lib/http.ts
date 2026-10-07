@@ -5,6 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { UserError } from "./engine/context";
 import { env } from "./env";
+import { getSession, type Session } from "./session";
 
 const SEC_HEADERS = { "X-Content-Type-Options": "nosniff", "Referrer-Policy": "no-referrer", "Cache-Control": "no-store" };
 
@@ -93,6 +94,17 @@ export async function isAdmin() {
 
 export function setAdminCookie(res: NextResponse, secure: boolean) {
   res.cookies.set(ADMIN_COOKIE, encodeAdminCookie(), { httpOnly: true, sameSite: "strict", secure, path: "/", maxAge: ADMIN_TTL_SEC });
+}
+
+/** 판매자 API 감싸기: 카페24 앱 실행으로 받은 세션 확인 + 쓰기 요청은 X-JJG 헤더 필수.
+ *  판매자 세션 쿠키는 카페24 관리자 안(iframe)에서도 쓰려고 운영에서 SameSite=None이라, 이 헤더로 다른 사이트의 요청을 막는다 */
+export function seller<C>(fn: (req: NextRequest, ctx: C, s: Session) => Promise<Response>) {
+  return handle(async (req: NextRequest, ctx: C) => {
+    const s = await getSession();
+    if (!s) throw new UserError("unauthorized", "카페24 관리자에서 찜꽁을 다시 실행해 주세요.", 401);
+    if (req.method !== "GET" && req.headers.get("x-jjg") !== "1") throw new UserError("csrf", "허용되지 않은 요청이에요.", 403);
+    return fn(req, ctx, s);
+  });
 }
 
 /** 운영자 API 감싸기: 로그인 확인 + 쓰기 요청은 X-JJG 헤더 필수 (다른 사이트에서 보내는 요청 차단) */

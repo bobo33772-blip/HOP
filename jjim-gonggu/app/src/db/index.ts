@@ -14,7 +14,10 @@ async function create(dataDir?: string): Promise<Db> {
   if (url) {
     const { default: postgres } = await import("postgres");
     const { drizzle } = await import("drizzle-orm/postgres-js");
-    return drizzle(postgres(url, { max: 10 }), { schema }) as unknown as Db;
+    // Vercel 같은 서버리스에서는 함수 인스턴스마다 연결이 생기므로 연결 수를 작게,
+    // Supabase 연결 풀러(트랜잭션 모드, 6543 포트)는 prepared statement를 지원하지 않아 끈다.
+    const serverless = !!process.env.VERCEL;
+    return drizzle(postgres(url, { max: serverless ? 3 : 10, prepare: false }), { schema }) as unknown as Db;
   }
   const { PGlite } = await import("@electric-sql/pglite");
   const { drizzle } = await import("drizzle-orm/pglite");

@@ -34,12 +34,13 @@
 | Redirect URI | `https://<고정 도메인>/api/cafe24/callback` |
 
 저장 후 **App 관리 > STEP 1. 개발정보관리**에서:
-- **권한(Scope)**: 아래 10개를 Read/Write 맞춰 선택 (`src/lib/cafe24/scopes.ts`와 같아야 함)
+- **권한(Scope)**: 아래 11개를 Read/Write 맞춰 선택 (`src/lib/cafe24/scopes.ts`와 같아야 함)
   | 분류 | 권한 |
   |---|---|
   | 상품 (Product) | Read |
   | 개인정보 (Privacy) | Read |
   | 개인화 정보 (Personal) | Read |
+  | 고객 (Customer) | Read — 위젯에서 로그인 회원 본인 확인(암호화 회원 ID)용 |
   | 프로모션 (Promotion) | Read + Write |
   | 주문 (Order) | Read |
   | 알림 (Notification) | Read + Write |
@@ -48,12 +49,13 @@
   `90023` 주문 접수 · `90025` 입금상태 변경 · `90026` 취소 · `90029` 환불 · `90084` 장바구니 담기 ·
   `90143` 회원 로그인 · `90147` 회원 탈퇴 · `90077` 앱 삭제
   (권한을 먼저 저장해야 해당 이벤트를 고를 수 있어요)
-- **인증정보**에서 Client ID, Client Secret Key 확인
+- **인증정보**에서 Client ID, Client Secret Key 확인, **Service Key "보기"**도 눌러 값이 나오는지 확인 (위젯 회원 확인에 필요)
 
 ## 5. `.env.local`에 값 넣기 (직접 파일에 — 채팅에 붙여 넣지 마세요)
 ```
 CAFE24_CLIENT_ID=<Client ID>
 CAFE24_CLIENT_SECRET=<Client Secret Key>
+CAFE24_SERVICE_KEY=<Service Key>
 TOKEN_ENC_KEY=<아래 명령 결과>
 APP_BASE_URL=https://<고정 도메인>
 CAFE24_MOCK=0
@@ -63,7 +65,7 @@ ADMIN_TOKEN=<운영자 화면 로그인 토큰, 24자 이상>
 ```
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
-`CAFE24_SERVICE_KEY`는 할인·배송 앱용이라 일반 앱인 우리는 비워 둬도 됩니다.
+`CAFE24_SERVICE_KEY`가 비어 있으면 위젯 신청이 모두 거절돼요(안전한 기본값). 일반 앱에서 Service Key가 발급되지 않으면 알려 주세요 — 대안(OIDC 로그인)으로 바꿔요.
 
 ## 6. 테스트몰에 설치해 보기
 1. 개발 서버와 ngrok를 켜 둔 상태에서

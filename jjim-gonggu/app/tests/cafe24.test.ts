@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { signLaunchQuery, verifyLaunch } from "@/lib/cafe24/hmac";
 import { authorizeUrl, exchangeCode } from "@/lib/cafe24/oauth";
 import { Cafe24Client } from "@/lib/cafe24/client";
+import { Cafe24Api } from "@/lib/cafe24/api";
+import { signMemberToken, verifyEncryptedMemberId } from "@/lib/cafe24/member";
 import { decrypt, encrypt } from "@/lib/crypto";
 import { createTestDb, schema } from "@/db";
 
@@ -85,5 +87,29 @@ describe("DB 스키마", () => {
     }).returning();
     await db.insert(schema.pledges).values({ campaignId: c.id, memberId: "u1", qty: 1, idemKey: "k1", createdAt: now, updatedAt: now });
     await expect(db.insert(schema.pledges).values({ campaignId: c.id, memberId: "u1", qty: 1, idemKey: "k2", createdAt: now, updatedAt: now })).rejects.toThrow();
+  });
+});
+
+describe("위젯 암호화 회원 ID (P2)", () => {
+  const KEY = "service-key-for-test";
+  const now = 1_791_400_000;
+  it("Service Key로 서명된 토큰만 통과하고 회원 ID를 꺼낸다", () => {
+    const t = signMemberToken({ iat: now - 10, member_id: "tester", mall_id: "linenco" }, KEY);
+    expect(verifyEncryptedMemberId(t, KEY, "linenco", now)).toMatchObject({ ok: true, memberId: "tester", mallBound: true });
+    expect(verifyEncryptedMemberId(t, "other-key", "linenco", now)).toEqual({ ok: false, reason: "signature" });
+  });
+  it("다른 몰 토큰·오래된 토큰·alg none은 거부", () => {
+    expect(verifyEncryptedMemberId(signMemberToken({ iat: now, member_id: "a", mall_id: "othermall" }, KEY), KEY, "linenco", now)).toEqual({ ok: false, reason: "mall" });
+    expect(verifyEncryptedMemberId(signMemberToken({ iat: now - 7200, member_id: "a" }, KEY), KEY, "linenco", now)).toEqual({ ok: false, reason: "expired" });
+    const [, body, sig] = signMemberToken({ iat: now, member_id: "a" }, KEY).split(".");
+    const none = Buffer.from(JSON.stringify({ alg: "none" })).toString("base64url");
+    expect(verifyEncryptedMemberId(`${none}.${body}.${sig}`, KEY, "linenco", now)).toEqual({ ok: false, reason: "alg" });
+  });
+  it("몰 ID 클레임이 없으면 통과하되 mallBound=false로 알린다 (PoC에서 확인할 항목)", () => {
+    expect(verifyEncryptedMemberId(signMemberToken({ iat: now, member_id: "a" }, KEY), KEY, "linenco", now)).toMatchObject({ ok: true, mallBound: false });
+  });
+  it("Service Key가 없으면 실제 연동은 모든 신청을 거절한다", async () => {
+    const api = new Cafe24Api(new Cafe24Client("linenco", { get: async () => "t" }), 1, "");
+    expect(await api.verifyMember(signMemberToken({ iat: Math.floor(Date.now() / 1000), member_id: "a" }, KEY))).toBeNull();
   });
 });

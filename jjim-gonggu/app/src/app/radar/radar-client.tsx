@@ -161,7 +161,7 @@ function ReachSheet({ row, onClose }: { row: Row; onClose: () => void }) {
             {reach.wishlistCapped && <p className="warn">찜한 회원이 많아 일부만 확인됐어요. 실제 대상은 이보다 많을 수 있어요.</p>}
           </>
         )}
-        <p className="small">파일럿 기간에는 운영팀이 통화로 조건(목표 수량·공구가·출고일)을 함께 정해 공구를 열어 드려요.</p>
+        <a className="btn" href="/campaigns">공구 관리에서 이 상품으로 공구 열기</a>
         <button className="ghost" onClick={onClose}>닫기</button>
       </div>
     </div>

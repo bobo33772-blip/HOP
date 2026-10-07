@@ -1,5 +1,5 @@
 /* 찜꽁 상품 페이지 위젯 (의존성 없음). 쇼핑몰 상품 상세에 스크립트 태그로 들어간다.
- * <script src="https://APP/widget.js?mall=MALL_ID" data-product-no="102" defer></script>
+ * 설치 시 서버가 카페24 스크립트태그로 넣는다: <script src="https://APP/widget.js?mall=MALL_ID&client_id=CLIENT_ID"></script>
  * 고객 화면에는 진행률과 '결제 없는 참여 신청'만 보여 주고, 기존 구매 버튼은 건드리지 않는다. */
 (function () {
   'use strict';
@@ -7,7 +7,8 @@
   if (!script) return;
   var src = new URL(script.src, location.href);
   var API = src.origin;
-  var MALL = src.searchParams.get('mall');
+  var CLIENT_ID = src.searchParams.get('client_id') || script.getAttribute('data-client-id');
+  var MALL = src.searchParams.get('mall') || (window.CAFE24API && window.CAFE24API.MALL_ID);
   var productNo = Number(script.getAttribute('data-product-no') || window.iProductNo || new URLSearchParams(location.search).get('product_no') || (location.pathname.match(/\/(\d+)\/?(?:category|display)?/) || [])[1]);
   if (!MALL || !productNo) return;
 
@@ -18,15 +19,22 @@
     return new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false }).format(d);
   };
 
-  // 로그인 회원의 암호화 회원 ID. 쇼핑몰이 JJIM_MEMBER_TOKEN을 제공하면 그것을 쓴다.
-  // VERIFY(P2): 카페24 Front SDK(CAFE24API.getEncryptedMemberId) 호출 방식은 테스트몰에서 확정한다.
+  // 로그인 회원의 암호화 회원 ID(JWT). 카페24 Front SDK: CAFE24API.init({client_id, version}) → getEncryptedMemberId(client_id, cb).
+  // 비회원이면 null (res.guest_id만 온다). 데모 쇼핑몰은 JJIM_MEMBER_TOKEN으로 대신 준다.
+  // VERIFY(P2): 테스트몰에서 실제 응답 형식 확인
+  var sdk = null;
+  function cafe24() {
+    if (sdk) return sdk;
+    try { if (window.CAFE24API && CLIENT_ID) sdk = window.CAFE24API.init({ client_id: CLIENT_ID, version: '2026-09-01' }); } catch (e) { sdk = null; }
+    return sdk;
+  }
   function memberToken() {
     if (typeof window.JJIM_MEMBER_TOKEN === 'function') return Promise.resolve(window.JJIM_MEMBER_TOKEN());
     return new Promise(function (resolve) {
       try {
-        if (window.CAFE24API && window.CAFE24API.getEncryptedMemberId) {
-          window.CAFE24API.getEncryptedMemberId(script.getAttribute('data-client-id'), function (err, res) { resolve(err ? null : (res && (res.member_id || res.id)) || null); });
-        } else resolve(null);
+        var c = cafe24();
+        if (!c || !c.getEncryptedMemberId) return resolve(null);
+        c.getEncryptedMemberId(CLIENT_ID, function (err, res) { resolve(err ? null : (res && res.member_id) || null); });
       } catch (e) { resolve(null); }
     });
   }
