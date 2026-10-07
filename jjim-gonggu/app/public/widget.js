@@ -56,7 +56,12 @@
   var root = document.createElement('div'); root.className = 'jjg'; root.setAttribute('aria-live', 'polite');
   var anchorSel = script.getAttribute('data-anchor');
   var anchor = (anchorSel && document.querySelector(anchorSel)) || document.getElementById('jjim-gonggu');
-  if (anchor) anchor.appendChild(root); else script.parentNode.insertBefore(root, script.nextSibling);
+  // 카페24 기본 스킨: 구매 버튼 영역(.xans-product-action) 바로 아래. 없으면 스크립트 자리(보통 페이지 끝)
+  var actions = null;
+  ['.xans-product-action', '.action_button', '#orderFixArea'].some(function (sel) { return !anchor && (actions = document.querySelector(sel)); });
+  if (anchor) anchor.appendChild(root);
+  else if (actions) actions.parentNode.insertBefore(root, actions.nextSibling);
+  else script.parentNode.insertBefore(root, script.nextSibling);
 
   var state = { c: null, mine: null, qty: 1, step: 'view', err: '', busy: false, idem: null };
 
