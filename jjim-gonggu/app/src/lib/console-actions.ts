@@ -10,10 +10,17 @@ import { getCampaign, getMall, type Campaign } from "./engine/campaigns";
 import { buildReport } from "./engine/report";
 import { getRadar, latestRun, runCollection, startCollection } from "./radar";
 import { env } from "./env";
+import { digits, type SmsSender } from "./cafe24/api";
+
+/** 카페24에 등록된 문자 발신번호 목록. 조회에 실패하면 null (화면은 직접 입력으로 대신한다) */
+async function registeredSenders(ctx: Ctx, mallId: string): Promise<SmsSender[] | null> {
+  try { return await (await ctx.shop(mallId)).smsSenders(); } catch (e) { ctx.log("발신번호 목록 조회 실패", String(e)); return null; }
+}
 
 export async function mallProfile(ctx: Ctx, mallId: string) {
   const m = await getMall(ctx, mallId);
-  return { mallId: m.mallId, brandName: m.brandName, optOutNumber: m.optOutNumber, smsSender: m.smsSender };
+  const senders = await registeredSenders(ctx, mallId);
+  return { mallId: m.mallId, brandName: m.brandName, optOutNumber: m.optOutNumber, smsSender: m.smsSender, senders };
 }
 
 /** 브랜드명 · 문자 발신번호 · 무료수신거부 번호 (광고 문자 필수 정보) */
@@ -24,6 +31,11 @@ export async function saveMallProfile(ctx: Ctx, actor: string, mallId: string, b
   const smsSender = String(b.smsSender ?? "").trim().slice(0, 20);
   if (!brandName || !isValidOptOutNumber(optOutNumber) || !/^[0-9-]{8,20}$/.test(smsSender)) {
     throw new UserError("bad_profile", "브랜드명, 문자 발신번호, 무료수신거부 번호를 확인해 주세요.");
+  }
+  // 카페24는 등록된 발신번호로만 문자를 보낸다 → 목록을 받을 수 있으면 그 안의 번호인지 확인한다
+  const senders = await registeredSenders(ctx, mallId);
+  if (senders && !senders.some((s) => digits(s.number) === digits(smsSender))) {
+    throw new UserError("sender_not_registered", "카페24 관리자 › SMS 발신번호 관리에 등록된 번호만 쓸 수 있어요. 먼저 등록한 뒤 다시 골라 주세요.");
   }
   await ctx.db.update(schema.malls).set({ brandName, optOutNumber, smsSender }).where(eq(schema.malls.mallId, mallId));
   await audit(ctx, actor, "mall.profile", mallId, { brandName, optOutNumber, smsSender }, mallId);

@@ -1,8 +1,8 @@
 // 카페24 웹훅 수신. 받으면 저장(trace id로 중복 제거)하고, 주문·결제·취소·앱 삭제 이벤트는 바로 반영한다.
 // 반영할 때도 본문은 믿지 않고 주문번호로 카페24 주문을 다시 조회한다 → 위조 웹훅이 확정 수량을 바꾸지 못한다.
 // 공식 형식(2026-10-07 확인): 헤더 X-API-Key, X-Trace-ID / 본문 { event_no, resource: { mall_id, ... } }
-// 웹훅은 누락될 수 있어 매일 03:00 야간 대사로 보완한다. 실패 응답이 쌓이면 카페24가 자동 미수신 처리하므로 처리 오류도 200으로 답한다.
-// ⚠ PoC 체크: X-API-Key가 앱별 고정 키인지 확인 후 WEBHOOK_API_KEY로 검증.
+// 웹훅은 누락될 수 있어 매시·매일 03:00 대사로 보완한다. 실패 응답이 쌓이면 카페24가 자동 미수신 처리하므로 처리 오류도 200으로 답한다.
+// X-API-Key는 앱별 고정 키(문서 확인, 2026-10-08) → WEBHOOK_API_KEY와 비교한다.
 
 import { createHash } from "node:crypto";
 import { eq } from "drizzle-orm";
@@ -17,7 +17,9 @@ import { confirmUninstall } from "@/lib/malls";
 const APP_UNINSTALLED = 90077;
 
 export async function POST(req: Request) {
-  const key = env().WEBHOOK_API_KEY;
+  // 문서: X-API-Key는 개발자센터에서 앱별로 받는 고정 키를 그대로 보낸다. 운영에서는 키가 없으면 모두 거절한다 (fail-closed)
+  const { WEBHOOK_API_KEY: key, mock } = env();
+  if (!key && !mock) return json({ error: "webhook_key_not_configured" }, 401);
   if (key && !safeEqual(req.headers.get("x-api-key") ?? "", key)) return json({ error: "bad_key" }, 401);
 
   const raw = await req.text();

@@ -117,6 +117,7 @@ export class MockCafe24 {
         w.smsLog.push({ mallId, memberIds: ids, content: spec.content, isAd: spec.isAd, at: w.clock.now() });
         return { queueRef: `Q-${++w.seq}` };
       },
+      async smsSenders() { return [{ senderNo: "1", number: "02-000-0000", status: "T" }]; },
       async installScriptTag() { return "MOCK_SCRIPT_1"; },
       async getOrder(id) { return m().orders.get(id) ?? null; },
       async listOrdersWithCoupon(no, since) { return [...m().orders.values()].filter((o) => o.couponNos.includes(no) && o.paidAt >= since); },

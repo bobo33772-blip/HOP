@@ -47,7 +47,10 @@ export async function startCollection(db: Db, mallId: string): Promise<{ run: Ru
 }
 
 /** 상품 목록을 훑으며 상품별 찜·장바구니 수를 저장한다. 워커(또는 MVP에서는 요청 밖 백그라운드)에서 실행. */
-export async function runCollection(db: Db, api: ShopApi, mallId: string, runId: number): Promise<void> {
+/** 상품 하나에 카페24 호출이 최대 2번이라, 10분 3,000회(초당 5회) 한도를 넘지 않게 상품마다 이만큼 쉰다 (데모는 0) */
+const PACE_MS = 450;
+
+export async function runCollection(db: Db, api: ShopApi, mallId: string, runId: number, paceMs = process.env.CAFE24_MOCK === "0" ? PACE_MS : 0): Promise<void> {
   const run = eq(schema.collectionRuns.id, runId);
   try {
     const products = await allProducts(api, MAX_PRODUCTS);
@@ -62,6 +65,7 @@ export async function runCollection(db: Db, api: ShopApi, mallId: string, runId:
       });
       done++;
       await db.update(schema.collectionRuns).set({ doneProducts: done }).where(run);
+      if (paceMs) await new Promise((r) => setTimeout(r, paceMs));
     }
     await db.update(schema.collectionRuns).set({ status: "done", doneProducts: done, finishedAt: new Date() }).where(run);
   } catch (err) {

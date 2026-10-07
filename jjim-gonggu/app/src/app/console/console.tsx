@@ -6,7 +6,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 
 export type State = "open" | "reached" | "failed" | "settled";
-export interface Mall { mallId: string; brandName: string | null; optOutNumber: string | null; smsSender: string | null }
+export interface Mall { mallId: string; brandName: string | null; optOutNumber: string | null; smsSender: string | null; senders?: { senderNo: string; number: string; status: string }[] | null }
 export interface Camp { id: string; state: State; productName: string; targetQty: number; pledgedQty: number; deadlineAt: string; payUntil: string | null }
 export interface Report {
   campaign: { id: string; productName: string; state: State; listPrice: number; dealPrice: number; targetQty: number; deadlineAt: string; payUntil: string | null; shipEta: string; decision: { qty: number; note: string; at: string } | null };
@@ -89,7 +89,19 @@ export function ProfileCard({ mall, onSaved, say, always = false }: { mall: Mall
       <p className="muted">광고 문자에는 브랜드명과 무료수신거부 번호가 반드시 들어가요. 발신번호는 카페24에 등록된 번호여야 해요.</p>
       <div className="form">
         <label>브랜드명<input value={v.brandName} onChange={(e) => setV({ ...v, brandName: e.target.value })} /></label>
-        <label>문자 발신번호<input value={v.smsSender} placeholder="02-000-0000" onChange={(e) => setV({ ...v, smsSender: e.target.value })} /></label>
+        {mall.senders?.length ? (
+          <label>문자 발신번호
+            <select value={v.smsSender} onChange={(e) => setV({ ...v, smsSender: e.target.value })}>
+              <option value="">카페24에 등록된 번호에서 고르기</option>
+              {mall.senders.map((s) => <option key={s.senderNo} value={s.number}>{s.number}{s.status && !["T", "Y", "approved"].includes(s.status) ? ` (상태: ${s.status})` : ""}</option>)}
+            </select>
+            <span className="hint">카페24 관리자 › SMS 발신번호 관리에 등록된 번호예요</span>
+          </label>
+        ) : (
+          <label>문자 발신번호<input value={v.smsSender} placeholder="02-000-0000" onChange={(e) => setV({ ...v, smsSender: e.target.value })} />
+            <span className="hint">{mall.senders ? "카페24에 등록된 발신번호가 없어요. 카페24 관리자 › SMS 발신번호 관리에서 먼저 등록해 주세요" : "카페24에 등록된 번호여야 해요"}</span>
+          </label>
+        )}
         <label>무료수신거부 번호<input value={v.optOutNumber} placeholder="080-000-0000" onChange={(e) => setV({ ...v, optOutNumber: e.target.value })} /></label>
       </div>
       <div><button className="btn" onClick={save}>저장</button></div>

@@ -1,6 +1,6 @@
 // 찜꽁이 쓰는 카페24 기능만 모은 인터페이스. 실제 구현(Cafe24Api)과 모의 쇼핑몰(mock.ts)이 같은 모양을 가진다.
-// ⚠ 경로는 기획서 '연동 인벤토리'(2026-10-06 확인) 기준. 'VERIFY(Pn)' 표시는 공식 문서로 경로만 확인했고
-//    요청·응답 필드명은 테스트몰에서 아직 확인하지 못한 부분이다 → 1단계 PoC에서 확정하고 tests/fixtures/에 응답 샘플을 저장할 것.
+// 2026-10-08: 모든 호출을 카페24 OpenAPI 스펙(2026-09-01)과 대조해 필드명·타입·한도를 맞췄다.
+// 'VERIFY' 표시는 문서에도 없어 테스트몰에서 확인해야 하는 부분이다.
 
 import { Cafe24Client } from "./client";
 import { verifyEncryptedMemberId } from "./member";
@@ -16,7 +16,14 @@ export interface CouponSpec {
   availableUntil: Date; // 결제 기간 끝 + 여유
 }
 
+/** senderNo: 판매자가 고른 발신 전화번호. 카페24에 보낼 때는 등록 목록(GET /sms/senders)의 일련번호로 바꾼다 */
 export interface SmsSpec { senderNo: string; memberIds: string[]; content: string; isAd: boolean }
+/** 카페24에 등록된 문자 발신번호. senderNo는 카페24 일련번호, number는 전화번호 */
+export interface SmsSender { senderNo: string; number: string; status: string }
+
+export const digits = (s: string) => String(s ?? "").replace(/\D/g, "");
+/** SMS는 90바이트(한글 2바이트)까지, 넘으면 LMS */
+export const smsBytes = (s: string) => [...s].reduce((n, ch) => n + (ch.charCodeAt(0) < 128 ? 1 : 2), 0);
 
 export interface OrderInfo {
   orderId: string;
@@ -42,6 +49,8 @@ export interface ShopApi {
   listCouponHolders(couponNo: string): Promise<string[]>;
   /** 회원 ID로 발송. 카페24가 수신거부자를 자동으로 제외한다 (광고·결과 안내 모두) */
   sendSms(spec: SmsSpec): Promise<{ queueRef: string }>;
+  /** 카페24 관리자 › SMS 발신번호 관리에 등록된 번호 */
+  smsSenders(): Promise<SmsSender[]>;
   installScriptTag(src: string): Promise<string>;
   getOrder(orderId: string): Promise<OrderInfo | null>;
   listOrdersWithCoupon(couponNo: string, since: Date): Promise<OrderInfo[]>;
@@ -69,12 +78,12 @@ export const kstHourIso = (d: Date, mode: "floor" | "ceil") =>
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function mapOrder(o: any): OrderInfo | null {
   if (!o) return null;
-  // VERIFY: 결제·취소 여부 필드명 (paid, canceled, order_status), 쿠폰 번호 위치
+  // 문서: 주문 paid·canceled(T/F)·payment_date, embed=coupons의 쿠폰 번호 필드는 coupon_code
   const cancelled = o.canceled === "T" || String(o.order_status ?? "").startsWith("C");
   return {
     orderId: String(o.order_id),
     memberId: String(o.member_id ?? ""),
-    couponNos: (o.coupons ?? []).map((c: any) => String(c.coupon_no)),
+    couponNos: (o.coupons ?? []).map((c: any) => String(c.coupon_code ?? c.coupon_no)),
     items: (o.items ?? []).map((i: any) => ({ productNo: Number(i.product_no), qty: Number(i.quantity), amount: Math.round(Number(i.payment_amount ?? i.product_price * i.quantity)) })),
     status: cancelled ? "cancelled" : o.paid === "T" ? "paid" : "pending",
     paidAt: new Date(o.payment_date ?? o.order_date),
@@ -97,8 +106,8 @@ export class Cafe24Api implements ShopApi {
   }
 
   async wishlistMembers(productNo: number) {
-    // VERIFY(P8): 페이지 넘김 없음·limit 100 — 100명 초과 상품은 회원별 찜 목록 + 로그인 웹훅(90143)으로 보완해야 한다
-    const r = await this.c.request<{ customers?: { member_id: string }[]; wishlist?: { member_id: string }[] }>("GET", `/products/${productNo}/wishlist/customers`, { query: { shop_no: this.shopNo, limit: 100 } });
+    // 문서: limit·offset 파라미터 없음(최대 100건). VERIFY(P8): 100명 초과 상품은 회원별 찜 목록 + 로그인 웹훅(90143)으로 보완
+    const r = await this.c.request<{ customers?: { member_id: string }[]; wishlist?: { member_id: string }[] }>("GET", `/products/${productNo}/wishlist/customers`, { query: { shop_no: this.shopNo } });
     return (r.customers ?? r.wishlist ?? []).map((c) => String(c.member_id)).filter(Boolean);
   }
 
@@ -118,14 +127,12 @@ export class Cafe24Api implements ShopApi {
   }
 
   async consents(memberIds: string[]) {
+    // 문서: member_id는 한 명(최대 20자)만 받는다 → 회원마다 조회. VERIFY(P9): 몰의 개인정보 제공 설정에 따라 막히는지
     const out: MemberConsent[] = [];
-    for (let i = 0; i < memberIds.length; i += 100) {
-      const chunk = memberIds.slice(i, i + 100);
-      // VERIFY(P9): 몰의 개인정보 제공 설정에 따라 막히는지 확인 필요
-      const r = await this.c.request<{ customersprivacy: { member_id: string; sms: "T" | "F" }[] }>("GET", "/customersprivacy", {
-        query: { shop_no: this.shopNo, member_id: chunk.join(","), limit: chunk.length, fields: "member_id,sms" },
-      });
-      out.push(...r.customersprivacy.map((c) => ({ memberId: String(c.member_id), sms: c.sms === "T" })));
+    for (const id of memberIds) {
+      const r = await this.c.request<{ customersprivacy?: { member_id: string; sms: "T" | "F" }[] }>("GET", "/customersprivacy", { query: { shop_no: this.shopNo, member_id: id } });
+      const row = (r.customersprivacy ?? []).find((c) => String(c.member_id) === id);
+      if (row) out.push({ memberId: id, sms: row.sms === "T" });
     }
     return out;
   }
@@ -167,27 +174,44 @@ export class Cafe24Api implements ShopApi {
     });
   }
 
-  async listCouponHolders(couponNo: string) {
-    const ids: string[] = [];
-    for (let offset = 0; offset <= 10_000; offset += 500) {
-      const r = await this.c.request<{ issues?: { member_id: string }[] }>("GET", `/coupons/${couponNo}/issues`, { query: { shop_no: this.shopNo, limit: 500, offset } });
-      const rows = r.issues ?? [];
-      ids.push(...rows.map((x) => String(x.member_id)).filter(Boolean));
-      if (rows.length < 500) break;
+  /** 쿠폰 발급 내역 전체. 문서: limit 최대 500, offset 최대 8000 → 그 이상은 since_issue_no로 이어 받는다 */
+  private async couponIssues(couponNo: string, extra: Record<string, string> = {}) {
+    type Issue = { issue_no?: string | number; member_id: string; used_coupon?: "T" | "F"; related_order_id?: string | null };
+    const rows: Issue[] = [];
+    let since: string | undefined;
+    for (let page = 0; page < 200; page++) {
+      const r = await this.c.request<{ issues?: Issue[] }>("GET", `/coupons/${couponNo}/issues`, { query: { shop_no: this.shopNo, limit: 500, since_issue_no: since, ...extra } });
+      const got = r.issues ?? [];
+      rows.push(...got);
+      const last = got.at(-1)?.issue_no;
+      if (got.length < 500 || last == null) break;
+      since = String(last);
     }
-    return ids;
+    return rows;
+  }
+
+  async listCouponHolders(couponNo: string) {
+    return [...new Set((await this.couponIssues(couponNo)).map((x) => String(x.member_id)).filter(Boolean))];
+  }
+
+  async smsSenders() {
+    const r = await this.c.request<{ senders?: { sender_no: number | string; sender: string; auth_status?: string }[] }>("GET", "/sms/senders", { query: { shop_no: this.shopNo } });
+    return (r.senders ?? []).map((x) => ({ senderNo: String(x.sender_no), number: String(x.sender), status: String(x.auth_status ?? "") }));
   }
 
   async sendSms(spec: SmsSpec) {
-    // VERIFY: 요청 필드명 (sender_no, member_id, exclude_unsubscriber, type), LMS 단가
+    // 문서: sender_no는 발신번호 일련번호(정수, GET /sms/senders), member_id 최대 100명, SMS 90바이트·LMS 2000바이트
+    if (spec.memberIds.length > 100) throw new Error("문자는 한 번에 100명까지 보낼 수 있어요");
+    const sender = (await this.smsSenders()).find((x) => digits(x.number) === digits(spec.senderNo));
+    if (!sender) throw new Error(`문자 발신번호 ${spec.senderNo}가 카페24 관리자 › SMS 발신번호 관리에 등록돼 있지 않아요`);
     const r = await this.c.request<{ sms?: { queue_code?: string } }>("POST", "/sms", {
       body: {
         shop_no: this.shopNo,
         request: {
-          sender_no: spec.senderNo,
+          sender_no: Number(sender.senderNo),
           content: spec.content,
           member_id: spec.memberIds,
-          type: spec.content.length > 45 ? "LMS" : "SMS",
+          type: smsBytes(spec.content) > 90 ? "LMS" : "SMS",
           // 광고뿐 아니라 결과 안내도 수신거부 고객은 빼고 보낸다 (P5 결론 전까지 보수적으로)
           exclude_unsubscriber: "T",
         },
@@ -218,14 +242,17 @@ export class Cafe24Api implements ShopApi {
     }
   }
 
+  /**
+   * 공구 쿠폰으로 결제된 주문. 문서상 GET /orders는 embed=coupons를 지원하지 않으므로,
+   * 쿠폰 발급 내역 중 사용된 것(used_coupon=T)의 related_order_id로 주문을 하나씩 다시 조회한다.
+   */
   async listOrdersWithCoupon(couponNo: string, since: Date) {
+    const orderIds = new Set<string>();
+    for (const x of await this.couponIssues(couponNo, { used_coupon: "T" })) if (x.related_order_id) orderIds.add(String(x.related_order_id));
     const out: OrderInfo[] = [];
-    const start = kstIso(since).slice(0, 10), end = kstIso(new Date()).slice(0, 10);
-    for (let offset = 0; offset <= 15_000; offset += 1000) {
-      const r = await this.c.request<{ orders?: unknown[] }>("GET", "/orders", { query: { shop_no: this.shopNo, start_date: start, end_date: end, embed: "items,coupons", limit: 1000, offset } });
-      const rows = r.orders ?? [];
-      for (const o of rows) { const m = mapOrder(o); if (m && m.couponNos.includes(couponNo)) out.push(m); }
-      if (rows.length < 1000) break;
+    for (const id of orderIds) {
+      const o = await this.getOrder(id);
+      if (o && o.couponNos.includes(couponNo) && o.paidAt >= since) out.push(o);
     }
     return out;
   }
