@@ -1,0 +1,1845 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>찜 공구 제품 기획서</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: fixed top tab nav · one reading column for documents · wide scroll boards for diagrams/wireflows */
+:root{
+  --ink:#16233F; --primary:#2F5BEA; --success:#12B886; --warning:#E8950A; --danger:#E03131; --muted:#7D879B;
+  --bg:#F3F5F9; --surface:#FFFFFF; --line:#DCE1EA; --soft:#E9EDF5; --fg:#16233F; --fg2:#4A5670;
+  --wf-bg:#FFFFFF; --wf-fill:#E6E8EC; --wf-fill2:#CDD1D8; --wf-line:#9AA1AD; --wf-ink:#3B4150; --wf-dark:#5C6370;
+  --font:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ink:#E6EBF5; --primary:#6F8FF5; --success:#2FD3A0; --warning:#F5B342; --danger:#FF6B6B; --muted:#8E98AD;
+  --bg:#0F1626; --surface:#18223A; --line:#2A3654; --soft:#202C48; --fg:#E6EBF5; --fg2:#AAB4C8;
+  --wf-bg:#1F2533; --wf-fill:#2E3443; --wf-fill2:#3D4455; --wf-line:#6B7385; --wf-ink:#D3D7DF; --wf-dark:#A9AFBC; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --ink:#E6EBF5; --primary:#6F8FF5; --success:#2FD3A0; --warning:#F5B342; --danger:#FF6B6B; --muted:#8E98AD;
+  --bg:#0F1626; --surface:#18223A; --line:#2A3654; --soft:#202C48; --fg:#E6EBF5; --fg2:#AAB4C8;
+  --wf-bg:#1F2533; --wf-fill:#2E3443; --wf-fill2:#3D4455; --wf-line:#6B7385; --wf-ink:#D3D7DF; --wf-dark:#A9AFBC; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+img{max-width:100%;height:auto}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.65;margin:0}
+h1,h2,h3{text-wrap:balance;line-height:1.3;margin:0}
+a{color:var(--primary)}
+.mono{font-family:var(--mono)}
+/* nav */
+.topnav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.topnav .in{max-width:1180px;margin:0 auto;padding-inline:16px;display:flex;align-items:center;gap:18px;min-height:56px}
+.brand{font-weight:700;letter-spacing:-.01em;white-space:nowrap;display:flex;align-items:center;gap:8px}
+.brand i{width:22px;height:22px;border-radius:6px;background:var(--ink);display:inline-grid;place-items:center;color:var(--surface);font-style:normal;font-size:12px}
+.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.tabs button{font:inherit;font-size:14px;font-weight:500;background:none;border:0;color:var(--fg2);padding:16px 12px;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--primary);font-weight:600}
+.tabs button:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+main{padding-inline:16px;padding-block:28px 64px}
+.wrap{max-width:1180px;margin:0 auto}
+.doc{max-width:820px}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.lead{color:var(--fg2);max-width:68ch}
+section.panel{display:grid;gap:22px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+.pending{border-style:dashed;color:var(--fg2)}
+.legend{display:flex;flex-wrap:wrap;gap:14px 22px;font-size:13px;color:var(--fg2);align-items:center}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+/* swimlane */
+#lane svg{display:block}
+/* wireflow */
+.wf-row{display:flex;align-items:flex-start;gap:0;padding:22px 20px 26px;min-width:max-content}
+.wf-rowhead{display:flex;align-items:baseline;gap:12px;padding:18px 20px 0}
+.wf-rowhead h3{font-size:16px}
+.wf-rowhead small{color:var(--muted)}
+.wf-item{display:grid;gap:8px;justify-items:center}
+.wf-thumb{border:0;padding:0;background:none;cursor:zoom-in;border-radius:16px}
+.wf-thumb:focus-visible{outline:3px solid var(--primary);outline-offset:4px}
+.wf-cap{font-size:12px;text-align:center;line-height:1.35;max-width:170px}
+.wf-cap b{font-family:var(--mono);font-weight:500;color:var(--fg2)}
+.wf-arrow{align-self:center;display:grid;justify-items:center;gap:2px;width:78px;margin-top:-30px;color:var(--fg2);font-size:11px;text-align:center;line-height:1.3}
+.wf-arrow svg{display:block}
+.wf-gap{width:34px;align-self:center;border-left:1px dashed var(--line);height:300px;margin-inline:16px}
+.wf-push{font-size:10.5px;color:var(--primary);font-weight:600}
+/* phone frame */
+.phone{width:390px;height:844px;background:var(--wf-bg);border:2px solid var(--wf-line);border-radius:44px;position:relative;overflow:hidden;color:var(--wf-ink);font-family:var(--font);font-size:15px;line-height:1.4;text-align:left}
+.ph-status{height:44px;display:flex;justify-content:space-between;align-items:center;padding:0 28px;font-size:13px;font-weight:600;font-family:var(--mono)}
+.ph-body{position:absolute;top:44px;left:0;right:0;bottom:0;display:flex;flex-direction:column}
+.ph-scroll{flex:1;padding:14px 18px;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+.e{position:relative}
+.e-bar{height:52px;display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:1.5px solid var(--wf-line);font-weight:600;font-size:17px}
+.e-bar .r{margin-left:auto;font-size:13px;font-weight:500;color:var(--wf-dark)}
+.e-bar.shop{background:var(--wf-fill);justify-content:center;font-size:14px;font-weight:500;color:var(--wf-dark)}
+.e-h{font-size:21px;font-weight:700;line-height:1.3}
+.e-p{display:grid;gap:7px}
+.e-p i{display:block;height:9px;border-radius:5px;background:var(--wf-fill2)}
+.e-txt{font-size:13.5px;color:var(--wf-dark)}
+.e-card{border:1.5px solid var(--wf-line);border-radius:12px;padding:12px 14px;font-size:13.5px;background:var(--wf-bg)}
+.e-card.dash{border-style:dashed}
+.e-card.fill{background:var(--wf-fill)}
+.e-card b{display:block;font-size:15px;margin-bottom:4px}
+.e-img{background:var(--wf-fill);border-radius:12px;position:relative;overflow:hidden;display:grid;place-items:center;font-size:12px;color:var(--wf-dark)}
+.e-img::before,.e-img::after{content:"";position:absolute;inset:0;background:linear-gradient(to top right,transparent calc(50% - 1px),var(--wf-fill2) 50%,transparent calc(50% + 1px))}
+.e-img::after{background:linear-gradient(to top left,transparent calc(50% - 1px),var(--wf-fill2) 50%,transparent calc(50% + 1px))}
+.e-img span{position:relative;z-index:1;background:var(--wf-fill);padding:2px 8px;border-radius:6px}
+.e-kpi{display:grid;gap:8px}
+.e-kpi div{border:1.5px solid var(--wf-line);border-radius:10px;padding:10px;display:grid;gap:2px}
+.e-kpi small{font-size:11.5px;color:var(--wf-dark)}
+.e-kpi strong{font-size:19px;font-family:var(--mono)}
+.e-input{display:grid;gap:5px;font-size:12.5px;color:var(--wf-dark)}
+.e-input div{height:44px;border:1.5px solid var(--wf-line);border-radius:10px;display:flex;align-items:center;padding:0 12px;color:var(--wf-ink);font-size:14.5px}
+.e-btn{height:52px;border-radius:12px;background:var(--wf-dark);color:var(--wf-bg);display:grid;place-items:center;font-weight:600;font-size:16px}
+.e-btn2{height:48px;border-radius:12px;border:1.5px solid var(--wf-dark);display:grid;place-items:center;font-weight:600;font-size:15px}
+.e-chips{display:flex;gap:6px;flex-wrap:wrap}
+.e-chips span{border:1.5px solid var(--wf-line);border-radius:99px;padding:5px 12px;font-size:12.5px}
+.e-chips span:first-child{background:var(--wf-fill2);border-color:var(--wf-fill2)}
+.e-list{display:grid;border:1.5px solid var(--wf-line);border-radius:12px;overflow:hidden}
+.e-list div{display:flex;gap:10px;align-items:center;padding:10px 12px;border-top:1.5px solid var(--wf-fill);font-size:13px}
+.e-list div:first-child{border-top:0}
+.e-list em{width:38px;height:38px;border-radius:8px;background:var(--wf-fill);flex:none}
+.e-prog{display:grid;gap:6px;font-size:13px}
+.e-prog .t{height:12px;border-radius:6px;background:var(--wf-fill)}
+.e-prog .t i{display:block;height:100%;border-radius:6px;background:var(--wf-dark)}
+.e-sms{background:var(--wf-fill);border-radius:18px 18px 18px 4px;padding:12px 14px;font-size:13.5px;max-width:300px}
+.e-note{font-size:12px;color:var(--wf-dark);text-align:center}
+.e-tab{height:78px;border-top:1.5px solid var(--wf-line);display:grid;grid-template-columns:repeat(4,1fr);padding:8px 0 24px;font-size:11.5px;text-align:center;color:var(--wf-dark)}
+.e-tab div{display:grid;justify-items:center;gap:3px}
+.e-tab div::before{content:"";width:22px;height:22px;border-radius:6px;border:1.5px solid var(--wf-line)}
+.e-tab div.on{color:var(--wf-ink);font-weight:700}
+.e-tab div.on::before{background:var(--wf-dark);border-color:var(--wf-dark)}
+.e-dim{position:absolute;inset:0;background:rgba(40,44,52,.38);display:flex;flex-direction:column;justify-content:flex-end;z-index:3}
+.e-dim.center{justify-content:center;padding:0 26px}
+.e-sheet{background:var(--wf-bg);border-radius:22px 22px 0 0;padding:20px 18px 34px;display:flex;flex-direction:column;gap:12px}
+.e-dim.center .e-sheet{border-radius:20px;padding-bottom:20px}
+.e-sheet .grab{width:44px;height:5px;border-radius:3px;background:var(--wf-fill2);align-self:center}
+.mk{position:absolute;top:-8px;right:-8px;width:24px;height:24px;border-radius:50%;background:var(--wf-ink);color:var(--wf-bg);font:600 12px/24px var(--mono);text-align:center;z-index:4;box-shadow:0 0 0 2px var(--wf-bg)}
+.scaled{overflow:hidden;border-radius:20px}
+.scaled > .phone{transform-origin:0 0}
+/* modal */
+.modal{position:fixed;inset:0;z-index:50;background:rgba(10,16,30,.62);display:grid;place-items:center;padding:16px}
+.modal-box{background:var(--surface);border-radius:16px;max-width:980px;width:100%;max-height:calc(100vh - 32px);overflow:auto;display:grid;grid-template-columns:auto minmax(0,1fr);gap:26px;padding:24px}
+.modal-box h3{font-size:20px}
+.modal-meta{display:grid;gap:14px;align-content:start;min-width:0}
+.modal-meta ol{margin:0;padding-left:0;list-style:none;display:grid;gap:10px}
+.modal-meta li{display:grid;grid-template-columns:26px minmax(0,1fr);gap:10px;font-size:14px}
+.modal-meta li b{width:24px;height:24px;border-radius:50%;background:var(--ink);color:var(--surface);font:600 12px/24px var(--mono);text-align:center}
+.kv{display:flex;flex-wrap:wrap;gap:6px}
+.pill{font-size:12px;padding:3px 9px;border-radius:99px;background:var(--soft);color:var(--fg2);white-space:nowrap}
+.pill.g{background:color-mix(in srgb,var(--success) 16%,transparent);color:var(--fg)}
+.pill.y{background:color-mix(in srgb,var(--warning) 20%,transparent);color:var(--fg)}
+.pill.w{background:color-mix(in srgb,var(--muted) 18%,transparent);color:var(--fg)}
+.closebtn{justify-self:start;font:inherit;font-size:14px;padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+.navbtns{display:flex;gap:8px;flex-wrap:wrap}
+.hero-img{width:100%;border-radius:var(--r);border:1px solid var(--line);display:block}
+@media (max-width:760px){
+  .modal-box{grid-template-columns:minmax(0,1fr);justify-items:center}
+  .brand span{display:none}
+}
+@media (prefers-reduced-motion:no-preference){.tabs button{transition:color .15s,border-color .15s}}
+/* document */
+.doc-layout{display:grid;grid-template-columns:200px minmax(0,1fr);gap:40px;align-items:start}
+.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 76px);display:grid;gap:2px;font-size:14px}
+.toc .eyebrow{margin-bottom:8px}
+.toc a{color:var(--fg2);text-decoration:none;padding:6px 10px;border-left:2px solid var(--line)}
+.toc a:hover,.toc a.on{color:var(--fg);border-left-color:var(--primary);background:var(--soft)}
+.doc-body{display:grid;gap:56px;min-width:0;max-width:860px}
+.doc-body>*,.sec>*,.tsec>*,section.panel>*{min-width:0}
+.cover{display:grid;gap:14px}
+.cover h1{font-size:42px;letter-spacing:-.02em}
+.cover-lead{font-size:18px;color:var(--fg2);margin:0;max-width:60ch}
+.sec{display:grid;gap:18px;scroll-margin-top:84px}
+.sec h3{font-size:18px;margin-top:10px}
+.sec-head{display:flex;align-items:baseline;gap:14px;border-bottom:2px solid var(--ink);padding-bottom:10px}
+.sec-head h2{font-size:26px}
+.sec-no{font:600 12px var(--mono);letter-spacing:.06em;color:var(--primary);text-transform:uppercase;white-space:nowrap}
+.verdict{display:grid;grid-template-columns:auto minmax(0,1fr);gap:22px;align-items:center;background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--warning);border-radius:var(--r);padding:20px 22px}
+.verdict-v{font-size:24px;font-weight:700;white-space:nowrap;margin-top:2px}
+.verdict p{margin:0;color:var(--fg2)}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.tiles.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:grid;gap:4px;align-content:start}
+.tile small{font-size:12px;color:var(--fg2)}
+.tile strong{font-size:20px;font-variant-numeric:tabular-nums;line-height:1.3}
+.tile span{font-size:12px;color:var(--muted)}
+.sum-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.sum{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;min-width:0}
+.sum h3{font-size:15px;margin:0 0 6px}
+.sum p{margin:0;color:var(--fg2);font-size:14.5px}
+.dec{margin:0;padding-left:20px;display:grid;gap:6px;color:var(--fg2);font-size:14.5px}
+.dec b{color:var(--fg)}
+.idcard{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.idcard > div{display:grid;grid-template-columns:130px minmax(0,1fr);gap:16px;padding:12px 18px;border-top:1px solid var(--line)}
+.idcard > div:first-child{border-top:0}
+.idcard dt{font-size:13px;font-weight:600;color:var(--fg2)}
+.idcard dd{margin:0;font-size:14.5px}
+.steps{margin:0;padding-left:20px;display:grid;gap:6px}
+.steps b{display:block}
+.tag{display:inline-block;font-size:12.5px;font-weight:600;padding:3px 10px;border-radius:99px;border:1.5px solid var(--primary);color:var(--primary);margin:2px 4px 2px 0}
+.tag.main{background:var(--primary);color:var(--surface)}
+.callout{background:var(--soft);border-radius:var(--r);padding:14px 18px;font-size:14px;color:var(--fg2)}
+.callout b{color:var(--fg);margin-right:6px}
+.find-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.find{background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--muted);border-radius:var(--r);padding:14px 16px;display:grid;gap:6px;align-content:start}
+.find.g{border-top-color:var(--success)} .find.y{border-top-color:var(--warning)} .find.w{border-top-color:var(--muted)}
+.find h4{margin:0;font-size:15px}
+.find p{margin:0;font-size:14px;color:var(--fg2)}
+.badge{font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:6px;background:var(--soft);color:var(--fg2);width:max-content}
+.badge.g{background:color-mix(in srgb,var(--success) 15%,transparent);color:var(--fg)}
+.badge.y{background:color-mix(in srgb,var(--warning) 18%,transparent);color:var(--fg)}
+.badge.w{background:color-mix(in srgb,var(--muted) 18%,transparent);color:var(--fg)}
+code{font-family:var(--mono);font-size:.88em;background:var(--soft);padding:1px 5px;border-radius:4px}
+.fig{margin:0;display:grid;gap:8px}
+.fig figcaption{font-size:12.5px;color:var(--muted);line-height:1.55}
+.fig img{border-radius:var(--r);border:1px solid var(--line);display:block}
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{text-align:left;font-size:12.5px;font-weight:600;color:var(--fg2);background:var(--soft);padding:10px 12px;white-space:nowrap}
+.tbl td{padding:10px 12px;border-top:1px solid var(--line);vertical-align:top}
+.tbl.num td:last-child{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;font-family:var(--mono)}
+.tbl tr.total td{font-weight:700;background:color-mix(in srgb,var(--success) 9%,transparent)}
+.tbl.inv td{font-size:13px}
+.tbl.inv td a{word-break:break-all}
+.pr{font-size:12px;font-weight:700;padding:2px 9px;border-radius:6px;white-space:nowrap}
+.pr.m{background:var(--ink);color:var(--surface)} .pr.s{background:color-mix(in srgb,var(--primary) 16%,transparent);color:var(--primary)}
+.pr.c{background:var(--soft);color:var(--fg2)} .pr.w{background:transparent;color:var(--muted);border:1px dashed var(--line)}
+.lv{font-size:12px;font-weight:600;padding:2px 8px;border-radius:6px;white-space:nowrap}
+.lv.h{background:color-mix(in srgb,var(--danger) 14%,transparent);color:var(--danger)}
+.lv.m{background:color-mix(in srgb,var(--warning) 18%,transparent);color:var(--fg)}
+.lv.l{background:var(--soft);color:var(--fg2)}
+.personas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.persona{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:grid;align-content:start}
+.persona img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block}
+.persona > div{padding:14px 16px;display:grid;gap:6px}
+.persona h4{margin:0;font-size:16px}
+.persona .role{font-size:12.5px;color:var(--muted);margin:0}
+.persona p{margin:0;font-size:14px;color:var(--fg2)}
+.persona q{font-size:14px;font-weight:600;color:var(--fg);quotes:"“" "”"}
+.vp{margin:0;font-size:20px;font-weight:600;line-height:1.5;border-left:4px solid var(--primary);padding:6px 0 6px 18px;text-wrap:balance}
+.policy{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.policy > div{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.policy h4{margin:0 0 4px;font-size:15px}
+.policy p{margin:0;font-size:14px;color:var(--fg2)}
+.cond{margin:0;padding-left:20px;display:grid;gap:6px;font-size:14.5px;color:var(--fg2)}
+.linkbtn{font:inherit;font-size:14px;font-weight:600;color:var(--primary);background:none;border:1.5px solid var(--primary);border-radius:8px;padding:9px 14px;cursor:pointer}
+.vbar{display:grid;gap:8px}
+.vbar .bar{display:flex;height:34px;border-radius:8px;overflow:hidden;font:600 12.5px var(--mono)}
+.vbar .bar span{display:grid;place-items:center;color:var(--surface)}
+.plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.plan{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:grid;gap:2px}
+.plan.hl{border:2px solid var(--primary)}
+.plan small{font-size:12px;color:var(--fg2);font-weight:600}
+.plan strong{font-size:22px;font-variant-numeric:tabular-nums}
+.plan span{color:var(--primary);font-weight:600;font-size:14px}
+.plan p{margin:6px 0 0;font-size:13px;color:var(--muted)}
+.ue{display:grid;gap:12px}
+.ue-flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.ue-flow > div{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 12px;display:grid}
+.ue-flow > div.hl{border-color:var(--success);background:color-mix(in srgb,var(--success) 9%,var(--surface))}
+.ue-flow small{font-size:11.5px;color:var(--fg2)}
+.ue-flow b{font-variant-numeric:tabular-nums}
+.ue-flow i{font-style:normal;color:var(--muted);font-weight:700}
+.swatches{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.swatches > div{display:grid;gap:2px;font-size:13px}
+.swatches i{height:54px;border-radius:8px;display:block;margin-bottom:6px;border:1px solid var(--line)}
+.swatches small{color:var(--muted);font-size:11.5px}
+.swatches span{font-size:11.5px;color:var(--fg2)}
+.scenes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.scenes img{width:100%}
+.northstar{background:var(--ink);color:var(--surface);border-radius:var(--r);padding:18px 22px;display:grid;gap:4px}
+.northstar small{opacity:.75;font-size:12px;font-weight:600;letter-spacing:.06em}
+.northstar strong{font-size:24px}
+.northstar span{opacity:.85;font-size:14px}
+.exps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.exp{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:grid;gap:6px;align-content:start}
+.exp > span{color:var(--primary);font-weight:600;font-size:13px}
+.exp h4{margin:0;font-size:15px}
+.exp dl{margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;font-size:13.5px}
+.exp dt{color:var(--muted);font-weight:600} .exp dd{margin:0;color:var(--fg2)}
+.oq{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.oq > div{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.oq h4{margin:0 0 6px;font-size:14px}
+.oq ul{margin:0;padding-left:18px;font-size:13.5px;color:var(--fg2);display:grid;gap:4px}
+.small{font-size:12.5px;color:var(--muted);margin:0;line-height:1.55}
+.tsec{display:grid;gap:14px;scroll-margin-top:84px}
+.tsec h3{font-size:19px;border-bottom:1px solid var(--line);padding-bottom:8px}
+.filters{display:flex;flex-wrap:wrap;gap:8px}
+.filters button{font:inherit;font-size:13.5px;font-weight:600;border:1.5px solid var(--line);background:var(--surface);color:var(--fg2);border-radius:99px;padding:6px 14px;cursor:pointer}
+.filters button[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--surface)}
+.filters button span{font-family:var(--mono);opacity:.75;margin-left:4px}
+.mcp{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.mcp > div{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:grid;gap:6px;align-content:start}
+.mcp h4{margin:0;font-size:15px}
+.mcp p{margin:0;font-size:13.5px;color:var(--fg2)}
+.chips-nav{display:flex;flex-wrap:wrap;gap:8px}
+.chips-nav a{font-size:13.5px;text-decoration:none;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:6px 12px;border-radius:99px}
+.src h4{margin:14px 0 6px;font-size:14px}
+.src ul{margin:0;padding-left:20px;display:grid;gap:4px;font-size:14px;color:var(--fg2)}
+.code{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;overflow-x:auto;font:12.5px/1.6 var(--mono);color:var(--fg)}
+.code code{background:none;padding:0;font-size:inherit}
+.prompts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.prompt{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:grid;align-content:start}
+.prompt img{width:100%;display:block;border-bottom:1px solid var(--line)}
+.prompt > div{padding:12px 14px;display:grid;gap:6px}
+.prompt b{font-size:14px}
+.prompt p{margin:0;font:12px/1.55 var(--mono);color:var(--fg2)}
+.prompt small{font-size:11.5px;color:var(--muted)}
+.gantt-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--fg2)}
+@media (max-width:960px){
+  .doc-layout{grid-template-columns:minmax(0,1fr)}
+  .toc{position:static;display:flex;flex-wrap:wrap;gap:6px}
+  .toc .eyebrow{width:100%;margin:0}
+  .toc a{border:1px solid var(--line);border-radius:99px;padding:4px 10px;font-size:13px;background:var(--surface)}
+  .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .oq{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .swatches{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .prompts{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:640px){
+  .sum-grid,.find-grid,.policy,.personas,.plans,.exps,.mcp,.scenes,.tiles.three,.prompts{grid-template-columns:minmax(0,1fr)}
+  .verdict{grid-template-columns:minmax(0,1fr)}
+  .idcard > div{grid-template-columns:minmax(0,1fr);gap:4px}
+  .cover h1{font-size:34px}
+  .oq{grid-template-columns:minmax(0,1fr)}
+}
+#ch-effort,#ch-market,#ch-sens{max-width:820px}
+/* prototype */
+.small{font-size:12.5px;color:var(--muted);margin:0;line-height:1.5}
+.p-controls{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center}
+.seg{display:inline-flex;background:var(--soft);border-radius:10px;padding:3px}
+.seg button{font:inherit;font-size:14px;font-weight:600;border:0;background:none;color:var(--fg2);padding:8px 16px;border-radius:8px;cursor:pointer}
+.seg button[aria-checked="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 3px rgba(22,35,63,.15)}
+.switch{display:inline-flex;align-items:center;gap:10px;font-size:14px;font-weight:500;cursor:pointer}
+.switch input{position:absolute;opacity:0;width:1px;height:1px}
+.switch .track{width:40px;height:22px;border-radius:11px;background:var(--line);position:relative;transition:background .15s}
+.switch .knob{position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--surface);transition:left .15s}
+.switch input:checked + .track{background:var(--primary)}
+.switch input:checked + .track .knob{left:21px}
+.switch input:focus-visible + .track{outline:2px solid var(--primary);outline-offset:2px}
+.ghost,.simbtn{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:8px;padding:8px 14px;cursor:pointer;text-align:left}
+.simbtn:hover,.ghost:hover{border-color:var(--primary)}
+.simbtn:disabled{opacity:.45;cursor:not-allowed}
+.p-stage{display:flex;gap:28px;align-items:flex-start;flex-wrap:wrap}
+.p-side{display:grid;gap:14px;flex:1 1 260px;min-width:0;max-width:380px}
+.p-phone-wrap{flex:none;overflow:hidden;border-radius:46px;box-shadow:0 18px 50px rgba(22,35,63,.18)}
+.p-phone{width:390px;height:844px;transform-origin:0 0;background:var(--bg);border:10px solid var(--ink);border-radius:46px;position:relative;overflow:hidden;display:flex;flex-direction:column;color:var(--fg);font-size:15px;line-height:1.45}
+:root[data-theme="dark"] .p-phone{border-color:#05080F}
+.stv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13.5px}
+.stv dt{color:var(--muted)} .stv dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.dot.g{background:var(--success)} .dot.y{background:var(--warning)} .dot.r{background:var(--danger)} .dot.w{background:var(--muted)}
+/* in-phone UI */
+.pp-status{height:40px;flex:none;display:flex;justify-content:space-between;align-items:center;padding:0 24px;font:600 13px var(--mono);background:var(--surface)}
+.pp-bar{height:52px;flex:none;display:flex;align-items:center;gap:8px;padding:0 14px;background:var(--surface);border-bottom:1px solid var(--line);font-weight:700;font-size:17px}
+.pp-bar.shop{justify-content:center;font-weight:600;font-size:15px;letter-spacing:.04em}
+.pp-bar .back{font:inherit;font-size:20px;border:0;background:none;color:var(--fg);cursor:pointer;padding:4px 8px 4px 0}
+.pp-bar .r{margin-left:auto;font-size:13px;font-weight:500;color:var(--fg2)}
+.pp-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.pp-foot{flex:none;padding:6px 14px 8px;font-size:10.5px;color:var(--muted);background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:8px;font-family:var(--mono)}
+.pp-tab{flex:none;display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border-top:1px solid var(--line)}
+.pp-tab button{font:inherit;font-size:11.5px;border:0;background:none;color:var(--muted);padding:9px 0 10px;cursor:pointer;display:grid;justify-items:center;gap:3px}
+.pp-tab button svg{width:20px;height:20px}
+.pp-tab button.on{color:var(--primary);font-weight:700}
+.pc{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:8px}
+.pc.hl{border-color:var(--primary);background:color-mix(in srgb,var(--primary) 7%,var(--surface))}
+.pc.ok{border-color:var(--success);background:color-mix(in srgb,var(--success) 9%,var(--surface))}
+.pc.warn{border-color:var(--warning);background:color-mix(in srgb,var(--warning) 10%,var(--surface))}
+.pc.bad{border-color:var(--danger);background:color-mix(in srgb,var(--danger) 8%,var(--surface))}
+.pc h4{margin:0;font-size:16px}
+.ph1{font-size:22px;font-weight:700;line-height:1.3;margin:4px 0 0}
+.psub{font-size:13.5px;color:var(--fg2);margin:0}
+.pk{display:grid;gap:8px}
+.pk > div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;gap:2px}
+.pk small{font-size:11.5px;color:var(--fg2)}
+.pk strong{font:600 19px var(--mono);font-variant-numeric:tabular-nums}
+.pbtn{font:inherit;font-size:16px;font-weight:600;border:0;border-radius:12px;background:var(--primary);color:#fff;min-height:50px;cursor:pointer;padding:0 16px}
+.pbtn:disabled{background:var(--line);color:var(--muted);cursor:not-allowed}
+.pbtn.ok{background:var(--success)}
+.pbtn2{font:inherit;font-size:15px;font-weight:600;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);color:var(--fg);min-height:46px;cursor:pointer;padding:0 14px}
+.pbtn:focus-visible,.pbtn2:focus-visible,.prow:focus-visible{outline:3px solid color-mix(in srgb,var(--primary) 50%,transparent);outline-offset:2px}
+.plist{display:grid;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.prow{font:inherit;text-align:left;border:0;border-top:1px solid var(--line);background:none;color:var(--fg);padding:12px 14px;display:flex;gap:12px;align-items:center;cursor:pointer;width:100%}
+.plist > .prow:first-child{border-top:0}
+.prow .th{width:42px;height:42px;border-radius:10px;flex:none;background:linear-gradient(135deg,color-mix(in srgb,var(--primary) 30%,var(--soft)),var(--soft))}
+.prow .meta{display:grid;gap:2px;min-width:0;flex:1}
+.prow .meta small{color:var(--fg2);font-size:12px;font-variant-numeric:tabular-nums}
+.prow .chev{color:var(--muted)}
+.pbar{height:10px;border-radius:5px;background:var(--soft);overflow:hidden}
+.pbar i{display:block;height:100%;background:var(--primary);border-radius:5px;transition:width .4s}
+.pbar.ok i{background:var(--success)}
+.pf{display:grid;gap:5px;font-size:12.5px;color:var(--fg2);font-weight:500}
+.pf input,.pf select{font:inherit;font-size:15px;color:var(--fg);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;height:46px;padding:0 12px;width:100%}
+.pf input:focus,.pf select:focus{outline:none;border-color:var(--primary)}
+.pchk{display:flex;gap:10px;align-items:center;font-size:14px}
+.psms{background:var(--surface);border:1px solid var(--line);border-radius:18px 18px 18px 4px;padding:12px 14px;font-size:14px;max-width:300px}
+.psms a{font-weight:600}
+.ptime{text-align:center;font-size:11.5px;color:var(--muted)}
+.pstep{display:flex;align-items:center;gap:0;border:1.5px solid var(--line);border-radius:10px;overflow:hidden;width:max-content}
+.pstep button{font:inherit;font-size:18px;width:44px;height:42px;border:0;background:var(--soft);color:var(--fg);cursor:pointer}
+.pstep span{width:52px;text-align:center;font:600 16px var(--mono)}
+.psheet{position:absolute;inset:0;background:rgba(10,16,30,.45);display:flex;flex-direction:column;justify-content:flex-end;z-index:5}
+.psheet .in{background:var(--surface);border-radius:22px 22px 0 0;padding:18px 16px 22px;display:grid;gap:12px}
+.ppush{position:absolute;top:46px;left:10px;right:10px;z-index:6;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:10px 14px;box-shadow:0 10px 30px rgba(22,35,63,.25);font:inherit;text-align:left;color:var(--fg);cursor:pointer;display:grid;gap:2px}
+.ppush small{color:var(--muted);font-size:11px}
+.ptoast{position:absolute;bottom:92px;left:16px;right:16px;z-index:7;background:var(--ink);color:var(--surface);border-radius:12px;padding:10px 14px;font-size:13.5px}
+.pchip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--soft);color:var(--fg2);width:max-content}
+.pchip.open{background:color-mix(in srgb,var(--primary) 14%,transparent);color:var(--primary)}
+.pchip.ok{background:color-mix(in srgb,var(--success) 16%,transparent);color:var(--success)}
+.pchip.bad{background:color-mix(in srgb,var(--danger) 14%,transparent);color:var(--danger)}
+.pdemo{border:1.5px dashed var(--line);border-radius:12px;padding:12px;font-size:13px;color:var(--fg2);display:grid;gap:8px}
+/* tech layer badges */
+.tb{display:none;position:relative;align-items:center;gap:5px;font:500 10.5px/1.2 var(--mono);padding:3px 7px;border-radius:6px;border:1px solid;width:max-content;max-width:100%;white-space:normal;cursor:help}
+.tech-on .tb{display:inline-flex}
+.tb::before{content:"";width:7px;height:7px;border-radius:50%;flex:none;background:currentColor}
+.tb.g{color:var(--success);border-color:color-mix(in srgb,var(--success) 45%,transparent);background:color-mix(in srgb,var(--success) 8%,var(--surface))}
+.tb.y{color:var(--warning);border-color:color-mix(in srgb,var(--warning) 50%,transparent);background:color-mix(in srgb,var(--warning) 9%,var(--surface))}
+.tb.w{color:var(--muted);border-color:color-mix(in srgb,var(--muted) 50%,transparent);background:var(--surface)}
+.tb.r{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 50%,transparent);background:var(--surface)}
+.tb .tx{color:var(--fg)}
+.tb[data-tip]:hover::after,.tb[data-tip]:focus::after{content:attr(data-tip);position:absolute;left:0;top:calc(100% + 6px);z-index:9;width:250px;background:var(--ink);color:var(--surface);font:400 12px/1.45 var(--font);padding:9px 11px;border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,.25)}
+@media (max-width:760px){.p-side{max-width:none}}
+</style>
+
+<nav class="topnav" aria-label="기획서 탭">
+  <div class="in">
+    <div class="brand"><i>찜</i><span>찜 공구</span></div>
+    <div class="tabs" role="tablist">
+      <button role="tab" data-tab="plan" id="t-plan">기획서</button>
+      <button role="tab" data-tab="tech" id="t-tech">기술 검증</button>
+      <button role="tab" data-tab="flow" id="t-flow">유저 플로우</button>
+      <button role="tab" data-tab="proto" id="t-proto">프로토타입</button>
+      <button role="tab" data-tab="appendix" id="t-appendix">부록</button>
+    </div>
+  </div>
+</nav>
+
+<main>
+<div class="wrap">
+
+<section class="panel" id="plan" role="tabpanel" aria-labelledby="t-plan" hidden>
+  <div class="doc-layout">
+  <aside class="toc" aria-label="기획서 목차">
+    <div class="eyebrow">목차</div>
+    <a href="#s-summary" data-jump>1페이지 요약</a>
+    <a href="#s-4w" data-jump>4주 MVP · 목표</a>
+    <a href="#s-card" data-jump>아이디어 카드</a>
+    <a href="#s-p1" data-jump>1 · 문제 검증</a>
+    <a href="#s-p2" data-jump>2 · 제품 정의</a>
+    <a href="#s-p3" data-jump>3 · 기술 실현성</a>
+    <a href="#s-p4" data-jump>4 · 비즈니스 모델</a>
+    <a href="#s-p5" data-jump>5 · 디자인 · 시각 자료</a>
+    <a href="#s-p8" data-jump>8 · 실행 계획</a>
+  </aside>
+  <article class="doc-body">
+
+  <header class="cover">
+    <div class="eyebrow">제품 기획서 · 내부 팀용 · 2026-10-07 · v1.1 · 타깃 홈리빙 · 4주 MVP</div>
+    <h1>찜 공구</h1>
+    <p class="cover-lead">자사몰에서 이미 찜하거나 장바구니에 담은 고객을 모아, 목표 수량을 채우면 할인가로 여는 판매자용 예약 공동구매. 첫 타깃은 카페24 홈리빙 자체 브랜드입니다.</p>
+    <img class="hero-img" src="images/hero.png" alt="하트(찜)가 휴대폰 대시보드를 거쳐 배송 박스(확정 주문)로 바뀌는 일러스트" width="1376" height="768">
+  </header>
+
+  <!-- ============ 1-page summary ============ -->
+  <section class="sec" id="s-summary">
+    <div class="sec-head"><span class="sec-no">요약</span><h2>1페이지 요약</h2></div>
+    <div class="verdict">
+      <div><div class="eyebrow">기술 실현성 최종 판정</div><div class="verdict-v">조건부 실현 가능</div></div>
+      <p>MVP 핵심 경로의 연동이 모두 카페24 공식 API·웹훅·SDK로 확인됐고, 같은 권한 조합으로 승인된 앱(위시카트)도 있습니다. 결제를 우리가 받지 않아 인허가 부담도 낮습니다. 다만 <b>찜 데이터는 상품 단위 조회라 첫 수집에 수 분~수 시간이 걸리고</b>, 상품별 찜 회원 목록의 100건 한계는 미확인(🟡)입니다. 남은 관문은 <b>카페24 스토어 심사</b>, <b>찜 데이터 수집 방식</b>, <b>위젯 회원 검증</b>, <b>쿠폰 대량 발급</b>입니다.</p>
+    </div>
+    <div class="tiles">
+      <div class="tile"><small>SAM (카페24 자체 브랜드몰)</small><strong>약 324억 원/년</strong><span>구독료만 계산 [추정]</span></div>
+      <div class="tile"><small>SOM (3년, 홈리빙 800몰)</small><strong>15~27억 원/년</strong><span>신청 전환 5~10% · 객단가 7만 원 [추정]</span></div>
+      <div class="tile"><small>몰당 공헌이익률</small><strong>66~76%</strong><span>신청 전환 3~15% 범위</span></div>
+      <div class="tile"><small>4주 MVP 공수</small><strong>약 12인·주</strong><span>핵심 경로만 · 전체 범위는 38인·주 [추정]</span></div>
+    </div>
+    <div class="sum-grid">
+      <div class="sum"><h3>문제</h3><p>침구·그릇 같은 홈리빙 상품은 이사·계절에 맞춰 사려고 찜에 오래 묵혀 둡니다. 홈리빙 브랜드는 원단 롤·가마 1회분처럼 생산 단위가 커서, 최소 수량을 못 채울까 봐 할인도 재생산도 망설입니다. 이 찜 수요를 재생산 전에 확정 주문으로 바꿀 도구가 없습니다.</p></div>
+      <div class="sum"><h3>해결</h3><p>판매자는 찜·장바구니 고객 중 수신동의자에게 공구를 엽니다. 고객은 결제 없이 신청만 합니다. 목표를 채우면 회원 전용 쿠폰이 발급되고, 고객은 자사몰에서 결제합니다. 판매자는 <b>결제가 끝난 확정 수량</b>만큼 발주합니다.</p></div>
+      <div class="sum"><h3>차별점</h3><p>플랫폼 팀구매는 플랫폼이 고른 상품에만 적용되고 고객 데이터도 플랫폼이 가집니다. 찜 공구는 판매자 <b>자기 고객 데이터로</b> 수요를 확인합니다. 크라우드펀딩은 새 고객을 찾는 도구이고, 찜 공구는 이미 찜한 내 고객을 전환합니다.</p></div>
+      <div class="sum"><h3>수익</h3><p>월 구독 29,000원 + 확정 결제액의 1.5%. 판매자 총비용률은 약 1.9~3.7%이고, 와디즈의 실질 13~15%보다 낮습니다. 카페24 스토어 인앱결제로 받습니다.</p></div>
+    </div>
+    <div class="card" style="display:grid;gap:10px">
+      <h3 style="font-size:16px">지금 확정된 결정</h3>
+      <ul class="dec">
+        <li><b>첫 타깃은 카페24 홈리빙 자체 브랜드</b>(침구·패브릭, 그릇·주방, 수납·소품)입니다. 패션잡화·뷰티는 검증 뒤 넓힙니다.</li>
+        <li><b>첫 4주의 목표는 하나</b>입니다. 결제가 끝난 수량으로 생산을 결정한 홈리빙 판매자 1곳을 만듭니다.</li>
+        <li><b>카페24 하나로 시작</b>합니다. 대상은 찜·장바구니 고객이고, 재입고 신청자는 API가 없으면 엑셀 업로드로 받습니다.</li>
+        <li><b>수요 레이더는 숫자(count)만 먼저</b> 보여주고, 회원 목록·수신동의 대조는 공구를 여는 상품에만 합니다. 설치 직후에는 '첫 수집 중' 화면을 거칩니다.</li>
+        <li><b>결제는 판매자 자사몰에서</b> 회원 지정 쿠폰으로 처리합니다. 우리는 결제금을 받지 않습니다.</li>
+        <li>광고 문자는 <b>수신동의 고객에게만</b> 보내고, (광고) 표기와 야간 차단을 시스템에 강제합니다.</li>
+        <li><b>확정 수량은 결제 완료 수량</b>으로 정의하고, 결제 기간은 72시간입니다.</li>
+        <li>판매자는 <b>모바일 PWA</b>를, 고객은 <b>앱 설치 없이</b> 위젯과 문자를 씁니다. 스택은 Next.js와 Node.js/TS, AWS 서울 리전입니다.</li>
+        <li>4주 파일럿 결과를 보고 5주 차에 스토어 심사를 제출합니다. 출시는 카페24 스토어 단독 → 공식 제휴 순서입니다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ 4-week MVP ============ -->
+  <section class="sec" id="s-4w">
+    <div class="sec-head"><span class="sec-no">4주</span><h2>4주 MVP · 목표</h2></div>
+    <div class="northstar"><small>이번 4주의 원씽</small><strong>결제가 끝난 수량으로 생산을 결정한 홈리빙 판매자 1곳</strong><span>찜 고객이 결제 없이 신청하고, 목표가 차면 실제로 돈을 내고, 판매자가 그 숫자로 원단을 발주하거나 가마 일정을 잡는 일이 한 번 끝까지 일어나야 합니다. 북극성 지표(월간 공구 확정 결제액)의 첫 실측값이기도 합니다.</span></div>
+
+    <h3>왜 이 목표인가</h3>
+    <p style="margin:0;color:var(--fg2)">4주 동안 집중할 후보 세 가지를 같은 기준으로 비교했습니다. ○ 충족, △ 일부, ✕ 아님.</p>
+    <div class="tblwrap"><table class="tbl">
+      <thead><tr><th>기준</th><th>A. 스토어 출시 준비</th><th>B. 신청 수요만 확인</th><th>C. 확정 결제 → 생산 결정 <span class="pill g">선택</span></th></tr></thead>
+      <tbody>
+        <tr><td><b>가장 큰 불확실성을 줄이는가</b></td><td>✕ 기술은 공식 API로 이미 확인</td><td>△ 신청에는 구속력이 없음</td><td>○ 신청 → 결제 → 생산 결정을 한 번에 검증</td></tr>
+        <tr><td><b>4주 안에 끝나는가</b></td><td>✕ 심사만 4~6주</td><td>○</td><td>○ 공구 1회(모집 5일 + 결제 72시간)가 들어감</td></tr>
+        <tr><td><b>판매자의 돈과 바로 이어지는가</b></td><td>✕</td><td>△</td><td>○ 확정 결제액이 성공 수수료의 기준</td></tr>
+        <tr><td><b>투자자에게 증거가 되는가</b></td><td>△</td><td>△</td><td>○ 실제 결제 데이터</td></tr>
+      </tbody></table></div>
+
+    <h3>성공 기준 (28일 차에 판정)</h3>
+    <div class="tblwrap"><table class="tbl">
+      <thead><tr><th>지표</th><th>정의</th><th>성공 기준</th><th>측정</th></tr></thead>
+      <tbody>
+        <tr class="total"><td>원씽</td><td>확정 수량으로 발주·생산 일정을 확정한 판매자</td><td>1곳 이상</td><td>판매자 확인 (발주서 또는 가마 일정) + 인터뷰</td></tr>
+        <tr><td>파일럿 규모</td><td>설치한 홈리빙 몰 · 연 공구</td><td>3몰 · 3건 이상</td><td>운영 기록</td></tr>
+        <tr><td>공구 성사율</td><td>목표 달성 ÷ 개설</td><td>60% 이상</td><td>판정 로그</td></tr>
+        <tr><td>초대 → 신청</td><td>신청 회원 ÷ 초대 문자를 받은 회원</td><td>5% 이상</td><td>발송 기록 · 신청 DB</td></tr>
+        <tr><td>신청 → 결제</td><td>72시간 안에 쿠폰으로 결제한 회원 ÷ 신청 회원</td><td>50% 이상</td><td>주문 웹훅 + 야간 대사</td></tr>
+        <tr><td><span class="pill">기술</span> 정확성</td><td>쿠폰 발급 누락, 결제 대사 불일치</td><td>0건</td><td>발급 내역 · 주문 대사</td></tr>
+        <tr><td><span class="pill">보안</span> 개인정보</td><td>우리 DB에 저장된 전화번호·이름</td><td>0건</td><td>스키마 점검 · 접근 기록</td></tr>
+      </tbody></table></div>
+
+    <h3>판정 규칙 (결과를 보기 전에 정해 둡니다)</h3>
+    <div class="exps">
+      <div class="exp"><span>Go</span><h4>다음 단계로</h4><p style="margin:0;font-size:13.5px;color:var(--fg2)">성공 기준을 모두 충족하면 5주 차에 카페24 스토어 심사를 제출하고, 파일럿을 홈리빙 10몰로 늘립니다.</p></div>
+      <div class="exp"><span style="color:var(--warning)">보완 · 2주 추가</span><h4>결제 조건을 고친다</h4><p style="margin:0;font-size:13.5px;color:var(--fg2)">성사율과 신청 전환은 충족했는데 결제 전환이 50% 미만이면, 결제 기간(48시간 대 72시간), 할인 폭, 예상 출고일 안내를 바꿔 공구 2건을 더 엽니다.</p></div>
+      <div class="exp"><span style="color:var(--danger)">재검토</span><h4>가정을 다시 본다</h4><p style="margin:0;font-size:13.5px;color:var(--fg2)">공구 3건 모두 신청 전환이 2% 미만이면 개발을 멈추고 문자 채널, 할인 폭, 홈리빙 안 세부 품목 가정을 다시 봅니다.</p></div>
+    </div>
+
+    <h3>4주 범위: 만든다 · 사람이 대신 · 뺀다</h3>
+    <div class="tblwrap"><table class="tbl">
+      <thead><tr><th>기능</th><th>4주 처리</th><th>이유</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">F1</td><td><span class="pr m">만든다</span> 지정 몰 설치·OAuth</td><td>스토어 심사 없이 파일럿 몰에만 설치합니다 (P7).</td></tr>
+        <tr><td class="mono">F2</td><td><span class="pr s">축소</span> 찜 많은 상위 20개 상품 목록</td><td>화면 대신 운영팀이 판매자에게 목록을 공유합니다.</td></tr>
+        <tr><td class="mono">F3</td><td><span class="pr s">사람이 대신</span> 운영자 화면에서 입력</td><td>판매자와 통화하며 목표 수량·할인가·출고일을 함께 정합니다. 판매자 앱은 Go 이후에 만듭니다.</td></tr>
+        <tr><td class="mono">F4</td><td><span class="pr m">만든다</span> 초대 발송</td><td>수신동의 필터, (광고) 표기, 야간 차단은 법규라 사람이 대신하면 안 됩니다.</td></tr>
+        <tr><td class="mono">F5·F6</td><td><span class="pr m">만든다</span> 위젯 · 참여 신청</td><td>고객 경험과 회원 검증이 실험의 핵심입니다.</td></tr>
+        <tr><td class="mono">F7·F8</td><td><span class="pr m">만든다</span> 마감 판정 · 쿠폰 발급</td><td>돈과 신뢰가 걸린 경로입니다. 수동 실행 버튼을 함께 둡니다.</td></tr>
+        <tr><td class="mono">F9</td><td><span class="pr m">만든다</span> 주문 웹훅 + 야간 대사</td><td>확정 수량이 원씽의 숫자입니다.</td></tr>
+        <tr><td class="mono">F10</td><td><span class="pr s">축소</span> 읽기 전용 리포트 페이지</td><td>판매자가 공방·공장에 링크로 공유합니다.</td></tr>
+        <tr><td class="mono">그 외</td><td><span class="pr w">뺀다</span> F11~F15, 판매자 PWA·푸시, 과금, 연장, 대기열</td><td>4주 판정에 필요하지 않습니다. 파일럿은 무료입니다.</td></tr>
+      </tbody></table></div>
+    <p class="small">핵심 경로만 약 12인·주 [추정]입니다. 개발 인원 4명이 1~3주 차에 만들고, 4주 차는 운영과 측정에 씁니다. 전체 범위(38인·주)는 Go 판정 뒤 이어서 만듭니다.</p>
+
+    <h3>주차별 계획</h3>
+    <div class="oq">
+      <div><h4>1주 · 관문 확인</h4><ul><li>PoC P2 회원 검증, P3 쿠폰 1,000명, P7 지정 몰 설치, P8 찜 100명 초과</li><li>홈리빙 파일럿 3몰 섭외, 처리 위탁 계약</li><li>성공 기준 시트 확정</li><li><b>끝 조건</b>: 위조 회원 ID 100% 거부, 쿠폰 누락 0, 3몰 설치 확인</li></ul></div>
+      <div><h4>2주 · 초대 → 신청</h4><ul><li>설치·토큰, 대상 추출, 수신동의 필터</li><li>SMS 발송 ((광고) 표기, 야간 차단)</li><li>위젯 · 신청 API</li><li><b>끝 조건</b>: 테스트몰에서 초대부터 신청까지 통과</li></ul></div>
+      <div><h4>3주 · 판정 → 결제, 첫 공구</h4><ul><li>마감 판정, 쿠폰 발급, 주문 웹훅·대사, 리포트</li><li>보안 점검</li><li>17일 차 파일럿 공구 3건 오픈 (모집 5일)</li><li><b>끝 조건</b>: 공구 3건 오픈, 연동 오류 0</li></ul></div>
+      <div><h4>4주 · 결제 → 결정</h4><ul><li>22일 차 마감 판정, 72시간 결제</li><li>26일 차 확정 리포트</li><li>판매자 발주 확인 인터뷰</li><li><b>28일 차</b>: Go · 보완 · 재검토 판정</li></ul></div>
+    </div>
+
+    <h3>4주 리스크와 대체 경로</h3>
+    <div class="tblwrap"><table class="tbl">
+      <thead><tr><th>리스크</th><th>대체 경로</th></tr></thead>
+      <tbody>
+        <tr><td>지정 몰 설치(P7)가 막힘</td><td>판매자가 카페24 관리자에서 직접 쿠폰을 발급하고, 우리는 공구 페이지와 집계만 맡는 수동 방식으로 같은 실험을 합니다.</td></tr>
+        <tr><td>파일럿 몰 섭외 지연</td><td>1주 차 첫날 후보 10곳에 연락합니다. 찜이 100개 넘는 품절 상품이 있는 몰을 먼저 고릅니다.</td></tr>
+        <tr><td>쿠폰 대량 발급 실패</td><td>100명씩 나눠 발급하고 발급 내역으로 대사합니다 (P3).</td></tr>
+        <tr><td>홈리빙은 생산 기간이 길어 출고가 늦음</td><td>예상 출고일을 신청 화면에 크게 보여 주고, 결제 전환을 출고일 구간별로 따로 봅니다.</td></tr>
+        <tr><td>결과 문자의 광고성 판단(P5) 미정</td><td>결론이 나기 전에는 수신동의 고객에게만 보냅니다.</td></tr>
+      </tbody></table></div>
+    <div class="callout"><b>개인정보 · 보안</b> 전화번호와 이름은 저장하지 않고, 문자는 카페24 SMS에 회원 ID만 넘겨 보냅니다. 파일럿 몰과 처리 위탁 계약을 먼저 맺고, 운영자 화면은 접근 기록을 남깁니다. 탈퇴 웹훅(90147)을 받으면 바로 지웁니다. 테스트 데이터와 실제 몰 데이터는 분리합니다.</div>
+  </section>
+
+  <!-- ============ Step 0 card ============ -->
+  <section class="sec" id="s-card">
+    <div class="sec-head"><span class="sec-no">Step 0</span><h2>아이디어 카드 (원문)</h2></div>
+    <dl class="idcard">
+      <div><dt>제품명</dt><dd>② 찜 공구</dd></div>
+      <div><dt>한 줄 정의</dt><dd>자사몰에서 이미 찜하거나 재입고 알림을 신청한 고객을 모아, 목표 수량을 채우면 할인가로 여는 판매자용 예약 공동구매</dd></div>
+      <div><dt>영감</dt><dd>위시어폰 (iOS 쇼핑 위시리스트 앱 WishUpon)</dd></div>
+      <div><dt>해결하는 문제</dt><dd>위시어폰이 보여 주듯 소비자는 '언젠가 살 것'을 찜으로 쌓아 둔다. 하지만 그 찜은 구매로 이어지지 않고 잠든다. 소규모 브랜드는 반대로 재고 부담 때문에 할인도 재생산도 망설인다. 찜한 고객의 수요를 판매자가 확정 주문으로 바꿀 도구가 없다. 크라우드펀딩은 새 고객을 찾는 곳이지, 이미 찜한 내 고객을 전환하는 도구가 아니다.</dd></div>
+      <div><dt>작동 방식</dt><dd><ol class="steps"><li><b>공구 개설</b> 판매자가 찜·재입고 신청·장바구니 보관 고객을 대상으로 '목표 수량, 할인가, 실제 마감일'을 정해 공구를 연다</li><li><b>참여 신청만, 결제는 나중에</b> 고객은 신청만 한다. 목표를 채우면 할인가 결제 링크를 받고, 못 채우면 '진행 안 됨' 안내만 받는다</li><li><b>확정 수량으로 발주</b> 판매자는 달성 수량을 보고 발주나 생산을 결정한다. 재고 위험 없이 할인할 수 있다</li></ol></dd></div>
+      <div><dt>타깃 사용자</dt><dd>찜·재입고 알림 신청이 쌓여 있는 소규모 브랜드 자사몰 판매자와 그 단골 고객</dd></div>
+      <div><dt>페인포인트</dt><dd><span class="tag main">주력 Ⓓ 프로모션 설계</span> <span class="tag">연관 Ⓐ 담기·보관</span> <span class="tag">연관 Ⓔ 망설임·이탈 회수</span></dd></div>
+      <div><dt>차별점</dt><dd>대형 플랫폼의 팀구매는 플랫폼이 고른 상품에만 적용되고, 찜 고객 연락권은 판매자에게 주지 않는다. 이 앱은 판매자가 자기 고객 데이터로 직접 수요를 확인한다. 이 단계(ⓓ)는 숨은 기업 3곳 모두 비어 있다 (깨지는 조건: 카페24가 같은 기능을 기본 제공할 때)</dd></div>
+      <div><dt>점수</dt><dd>실현성 5 · 차별성 5 · 수익성 5 = <b>15/15</b> · 투표 ▲3 (유정, 보성, 혜수)</dd></div>
+    </dl>
+    <div class="callout"><b>카드와 달라진 점 [제안, 모두 합의됨]</b>
+      ① '결제 링크'는 <b>회원 지정 쿠폰 + 자사몰 결제</b>로 바꿨습니다. 결제금을 우리가 받지 않으려는 것입니다.
+      ② '달성 수량'은 <b>결제 완료 수량</b>으로 정의했습니다. 신청에는 구속력이 없기 때문입니다.
+      ③ 재입고 신청자는 API를 찾지 못해(⚪) 엑셀 업로드로 받습니다.
+      '숨은 기업 3곳'은 무엇인지 알 수 없어 분석에서 뺐습니다.
+      ④ 2026-10-07: 첫 타깃을 <b>카페24 홈리빙 자체 브랜드</b>로 좁혔습니다.</div>
+  </section>
+
+  <!-- ============ Phase 1 ============ -->
+  <section class="sec" id="s-p1">
+    <div class="sec-head"><span class="sec-no">Phase 1</span><h2>문제 검증 &amp; 리서치</h2></div>
+
+    <h3>기획 방향을 바꾼 발견 4가지</h3>
+    <div class="find-grid">
+      <div class="find y"><span class="badge y">🟡 조건부</span><h4>찜·장바구니 고객을 API로 가져올 수 있다. 단, 즉시는 아니다</h4><p>상품별 찜(<code>READ_PRIVACY</code>)과 장바구니(<code>READ_PERSONAL</code>)를 공식 API로 조회할 수 있지만 상품 하나씩 물어봐야 합니다. 찜 회원 목록은 페이지 넘김이 없어 100명 초과분을 받을 수 있는지 미확인이고, 장바구니는 몰의 보관 기간(예: 7일)이 지나면 사라집니다. 자세한 내용은 기술 검증 탭의 '찜·장바구니 수집 현실성'에 있습니다.</p></div>
+      <div class="find w"><span class="badge w">⚪ 미확인</span><h4>재입고 신청자 목록 API는 못 찾았다</h4><p>문서에는 설정 API만 있습니다. MVP는 찜·장바구니로 시작하고, 재입고는 엑셀 업로드로 받습니다.</p></div>
+      <div class="find y"><span class="badge y">⚠ 규제</span><h4>공구 안내는 광고성 정보다</h4><p>정보통신망법 제50조에 따라 수신동의 고객에게만 보내고, (광고) 표기와 21시~08시 발송 차단이 필요합니다. 실제 도달 = 찜 × 수신동의율입니다.</p></div>
+      <div class="find g"><span class="badge g">💡 구조</span><h4>결제를 우리가 받지 않는다</h4><p>회원 지정 쿠폰으로 고객이 자사몰에서 결제합니다. 그래서 PG나 전자금융업 등록이 필요 없는 구조입니다.</p></div>
+    </div>
+
+    <h3>시장 규모 [추정]</h3>
+    <figure class="fig"><div id="ch-market"></div>
+      <figcaption>TAM = 활성 자사몰 40만 × 연 구독료 36만 원 · SAM = 카페24 활성몰 30만 × 자체 브랜드 30% × 36만 원 · 교두보 = SAM 대상 9만 몰 × 홈리빙 비중 9% ≈ 8,100몰 × 몰당 연 매출 186만~337만 원(구독 + 성공 수수료, 객단가 7만 원) · SOM = 3년 안에 교두보의 10%인 800몰. 위 두 줄은 구독료만, 아래 두 줄은 성공 수수료까지 넣어 기준이 다릅니다. 홈리빙 비중 9%는 생활용품 7.3%(국가데이터처, 2026년 5월 보도 재인용) + 가구 약 2%(미확인) 가정입니다. 카페24 고객사 200만 곳은 휴면 계정을 포함한 수치이고, 활성몰 30만 곳은 출처를 직접 검증하지 못했습니다.</figcaption></figure>
+    <div class="tiles three">
+      <div class="tile"><small>장바구니 이탈률 (50개 연구 평균)</small><strong>70.22%</strong><span>Baymard, 2025-09-22</span></div>
+      <div class="tile"><small>카페24 쇼핑몰 거래액 (2026년 2분기)</small><strong>3.75조 원</strong><span>분기 기준 역대 최대</span></div>
+      <div class="tile"><small>찜 → 구매 전환율</small><strong>⚪ 공개 통계 없음</strong><span>파일럿에서 API로 직접 측정</span></div>
+    </div>
+
+    <h3>지금은 이 문제를 어떻게 해결하나</h3>
+    <div class="tblwrap"><table class="tbl">
+      <thead><tr><th>대체재</th><th>방식</th><th>한계</th></tr></thead>
+      <tbody>
+        <tr><td><b>와디즈 · 텀블벅</b></td><td>크라우드펀딩 선주문</td><td>새 고객을 모으는 곳이고 내 몰 밖에서 진행됩니다. 실질 비용률 13~15%</td></tr>
+        <tr><td><b>올웨이즈 팀구매</b></td><td>플랫폼이 판매량을 보장</td><td>10% 할인과 무료배송이 필수이고, 품목당 셀러 1명만 받습니다. 고객 데이터는 플랫폼 소유</td></tr>
+        <tr><td><b>카카오 톡딜</b></td><td>2명이 모이면 할인</td><td>카카오 쇼핑하기 안에서만 동작하고 자사몰 고객과 연결되지 않습니다</td></tr>
+        <tr><td><b>수동 운영</b></td><td>인스타 공구, 구글폼 + SMS</td><td>찜 데이터를 못 쓰고, 수신동의 관리와 집계를 손으로 해야 합니다</td></tr>
+        <tr><td><b>카페24 기본 기능</b></td><td>재입고 알림, 쿠폰</td><td>"목표 수량을 달성하면 할인"하는 조건부 구조가 없습니다</td></tr>
+      </tbody></table></div>
+
+    <h3>페르소나</h3>
+    <div class="personas">
+      <div class="persona"><img src="images/persona-seller.jpg" alt="원단 샘플이 놓인 작업실 책상에서 휴대폰을 보는 브랜드 대표 일러스트" width="1024" height="1024"><div><span class="badge">돈을 내는 쪽</span><h4>김도윤 · 35세</h4><p class="role">1인 패브릭 소품 브랜드 대표 (쿠션 커버·테이블 러너) · 카페24 · 월매출 약 3천만 원</p><p>품절된 린넨 쿠션 커버에 찜이 수백 개 쌓여 있지만, 원단 최소 주문 수량을 채울 수 있을지 몰라 재생산을 못 합니다.</p><q>찜한 사람 중 몇 명이 진짜 살지 알면 바로 발주할 텐데.</q></div></div>
+      <div class="persona"><img src="images/persona-crm.jpg" alt="노트북으로 차트를 보는 리빙 브랜드 CRM 담당자 일러스트" width="1024" height="1024"><div><span class="badge">매일 쓰는 쪽</span><h4>박서연 · 29세</h4><p class="role">7인 홈리빙 브랜드(패브릭·테이블웨어) CRM 담당자</p><p>할인 행사를 하면 마진만 깎이고 재고가 남았습니다. 수신동의와 (광고) 표기가 늘 걱정입니다.</p><q>할인을 하더라도 팔릴 만큼만 하고 싶어요.</q></div></div>
+      <div class="persona"><img src="images/persona-shopper.jpg" alt="소파에서 휴대폰으로 찜한 상품을 보는 고객 일러스트" width="1024" height="1024"><div><span class="badge">최종 사용자</span><h4>이하은 · 31세</h4><p class="role">이사를 앞두고 침구·그릇 찜 30개를 쌓아 둔 단골 고객</p><p>이사 날짜에 맞춰 사려고 일단 찜해 두지만, 정가로는 망설입니다.</p><q>결제 없이 신청만 하는 거면 일단 눌러 볼래요.</q></div></div>
+    </div>
+    <p class="small">페르소나는 [추정]이며 고객 인터뷰로 검증해야 합니다. 2026-10-07부터 첫 타깃을 홈리빙으로 좁혔고, 선정 기준은 투자 제안서 01장 비교표와 같습니다. 이미지는 Figma로 생성한 일러스트로, 실존 인물이 아닙니다.</p>
+  </section>
+
+  <!-- ============ Phase 2 ============ -->
+  <section class="sec" id="s-p2">
+    <div class="sec-head"><span class="sec-no">Phase 2</span><h2>제품 정의</h2></div>
+    <blockquote class="vp">찜만 쌓여 있던 수요를, 결제가 끝난 확정 주문으로 바꿔 준다. 판매자는 팔린 만큼만 만들고, 고객은 신청만 하면 된다.</blockquote>
+    <div class="sum-grid">
+      <div class="sum"><h3>판매자 JTBD</h3><p>품절 상품을 재생산하거나 할인하기로 결정할 때, 이미 관심을 보인 내 고객 중 <b>실제로 살 사람이 몇 명인지</b> 알고 싶다. 그래야 재고 위험 없이 발주하고 할인할 수 있다.</p></div>
+      <div class="sum"><h3>고객 JTBD</h3><p>찜해 둔 상품이 싸질 때 알고 싶다. 다만 <b>미리 돈을 내는 부담은</b> 지고 싶지 않다.</p></div>
+    </div>
+
+    <h3>사용자 여정: As-Is → To-Be</h3>
+    <figure class="fig"><div class="scroll" id="d-journey"></div><figcaption>D5 · 위는 지금(As-Is), 아래는 찜 공구 도입 후(To-Be)입니다. 빨간 점은 마찰이 생기는 지점입니다.</figcaption></figure>
+
+    <h3>서비스 블루프린트</h3>
+    <figure class="fig"><div class="scroll" id="d-blueprint"></div><figcaption>D1 · 카드의 작동 방식 3단계를 고객 행동 / 판매자 행동 / 찜 공구 시스템 / 카페24 4개 레인으로 펼쳤습니다. 가시선 아래는 사용자에게 보이지 않는 처리입니다.</figcaption></figure>
+
+    <h3>기능 목록 &amp; MVP 범위 (MoSCoW)</h3>
+    <div class="tblwrap"><table class="tbl">
+      <thead><tr><th>ID</th><th>기능</th><th>카드 단계</th><th>우선순위</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">F1</td><td>카페24 앱 설치와 권한 연결 (OAuth)</td><td>전제</td><td><span class="pr m">Must</span></td></tr>
+        <tr><td class="mono">F2</td><td>수요 레이더: 상품별 찜·장바구니 수와 수신동의자 수</td><td>① 개설</td><td><span class="pr m">Must</span></td></tr>
+        <tr><td class="mono">F3</td><td>공구 개설: 목표 수량, 할인가, 실제 마감일, 결제 기간, 1인 한도</td><td>① 개설</td><td><span class="pr m">Must</span></td></tr>
+        <tr><td class="mono">F4</td><td>초대 발송: 수신동의자만, (광고) 표기 자동, 21시~08시 차단</td><td>① 개설</td><td><span class="pr m">Must</span></td></tr>
+        <tr><td class="mono">F5</td><td>상품 페이지 위젯: 진행률과 참여 신청 버튼</td><td>② 신청</td><td><span class="pr m">Must</span></td></tr>
+        <tr><td class="mono">F6</td><td>참여 신청 (로그인 회원, 결제 없음)</td><td>② 신청</td><td><span class="pr m">Must</span></td></tr>
+        <tr><td class="mono">F7</td><td>마감 판정과 결과 안내 (달성 / 진행 안 됨)</td><td>② 신청</td><td><span class="pr m">Must</span></td></tr>
+        <tr><td class="mono">F8</td><td>달성 시 회원 전용 쿠폰 자동 발급</td><td>② 신청</td><td><span class="pr m">Must</span></td></tr>
+        <tr><td class="mono">F9</td><td>결제 추적: 쿠폰을 쓴 주문 집계</td><td>③ 발주</td><td><span class="pr m">Must</span></td></tr>
+        <tr><td class="mono">F10</td><td>확정 수량 리포트와 발주 메모</td><td>③ 발주</td><td><span class="pr m">Must</span></td></tr>
+        <tr><td class="mono">F11</td><td>성과 대시보드 (초대 → 신청 → 결제 퍼널)</td><td>③ 발주</td><td><span class="pr s">Should</span></td></tr>
+        <tr><td class="mono">F12</td><td>재입고 신청자 연동 (API 또는 엑셀 업로드)</td><td>① 개설</td><td><span class="pr s">Should</span></td></tr>
+        <tr><td class="mono">F13</td><td>대기열: 결제하지 않은 자리를 다음 신청자에게</td><td>② 신청</td><td><span class="pr s">Should</span></td></tr>
+        <tr><td class="mono">F14</td><td>단계별 할인 (100개 10%, 200개 15%)</td><td>① 개설</td><td><span class="pr c">Could</span></td></tr>
+        <tr><td class="mono">F15</td><td>다른 쇼핑몰 플랫폼, 판매자용 MCP 서버</td><td>확장</td><td><span class="pr c">Could</span></td></tr>
+        <tr><td class="mono">–</td><td>자체 결제(PG), 비회원 참여, 새 고객을 찾는 마켓플레이스</td><td>–</td><td><span class="pr w">Won't</span></td></tr>
+      </tbody></table></div>
+
+    <h3>앱 형태</h3>
+    <div class="sum-grid">
+      <div class="sum"><h3>판매자 · 카페24 앱 + 모바일 PWA</h3><p>설치와 권한은 카페24 안에서 끝납니다. 진행 확인과 발주 결정은 휴대폰에서 자주 하므로 모바일 최적화가 필요합니다. 네이티브 앱은 심사 기간만 늘려 얻는 게 적습니다.</p></div>
+      <div class="sum"><h3>고객 · 앱 설치 없음</h3><p>자사몰 상품 페이지 위젯, 문자 알림, 모바일 웹 '내 공구' 페이지로 진행합니다. 경험은 브랜드 몰 안에서 끝나야 하고, 앱 설치를 요구하면 참여율이 떨어집니다.</p></div>
+    </div>
+
+    <h3>시스템 구조 &amp; 돈의 흐름</h3>
+    <figure class="fig"><div class="scroll" id="d-money"></div><figcaption>D2 · 실선은 돈, 점선은 데이터입니다. 고객이 내는 돈은 판매자 PG로만 갑니다. 우리는 판매자에게서 구독료와 성공 수수료를 카페24 스토어를 거쳐 받습니다.</figcaption></figure>
+
+    <h3>핵심 정책</h3>
+    <div class="policy">
+      <div><h4>확정 수량</h4><p>결제 기간(기본 72시간) 안에 쿠폰으로 결제한 수량만 확정으로 칩니다. 결제 기간 중에는 '예상 확정 수량 = 신청 × 예상 결제율'을 함께 보여줍니다.</p></div>
+      <div><h4>가격</h4><p>할인가가 원가보다 낮으면 경고합니다. 할인 전 가격은 실제로 판매했던 정가만 표시합니다.</p></div>
+      <div><h4>마감</h4><p>실제 마감 시각이 지나야 판정합니다. 연장은 1회만, 사유를 공개합니다. 가짜 카운트다운은 쓰지 않습니다.</p></div>
+      <div><h4>미달</h4><p>기본은 '진행 안 됨' 안내입니다. 판매자가 "그래도 진행"을 고르면 참여자 전원에게 다시 안내합니다.</p></div>
+    </div>
+    <div class="tblwrap"><table class="tbl">
+      <thead><tr><th>리스크</th><th>규칙</th></tr></thead>
+      <tbody>
+        <tr><td>허수 신청 (다중 계정, 경쟁사)</td><td>로그인 회원만 신청, 1인 한도, 가입 직후 계정은 '검토' 표시, 암호화 회원 ID 서버 검증</td></tr>
+        <tr><td>쿠폰 공유·재판매</td><td>회원 지정, 1회용, 공구 상품 한정, 결제 기간 안에서만 유효</td></tr>
+        <tr><td>결제하지 않은 자리</td><td>결제 기간이 끝나면 대기열로 넘김 (F13)</td></tr>
+        <tr><td>광고 규제 위반</td><td>수신 미동의자는 발송 대상에서 시스템적으로 제외, 발송 기록 보관</td></tr>
+        <tr><td>배송 지연 분쟁</td><td>예상 출고일 필수 입력과 고객 고지 (전자상거래법 제15조)</td></tr>
+      </tbody></table></div>
+  </section>
+
+  <!-- ============ Phase 3 ============ -->
+  <section class="sec" id="s-p3">
+    <div class="sec-head"><span class="sec-no">Phase 3</span><h2>기술 실현성 (요약)</h2></div>
+    <div class="vbar" id="vbar"></div>
+    <div class="sum-grid">
+      <div class="sum"><h3>판정을 바꿀 결정적 조건</h3><ol class="cond"><li><b>카페24 스토어 심사</b>가 <code>READ_PRIVACY</code> 등 필요한 권한과 서비스 성격을 승인하는가 (P4)</li><li><b>찜 회원 전원</b>을 받을 수 있는가: 상품별 조회가 100명에서 끊기면 회원별 찜 + 로그인 웹훅으로 보완 (P8)</li><li>위젯에서 <b>로그인 회원을 위조 없이 서버가 검증</b>할 수 있는가 (P2)</li><li><b>회원 지정 쿠폰 대량 발급</b>이 1,000명 단위에서 안정적인가 (P3)</li></ol></div>
+      <div class="sum"><h3>좋은 발견</h3><p>카페24 SMS API가 회원 ID만으로 발송하고 수신거부자도 자동으로 빼 줍니다. 그래서 <b>우리 서버는 고객 전화번호를 저장하지 않아도 됩니다.</b> 카페24 공식 MCP 서버도 있지만, 결제·개인정보 경로에는 쓰지 않습니다.</p></div>
+    </div>
+    <p><button class="linkbtn" data-tabgo="tech">기술 검증 탭에서 전체 보기 → 연동 인벤토리 · 연동 지도 · 시퀀스 · API · 공수</button></p>
+  </section>
+
+  <!-- ============ Phase 4 ============ -->
+  <section class="sec" id="s-p4">
+    <div class="sec-head"><span class="sec-no">Phase 4</span><h2>비즈니스 모델 &amp; 유닛 이코노믹스</h2></div>
+    <h3>요금제: 월 구독 + 성공 수수료</h3>
+    <div class="plans">
+      <div class="plan"><small>체험</small><strong>0원</strong><span>성공 수수료 3%</span><p>공구 월 1회</p></div>
+      <div class="plan hl"><small>스타터 · 기본안</small><strong>29,000원/월</strong><span>성공 수수료 1.5%</span><p>공구 월 3회, 수요 레이더</p></div>
+      <div class="plan"><small>그로스</small><strong>79,000원/월</strong><span>성공 수수료 1.0%</span><p>공구 무제한, 대기열, 엑셀 업로드</p></div>
+    </div>
+    <p class="small">성공 수수료는 결제가 끝난 확정 결제액에만 붙습니다. 목표 미달로 진행되지 않으면 수수료는 0원입니다.</p>
+
+    <h3>단위 경제 (스타터 몰 1곳, 월) [추정]</h3>
+    <div class="ue">
+      <div class="ue-flow">
+        <div><small>월 공구</small><b>2회</b></div><i>×</i><div><small>초대</small><b>2,000명</b></div><i>×</i><div><small>신청 전환</small><b>10%</b></div><i>×</i><div><small>결제 전환</small><b>60%</b></div><i>×</i><div><small>객단가 (홈리빙)</small><b>70,000원</b></div><i>=</i><div class="hl"><small>월 확정 결제액</small><b>1,680만 원</b></div>
+      </div>
+      <div class="tblwrap"><table class="tbl num">
+        <tbody>
+          <tr><td>우리 매출 (29,000 + 1,680만 × 1.5%)</td><td>281,000원</td></tr>
+          <tr><td>카페24 스토어 수수료 (앱 매출의 20%, P6 확인 전 가정)</td><td>−56,200원</td></tr>
+          <tr><td>인프라 (AWS 월 300만 원 ÷ 300몰)</td><td>−10,000원</td></tr>
+          <tr><td>카페24 API 호출 (호출당 과금 없음 [문서])</td><td>0원</td></tr>
+          <tr><td>CS · 운영</td><td>−5,000원</td></tr>
+          <tr class="total"><td>공헌이익</td><td>209,800원 (75%)</td></tr>
+        </tbody></table></div>
+    </div>
+    <p class="small">문자비는 판매자의 카페24 SMS 충전분에서 차감되며 우리 원가가 아닙니다. 알림톡 1건 = SMS 0.7건 = 약 13.3원이라는 자료로 역산하면 SMS 1건은 약 19원이고, 공구당 약 41,800원입니다 [추정]. 판매자 총비용률은 약 2.1%입니다.</p>
+
+    <h3>민감도: 초대 → 신청 전환율</h3>
+    <figure class="fig"><div id="ch-sens"></div><figcaption>D6 · 다른 가정은 고정했습니다. 3%까지 떨어져도 공헌이익률은 66%이고, 판매자 비용률은 3.7%로 와디즈(13~15%)의 3분의 1 이하입니다. 진짜 위험은 목표 미달로 공구 자체가 성사되지 않는 것이라, 수요 레이더에서 목표 수량을 추천합니다.</figcaption></figure>
+
+    <h3>실행 시나리오</h3>
+    <div class="tblwrap"><table class="tbl">
+      <thead><tr><th></th><th>A. 카페24 스토어 단독 <span class="pill g">권장 1단계</span></th><th>B. 카페24 공식 제휴 <span class="pill g">권장 2단계</span></th><th>C. 멀티 플랫폼 독립 SaaS</th></tr></thead>
+      <tbody>
+        <tr><td>방식</td><td>일반 앱 심사 후 판매</td><td>공동 마케팅, 추천 앱 지정, 수익 배분</td><td>아임웹 등으로 확장, 자체 PG로 구독 과금</td></tr>
+        <tr><td>기간</td><td>4~6주</td><td>3~6개월</td><td>6~12개월</td></tr>
+        <tr><td>장점</td><td>가장 빠르고 유입 채널이 바로 생김</td><td>'카페24가 직접 출시' 리스크를 협력으로 전환</td><td>플랫폼 의존 분산</td></tr>
+        <tr><td>단점</td><td>수수료율 ⚪, 카페24 종속</td><td>협상력이 성과에 좌우됨</td><td>공수 2배, 집중도 하락</td></tr>
+      </tbody></table></div>
+
+    <h3>비즈니스 리스크</h3>
+    <div class="tblwrap"><table class="tbl">
+      <thead><tr><th>리스크</th><th>대응</th></tr></thead>
+      <tbody>
+        <tr><td>신청은 많은데 결제가 적음</td><td>결제 완료 기준 확정 수량, 대기열, 예상 결제율 표시</td></tr>
+        <tr><td>카페24가 같은 기능을 기본으로 출시</td><td>시나리오 B로 선제 제휴. 대사·리포트·추천 기능으로 깊이 확보</td></tr>
+        <tr><td>수신동의 고객이 적어 도달이 낮음</td><td>위젯은 동의 없이 노출 가능, 수신동의 유도 쿠폰</td></tr>
+        <tr><td>판매자가 원가 미만으로 할인</td><td>개설 단계 원가 경고, 업종별 할인율 가이드</td></tr>
+        <tr><td>문자비 부담으로 이탈</td><td>최근 30일 찜·장바구니로 대상 축소 옵션, 예상 문자비 사전 표시</td></tr>
+        <tr><td>스토어 수수료가 가정보다 높음</td><td>P6로 조기 확인. 30%여도 공헌이익률 약 65%</td></tr>
+      </tbody></table></div>
+  </section>
+
+  <!-- ============ Phase 5 ============ -->
+  <section class="sec" id="s-p5">
+    <div class="sec-head"><span class="sec-no">Phase 5</span><h2>디자인 토큰 &amp; 사용 장면</h2></div>
+    <div class="swatches">
+      <div><i style="background:#16233F"></i><b>Ink</b><span class="mono">#16233F</span><small>제목 · 본문 · 앱바</small></div>
+      <div><i style="background:#2F5BEA"></i><b>Primary</b><span class="mono">#2F5BEA</span><small>주요 버튼 · 진행 중</small></div>
+      <div><i style="background:#12B886"></i><b>Success</b><span class="mono">#12B886</span><small>달성 · 결제 완료 · 🟢</small></div>
+      <div><i style="background:#F59F00"></i><b>Warning</b><span class="mono">#F59F00</span><small>마감 임박 · 🟡</small></div>
+      <div><i style="background:#E03131"></i><b>Danger</b><span class="mono">#E03131</span><small>미달 · 오류 · 🔴</small></div>
+      <div><i style="background:#8A94A6"></i><b>Muted</b><span class="mono">#8A94A6</span><small>보조 텍스트 · ⚪</small></div>
+    </div>
+    <p class="small">서체는 IBM Plex Sans KR(본문·제목)과 IBM Plex Mono(숫자·API)입니다. 톤은 차분하고 정확하게, 숫자에는 근거를 붙이고 가짜 긴박감은 쓰지 않습니다. 와이어프레임만 회색조로 그렸습니다.</p>
+    <div class="scenes">
+      <figure class="fig"><img src="images/scene-seller.jpg" alt="작업실에서 완료된 진행 막대가 뜬 휴대폰을 들고 생산 주문서를 가리키는 판매자 일러스트" width="1376" height="768"><figcaption>판매자의 결정적 순간: 확정 수량을 보고 발주를 결정한다</figcaption></figure>
+      <figure class="fig"><img src="images/scene-shopper.jpg" alt="지하철에서 휴대폰 알림을 보는 고객과 하트가 쿠폰, 쇼핑백으로 바뀌는 일러스트" width="1376" height="768"><figcaption>고객의 결정적 순간: 찜 → 쿠폰 → 구매 완료</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- ============ Phase 8 ============ -->
+  <section class="sec" id="s-p8">
+    <div class="sec-head"><span class="sec-no">Phase 8</span><h2>실행 계획</h2></div>
+    <h3>로드맵</h3>
+    <figure class="fig"><div class="scroll" id="d-roadmap"></div><figcaption>첫 달은 4주 MVP와 파일럿 공구에 씁니다. Go 판정이 나면 5주 차에 스토어 심사를 제출합니다. 심사 기간(4~6주)과 PoC는 [추정]이고, 지정 몰 설치(P7)가 막히면 수동 쿠폰 방식으로 같은 파일럿을 진행합니다.</figcaption></figure>
+
+    <h3>KPI</h3>
+    <div class="callout"><b>첫 4주</b> 아래 파일럿 목표 가운데 성사율·신청 전환·결제 전환은 4주 MVP의 성공 기준과 같은 숫자입니다. 판정 규칙은 '4주 MVP · 목표' 섹션에 있습니다.</div>
+    <div class="northstar"><small>북극성 지표</small><strong>월간 공구 확정 결제액</strong><span>공구로 결제까지 끝난 금액. 판매자 가치와 우리 매출(성공 수수료)이 같은 숫자로 움직입니다.</span></div>
+    <div class="tblwrap"><table class="tbl">
+      <thead><tr><th>보조 지표</th><th>파일럿 목표</th></tr></thead>
+      <tbody>
+        <tr><td>공구 성사율 (달성 ÷ 개설)</td><td>60% 이상</td></tr>
+        <tr><td>초대 → 신청 전환율</td><td>5% 이상</td></tr>
+        <tr><td>신청 → 결제 전환율 (72시간 안)</td><td>50% 이상</td></tr>
+        <tr><td>월간 활성 판매자 (월 1회 이상 개설)</td><td>파일럿 몰의 80%</td></tr>
+        <tr><td><span class="pill">기술</span> 연동 성공률 (쿠폰 발급·문자 발송)</td><td>99.5% 이상</td></tr>
+        <tr><td><span class="pill">기술</span> 결제 → 리포트 반영 지연 p95 · 대사 불일치율</td><td>5분 이내 · 0.5% 미만</td></tr>
+        <tr><td><span class="pill">기술</span> 판매자 앱 JS 오류 세션 · 위젯으로 늘어난 로딩 시간</td><td>0.5% 미만 · 100ms 미만</td></tr>
+      </tbody></table></div>
+
+    <h3>검증 실험</h3>
+    <div class="exps">
+      <div class="exp"><span class="mono">E1</span><h4>찜 고객은 결제 없는 신청을 누른다</h4><dl><dt>가설</dt><dd>수신동의한 찜 고객의 5% 이상이 신청한다</dd><dt>방법</dt><dd>4주 차에 홈리빙 파일럿 3몰에서 공구 3~5건, 초대 → 신청 퍼널 측정</dd><dt>성공</dt><dd>평균 신청 전환 5% 이상, 성사율 60% 이상</dd></dl></div>
+      <div class="exp"><span class="mono">E2</span><h4>신청자는 기한 안에 결제한다</h4><dl><dt>가설</dt><dd>신청자의 절반 이상이 72시간 안에 결제한다</dd><dt>방법</dt><dd>쿠폰 사용 주문 추적, 결제 기간 48시간 vs 72시간 비교</dd><dt>성공</dt><dd>결제 전환 50% 이상</dd></dl></div>
+      <div class="exp"><span class="mono">E3</span><h4>판매자는 돈을 낸다</h4><dl><dt>가설</dt><dd>파일럿 판매자 40% 이상이 유료로 전환한다</dd><dt>방법</dt><dd>파일럿 종료 후 가격 2안 제시 (구독 + 수수료 vs 구독만 49,000원)</dd><dt>성공</dt><dd>10곳 중 4곳 이상 결제</dd></dl></div>
+    </div>
+
+    <h3>열린 질문</h3>
+    <div class="oq">
+      <div><h4>법무</h4><ul><li>결과 안내 문자가 정보성인가 (P5)</li><li>할인 전 가격 표시 기준</li><li>선주문 공급 시기 약정 문구</li><li>처리위탁 계약 템플릿</li><li>전자금융업 비해당 확인</li></ul></div>
+      <div><h4>카페24</h4><ul><li>재입고 신청자 API (P1)</li><li>쿠폰 1회 최대 발급 인원 (P3)</li><li>스토어 수수료율·정산 (P6)</li><li>심사 기간, 경쟁 충돌 여부</li><li>심사 전 지정 몰 설치 (P7)</li><li>SMS 단가 · Mall MCP 인증</li></ul></div>
+      <div><h4>기술</h4><ul><li>암호화 회원 ID 검증 방법 (P2)</li><li>웹훅 재전송 정책</li><li>멀티쇼핑몰(shop_no) 지원 범위</li></ul></div>
+      <div><h4>고객 인터뷰</h4><ul><li>판매자: MOQ, 할인 결정 방식, 문자비 체감</li><li>고객: 결제 없는 신청에 대한 신뢰</li><li>고객: 72시간 기한 적정성, 문자 피로도</li></ul></div>
+    </div>
+  </section>
+  </article>
+  </div>
+</section>
+
+<section class="panel" id="tech" role="tabpanel" aria-labelledby="t-tech" hidden>
+  <div class="doc" style="display:grid;gap:8px">
+    <div class="eyebrow">Phase 3 · 확인일 2026-10-06 · 카페24 API 2026-09-01</div>
+    <h2 style="font-size:26px">기술 실현 가능성 검증</h2>
+    <p class="lead" style="margin:0">MVP 기능을 지금 공개된 API, SDK, MCP, 파트너 연동만으로 만들 수 있는지 판정했습니다. [문서]는 공식 문서로 확인한 것, [추정]은 확인하지 못한 설계 가정입니다.</p>
+  </div>
+  <div class="verdict">
+    <div><div class="eyebrow">최종 판정</div><div class="verdict-v">조건부 실현 가능</div></div>
+    <p>🔴(현재 불가)는 없습니다. 문자 발송 → 쿠폰 발급 → 주문 추적은 🟢이고, <b>찜 데이터 수집은 🟡</b>입니다. 상품 단위 조회라 즉시 표시가 불가능하고, 상품별 찜 회원 목록의 100건 한계가 미확인이기 때문입니다. <b>판정을 바꿀 조건</b>: ① 스토어 심사의 권한 승인 ② 찜 회원 전원 수집 방식(P8) ③ 위젯 회원 검증 ④ 쿠폰 대량 발급.</p>
+  </div>
+
+  <div class="tsec" id="datareal">
+    <h3>찜·장바구니 데이터 수집 현실성 <span class="pill y">🟡 조건부</span></h3>
+    <p class="lead" style="margin:0">"권한 동의 → 바로 수요 데이터"는 실제로 불가능합니다. 가져오는 것 자체는 공식 API로 되지만, 아래 제약 때문에 첫 수집에 시간이 걸리고 일부 데이터는 다른 경로로 보완해야 합니다. 확인일 2026-10-06.</p>
+    <div class="callout"><b>된다고 보는 근거</b> ① 상품별 찜·장바구니, 회원별 찜, 수신동의 조회 API가 모두 공식 문서에 있습니다. ② 카페24 스토어의 <a href="https://store.cafe24.com/kr/apps/39102">위시카트</a>가 개인정보·개인화정보 읽기, 프로모션·알림 쓰기 권한으로 판매 중입니다. 같은 권한 조합으로 심사를 통과한 선례입니다. ③ 찜은 현재 상태를 조회하는 방식이라 <b>설치 전에 쌓인 찜도 바로 보입니다.</b></div>
+    <div class="tblwrap"><table class="tbl"><thead><tr><th>#</th><th>제약</th><th>문서로 확인한 내용</th><th>영향</th></tr></thead><tbody>
+      <tr><td class="mono">1</td><td><b>상품 단위로만 조회</b></td><td>찜·장바구니 수는 상품마다 호출해야 함. 몰별 순간 40회, 초당 2회 회복, 10분 3,000회 (<a href="https://apidocs.cafe24.com/docs/guide/api-quota">쿼터</a>)</td><td>첫 수집이 상품 500개면 약 8분, 5,000개면 1시간 이상 [추정]</td></tr>
+      <tr><td class="mono">2</td><td><b>찜 회원 목록에 페이지 넘김 없음</b></td><td><code>/products/{no}/wishlist/customers</code>에 offset·limit 파라미터가 없고 요청 제한 100건. 응답은 member_id만, 찜한 날짜 없음 (<a href="https://apidocs.cafe24.com/docs/admin/get-products-by-product-no-wishlist-customers">문서</a>)</td><td>찜 100명 초과 상품의 전원 수집 가능 여부 ⚪. 이 경로로는 "최근 30일 찜" 필터 불가</td></tr>
+      <tr><td class="mono">3</td><td><b>찜 웹훅 없음</b></td><td>장바구니 담기 웹훅(90084)은 있지만 찜 이벤트는 없음 (<a href="https://developers.cafe24.com/app/front/app/develop/webhook/sample">웹훅 목록</a>)</td><td>찜 수치는 배치 갱신</td></tr>
+      <tr><td class="mono">4</td><td><b>장바구니 보관 기간</b></td><td>몰마다 장바구니 보관 기간 설정이 있음 (문서 예시 7일, <a href="https://apidocs.cafe24.com/docs/admin/get-carts-setting">장바구니 설정</a>). 상품별 장바구니 조회는 offset 최대 10,000, 담은 날짜 있음</td><td>장바구니는 '최근 며칠의 의향'만 보여줌. 쌓인 수요는 찜에만 남음</td></tr>
+      <tr><td class="mono">5</td><td><b>개인정보 권한의 무게</b></td><td>상품별 찜 회원·수신동의 조회는 <code>mall.read_privacy</code>("쇼핑몰 고객의 개인정보를 조회할 수 있습니다", <a href="https://developers.cafe24.com/app/front/app/develop/api/scope">Scope 목록</a>). 웹훅 90116에 몰 단위 개인정보 이용·위탁 동의 설정 값이 있음</td><td>설치 화면에서 판매자가 망설일 수 있고 심사 소명이 필요. 몰 설정이 꺼지면 API가 막히는지 ⚪</td></tr>
+      <tr><td class="mono">6</td><td><b>판매자 행정 부담</b></td><td>우리는 판매자 고객정보의 처리 수탁자 (개인정보보호법 제26조)</td><td>판매자 개인정보 처리방침에 수탁사 기재 필요 → 온보딩 단계 추가</td></tr>
+    </tbody></table></div>
+    <h4 style="margin:6px 0 0;font-size:16px">바뀐 수집 설계</h4>
+    <div class="policy">
+      <div><h4>① 레이더는 숫자만 먼저</h4><p>전 상품은 count API(상품당 2회)로만 돌립니다. 회원 목록과 수신동의 대조는 <b>공구를 열 상품 하나에 대해서만</b> 합니다. 호출량과 개인정보 조회 범위가 함께 줄어듭니다.</p></div>
+      <div><h4>② 첫 화면은 '수집 중'</h4><p>설치 직후 S-E2(수집 진행률)를 보여주고, 찜이 많은 상품부터 채웁니다. 끝나면 푸시로 알립니다.</p></div>
+      <div><h4>③ 100명 초과 시 회원별 경로</h4><p>count가 100을 넘는데 목록이 100명에서 끊기면 <b>회원별 찜 목록</b>(<code>READ_PERSONAL</code>, 찜한 날짜 있음)으로 보완합니다. 처음 한 번은 백필로 돌리고, 이후에는 <b>로그인 웹훅(90143)</b>이 온 회원만 다시 조회합니다. 찜은 로그인해야 할 수 있으니 변경분을 놓치지 않습니다.</p></div>
+      <div><h4>④ 개인정보 최소 모드 (선택)</h4><p>찜은 회원별 경로로만 모으고, 수신동의는 SMS API의 수신거부자 자동 제외에 맡기면 <code>READ_PRIVACY</code> 없이 운영할 수 있습니다. 대신 정확한 '도달 가능 인원'은 추정치로만 보여줍니다.</p></div>
+    </div>
+  </div>
+
+  <div class="tsec">
+    <h3>3-1 연동 인벤토리</h3>
+    <div class="filters" role="group" aria-label="판정으로 거르기">
+      <button data-f="all" aria-pressed="true">전체 <span id="fc-all"></span></button>
+      <button data-f="g" aria-pressed="false">🟢 즉시 가능 <span id="fc-g"></span></button>
+      <button data-f="y" aria-pressed="false">🟡 조건부 <span id="fc-y"></span></button>
+      <button data-f="r" aria-pressed="false">🔴 현재 불가 <span id="fc-r"></span></button>
+      <button data-f="w" aria-pressed="false">⚪ 미확인 <span id="fc-w"></span></button>
+    </div>
+    <div class="tblwrap"><table class="tbl inv"><thead><tr><th>#</th><th>판정</th><th>MVP 기능 · 연동</th><th>수단 · 권한</th><th>접근 조건</th><th>한도 · 비용</th><th>문서</th></tr></thead><tbody id="inv-body"></tbody></table></div>
+    <p class="small" id="inv-empty" hidden>이 판정에 해당하는 연동이 없습니다. MVP에는 🔴 항목이 없습니다.</p>
+  </div>
+
+  <div class="tsec">
+    <h3>연동 지도</h3>
+    <figure class="fig"><div class="scroll" id="d-intmap"></div><figcaption>D3 · 찜 공구를 중심에 두고 외부 시스템을 판정 색으로 배치했습니다. 선 굵기는 MVP에서의 중요도입니다.</figcaption></figure>
+  </div>
+
+  <div class="tsec">
+    <h3>3-2 MCP 활용 판단</h3>
+    <div class="mcp">
+      <div><span class="pill w">제한적</span><h4>① 개발·검증 단계</h4><p>카페24 <b>공식 Mall/Catalog MCP</b>가 있습니다. 도구는 상품 검색과 <code>create-checkout-url</code>뿐이라 찜·주문 PoC에는 쓸 수 없고, REST API로 직접 진행합니다. 데모 저장소 <a href="https://github.com/cafe24-oss/cafe24-mcp-demo">cafe24-oss/cafe24-mcp-demo</a>는 커밋 3개짜리 데모이고 라이선스 명시가 없어, 유지보수 상태를 판단하기 어렵습니다.</p></div>
+      <div><span class="pill g">가치 있음 · 6개월 이후</span><h4>② 내부 운영</h4><p>우리 DB를 <b>읽기 전용</b>으로 노출하는 내부 MCP를 둡니다. 에이전트가 이상 신청 탐지(가입 직후 계정 급증), CS 응대("제 신청 어떻게 됐나요?"), 신청·쿠폰·주문 불일치 목록 작성을 돕습니다. 쓰기 작업은 사람이 승인합니다.</p></div>
+      <div><span class="pill y">제안 · 6~12개월</span><h4>③ 제품 기능으로서의 MCP 서버</h4><p>판매자의 AI 비서가 "찜 많은 상품으로 공구 초안 만들어 줘" 같은 요청을 처리할 수 있게 합니다. 집계값과 초안만 노출합니다.</p></div>
+    </div>
+    <div class="tblwrap"><table class="tbl"><thead><tr><th>도구</th><th>입력</th><th>출력</th></tr></thead><tbody>
+      <tr><td class="mono">get_demand_radar</td><td class="mono">period, top_n</td><td>상품별 찜·장바구니 수, 도달 가능 수 (집계값)</td></tr>
+      <tr><td class="mono">draft_campaign</td><td class="mono">product_no, target_qty, price, deadline</td><td>초안 ID, 미리보기, 규정 점검 결과. 개설 확정은 앱에서 판매자가</td></tr>
+      <tr><td class="mono">get_campaign_status</td><td class="mono">campaign_id</td><td>진행률, 신청 수, 결제 수</td></tr>
+      <tr><td class="mono">list_campaigns</td><td class="mono">status</td><td>공구 목록</td></tr>
+      <tr><td class="mono">get_settlement_report</td><td class="mono">campaign_id</td><td>확정 수량, 매출, 미결제 수</td></tr>
+    </tbody></table></div>
+    <div class="callout"><b>경계선</b> 문자 발송, 쿠폰 발급, 개인정보 조회, 공구 개설 확정은 MCP로 열지 않습니다. 결제와 개인정보, 법적 효력이 있는 처리는 모두 정식 백엔드 API와 판매자의 화면 내 확인을 거칩니다.</div>
+  </div>
+
+  <div class="tsec">
+    <h3>3-3 핵심 플로우 기술 시퀀스</h3>
+    <figure class="fig"><div class="scroll" id="d-seq"></div><figcaption>D4 · 실선 화살표는 실시간, 점선은 배치·큐 처리입니다. 번호는 아래 표와 같습니다.</figcaption></figure>
+    <div class="tblwrap"><table class="tbl"><thead><tr><th>#</th><th>주체 → 대상</th><th>엔드포인트 · 이벤트</th><th>핵심 데이터</th><th>실패 시</th><th>방식</th></tr></thead><tbody id="seq-body"></tbody></table></div>
+  </div>
+
+  <div class="tsec">
+    <h3>3-4 우리 제품의 API · 데이터 모델</h3>
+    <div class="tblwrap"><table class="tbl"><thead><tr><th>엔드포인트</th><th>용도</th></tr></thead><tbody>
+      <tr><td class="mono">GET /v1/demand</td><td>수요 레이더 (상품별 찜·장바구니·도달 가능)</td></tr>
+      <tr><td class="mono">POST /v1/campaigns · GET /v1/campaigns</td><td>공구 개설, 목록</td></tr>
+      <tr><td class="mono">GET /v1/campaigns/{id}</td><td>상세와 퍼널 (초대·신청·결제)</td></tr>
+      <tr><td class="mono">POST /v1/campaigns/{id}/extend</td><td>마감 연장 (1회, 사유 필수)</td></tr>
+      <tr><td class="mono">GET /v1/campaigns/{id}/report</td><td>확정 리포트</td></tr>
+      <tr><td class="mono">GET /v1/public/campaigns/{id}/progress</td><td>위젯용 진행률 (CDN 30초 캐시)</td></tr>
+      <tr><td class="mono">POST /v1/public/campaigns/{id}/pledges</td><td>참여 신청 (암호화 회원 ID, Idempotency-Key)</td></tr>
+      <tr><td class="mono">DELETE /v1/public/pledges/{id}</td><td>마감 전 신청 취소</td></tr>
+      <tr><td class="mono">webhooks</td><td>campaign.reached · campaign.failed · pledge.created · pledge.paid · campaign.settled</td></tr>
+    </tbody></table></div>
+    <figure class="fig"><div class="scroll" id="d-erd"></div><figcaption>핵심 엔티티 6개와 관계입니다. OpenAPI YAML 요약은 부록에 있습니다.</figcaption></figure>
+  </div>
+
+  <div class="tsec">
+    <h3>3-5 아키텍처 &amp; 비기능 요구사항</h3>
+    <div class="tblwrap"><table class="tbl"><thead><tr><th>영역</th><th>선택</th><th>이유</th></tr></thead><tbody>
+      <tr><td>판매자 앱</td><td><b>Next.js PWA</b></td><td>앱스토어 심사가 필요 없고, 같은 코드로 카페24 관리자 화면과 모바일을 모두 커버. React Native·Flutter는 MVP에서 얻는 이득이 없음</td></tr>
+      <tr><td>고객 위젯</td><td>의존성 없는 TS 번들 (30KB 이하), CDN</td><td>쇼핑몰 성능 저하는 카페24 심사 반려 사유</td></tr>
+      <tr><td>백엔드</td><td>Node.js (NestJS 또는 Fastify) + BullMQ</td><td>SMS 초당 1회 같은 속도 조절, 재시도, 스케줄 작업에 큐가 필수</td></tr>
+      <tr><td>데이터</td><td>PostgreSQL + Redis</td><td>신청·결제 상태를 트랜잭션으로 다룸</td></tr>
+      <tr><td>인프라</td><td>AWS 서울 리전, Sentry</td><td>심사 요건(SSL, 안정성) 충족, 국내 데이터 보관</td></tr>
+    </tbody></table></div>
+    <div class="sum-grid">
+      <div class="sum"><h3>직접 만들 것 (Build)</h3><p>공구 엔진(상태 머신·판정·대사), 수요 레이더, 위젯, 판매자 앱</p></div>
+      <div class="sum"><h3>사서 쓸 것 (Buy)</h3><p>문자(카페24 SMS), 할인(카페24 쿠폰), 결제(판매자 PG), 과금(카페24 스토어), 푸시(Web Push), 인증(카페24 OAuth), 모니터링(Sentry)</p></div>
+    </div>
+    <div class="policy">
+      <div><h4>개인정보</h4><p>저장하는 것은 회원 ID, 수신동의 여부, 신청 이력, 주문번호·금액뿐입니다. 전화번호와 이름은 저장하지 않습니다. 우리는 <b>판매자의 처리 수탁자</b>(개인정보보호법 제26조)라 위탁 계약과 암호화, 접근 통제, 접속 기록 보관이 필요합니다. 탈퇴 웹훅(90147)을 받으면 즉시 파기합니다.</p></div>
+      <div><h4>결제 · 광고 · 선주문</h4><p>카드 정보와 결제금을 다루지 않아 PCI DSS와 전자금융업 대상이 아닌 구조입니다 [법무 확인]. 광고 문자는 수신동의, (광고) 표기, 야간 차단을 강제합니다. 예상 출고일을 반드시 받고 고지합니다(전자상거래법 제15조).</p></div>
+      <div><h4>배포 조건</h4><p>PWA라 애플·구글 앱스토어 심사는 없습니다. 카페24 스토어 심사에서는 과도한 권한 요구(<code>READ_PRIVACY</code> 소명), 개인정보 수집, 카페24와의 사업 충돌이 걸릴 수 있습니다.</p></div>
+      <div><h4>확장성 [추정]</h4><p>파일럿 30몰에서 6개월 뒤 300몰을 가정합니다. 병목은 카페24 몰별 버킷(초당 2회 회복)이라 수요 레이더는 배치로 돌리고, SMS 초당 1회는 2,000명 기준 약 20초라 문제없습니다. 위젯 조회는 CDN 캐시로 흡수합니다.</p></div>
+    </div>
+  </div>
+
+  <div class="tsec">
+    <h3>3-6 PoC 계획 &amp; 대체 경로</h3>
+    <div class="tblwrap"><table class="tbl"><thead><tr><th>항목</th><th>판정</th><th>검증 질문</th><th>방법</th><th>성공 기준</th><th>기간</th></tr></thead><tbody>
+      <tr><td>P1 재입고 신청자</td><td><span class="pill w">⚪</span></td><td>신청자 목록을 API로 받을 수 있는가</td><td>카페24 문의, 관리자 엑셀 내보내기 확인</td><td>API가 있거나 엑셀 업로드 가능</td><td>1주</td></tr>
+      <tr><td>P2 회원 식별 검증</td><td><span class="pill g">🟢 방식 ⚪</span></td><td>암호화 회원 ID를 위조 없이 검증할 수 있는가</td><td>테스트몰에서 Service Key로 검증</td><td>위조 member_id 100% 거부</td><td>3일</td></tr>
+      <tr><td>P3 쿠폰 대량 발급</td><td><span class="pill w">⚪</span></td><td>1회 몇 명, 얼마나 빨리 발급되는가</td><td>테스트몰에서 1,000명 발급</td><td>5분 안, 누락 0</td><td>2일</td></tr>
+      <tr><td>P4 스토어 심사</td><td><span class="pill y">🟡</span></td><td>권한 범위와 서비스 성격이 통과하는가</td><td>사전 문의 후 최소 기능으로 조기 제출</td><td>승인, 기간 측정</td><td>4~6주</td></tr>
+      <tr><td>P5 결과 문자 성격</td><td><span class="pill w">⚪</span></td><td>결과 안내가 정보성인가</td><td>법무 자문</td><td>수신동의 없이 발송 가능한지 결론</td><td>1~2주</td></tr>
+      <tr><td>P6 앱 과금 수수료</td><td><span class="pill w">⚪</span></td><td>스토어 수수료율과 정산 주기</td><td>개발사 제휴 문의</td><td>수치 확보</td><td>1주</td></tr>
+      <tr><td>P7 심사 전 파일럿</td><td><span class="pill w">⚪</span></td><td>심사 전에 특정 몰에만 설치할 수 있는가</td><td>'적용 쇼핑몰 등록' 확인·테스트</td><td>파일럿 몰 3곳 설치</td><td>2일</td></tr>
+      <tr><td>P8 찜 회원 전원 수집</td><td><span class="pill y">🟡</span></td><td>찜 100명 초과 상품에서 상품별 찜 조회가 전원을 돌려주는가</td><td>테스트몰에 회원 150명 찜 생성 후 count와 목록 비교. 끊기면 회원별 찜 백필 + 로그인 웹훅(90143) 갱신 검증</td><td>count = 목록 길이, 또는 대체 경로로 누락 0</td><td>3일</td></tr>
+      <tr><td>P9 개인정보 제공 설정</td><td><span class="pill w">⚪</span></td><td>몰의 개인정보 이용·위탁 동의 설정(웹훅 90116)을 끄면 개인정보 API가 막히는가</td><td>테스트몰에서 설정을 바꿔 가며 호출</td><td>동작 확인 후 설치 안내에 반영</td><td>1일</td></tr>
+      <tr><td>P10 첫 수집 시간</td><td><span class="pill g">🟢</span></td><td>상품 1,000개 몰의 count 전체 수집에 얼마나 걸리는가</td><td>테스트몰에서 호출 한도 헤더를 보며 측정</td><td>30분 이내</td><td>1일</td></tr>
+    </tbody></table></div>
+    <p class="small">대체 경로: P1이 🔴로 확정되면 엑셀 업로드 수작업(컨시어지)으로 가고, 그것도 불가하면 재입고 신청자를 빼고 찜·장바구니만 대상으로 합니다. P4가 지연되면 지정 몰 설치(P7)로 출시 단계를 미룹니다.</p>
+  </div>
+
+  <div class="tsec">
+    <h3>3-7 개발 공수 &amp; 리스크</h3>
+    <figure class="fig"><div id="ch-effort"></div><figcaption>기능별 인·주. 합계 약 38인·주이고, 개발 인원 4명 기준 약 10주입니다. 첫 4주는 이 중 핵심 경로만 약 12인·주로 줄여 만듭니다 (4주 MVP · 목표 섹션). 팀은 PM 겸 디자이너 1, 프론트엔드 1, 백엔드 2, 풀스택 겸 QA 1입니다.</figcaption></figure>
+    <div class="callout"><b>크리티컬 패스</b> PoC P2·P3·P7 (1주) → F1 설치 → F4 대상 추출·발송 → F6 신청·검증 → F8 쿠폰 발급 → F9 주문 대사 → 기능 동결 후 심사 제출 (4~6주) → 공개 출시. 파일럿은 심사 기간에 병행합니다.</div>
+    <div class="tblwrap"><table class="tbl"><thead><tr><th>기술 리스크</th><th>가능성</th><th>영향</th><th>대응</th></tr></thead><tbody>
+      <tr><td>스토어 심사 반려 (권한, 경쟁 충돌)</td><td><span class="lv m">중</span></td><td><span class="lv h">높음</span></td><td>사전 문의, 권한 최소화, 반려 시 개별 설치</td></tr>
+      <tr><td>카페24 API 변경</td><td><span class="lv m">중</span></td><td><span class="lv m">중</span></td><td>API 버전 헤더 고정, 공지 모니터링</td></tr>
+      <tr><td>웹훅 누락으로 결제 집계 오류</td><td><span class="lv m">중</span></td><td><span class="lv h">높음</span></td><td>매일 밤 주문 대사, 불일치 알림</td></tr>
+      <tr><td>쿠폰 대량 발급 지연·실패</td><td><span class="lv m">중</span></td><td><span class="lv h">높음</span></td><td>나눠서 발급, 발급 내역 대사, 재발급 (P3)</td></tr>
+      <tr><td>회원 ID 위조로 허수 신청</td><td><span class="lv l">낮음</span></td><td><span class="lv m">중</span></td><td>암호화 ID 서버 검증 (P2), 1인 한도</td></tr>
+      <tr><td>카페24가 같은 기능을 기본 제공</td><td><span class="lv m">중</span></td><td><span class="lv h">높음</span></td><td>카드의 '깨지는 조건'. 대사·리포트로 깊이 확보, 제휴(B), 다른 플랫폼 확장</td></tr>
+      <tr><td>수신동의 고객이 적어 도달 낮음</td><td><span class="lv h">높음</span></td><td><span class="lv m">중</span></td><td>위젯 직접 유입, 수신동의 유도 쿠폰</td></tr>
+    </tbody></table></div>
+  </div>
+</section>
+
+<section class="panel" id="flow" role="tabpanel" aria-labelledby="t-flow" hidden>
+  <div class="doc" style="display:grid;gap:8px">
+    <div class="eyebrow">Phase 6</div>
+    <h2 style="font-size:26px">유저 플로우 &amp; 와이어플로우</h2>
+    <p class="lead">판매자 앱(모바일 PWA)과 고객 화면(자사몰 모바일 웹)의 핵심 태스크 4개를 한 장의 레인 다이어그램으로 그렸습니다. 그 아래 와이어플로우 보드에서 화면을 누르면 크게 보이고 번호별 주석이 펼쳐집니다.</p>
+  </div>
+
+  <div style="display:grid;gap:10px">
+    <h3 style="font-size:18px">6-2 유저 플로우 (레인 다이어그램)</h3>
+    <div class="legend">
+      <span><svg width="34" height="10"><line x1="0" y1="5" x2="34" y2="5" stroke="var(--ink)" stroke-width="3"/></svg>정상 경로</span>
+      <span><svg width="34" height="10"><line x1="0" y1="5" x2="34" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="5 4"/></svg>예외 경로 (취소·실패·재시도)</span>
+      <span><svg width="18" height="18"><polygon points="9,1 17,9 9,17 1,9" fill="none" stroke="var(--success)" stroke-width="2"/></svg>외부 처리 🟢 즉시 가능</span>
+      <span><svg width="18" height="18"><polygon points="9,1 17,9 9,17 1,9" fill="none" stroke="var(--warning)" stroke-width="2"/></svg>🟡 조건부</span>
+      <span><svg width="18" height="18"><polygon points="9,1 17,9 9,17 1,9" fill="none" stroke="var(--primary)" stroke-width="2"/></svg>우리 시스템 내부 처리</span>
+      <span><span class="sw" style="background:color-mix(in srgb,var(--primary) 22%,transparent);border:1.5px solid var(--primary)"></span>사용자 유형이 만나는 지점</span>
+    </div>
+    <div class="scroll" id="lane"></div>
+  </div>
+
+  <div style="display:grid;gap:10px">
+    <h3 style="font-size:18px">6-3 와이어플로우 보드</h3>
+    <p class="lead" style="margin:0">저충실도 회색조 와이어프레임, 390×844 기준입니다. 화살표 위 글자는 다음 화면으로 넘어가는 사용자 행동입니다.</p>
+    <div class="scroll">
+      <div class="wf-rowhead"><h3>판매자 앱</h3><small>하단 탭: 홈 · 수요 · 공구 · 설정 / 푸시로 S-09·S-10·S-11에 바로 진입</small></div>
+      <div class="wf-row" id="wf-seller"></div>
+    </div>
+    <div class="scroll">
+      <div class="wf-rowhead"><h3>고객 화면</h3><small>앱 설치 없음 · 자사몰 안 위젯과 문자로 진행</small></div>
+      <div class="wf-row" id="wf-cust"></div>
+    </div>
+  </div>
+</section>
+
+<section class="panel" id="proto" role="tabpanel" aria-labelledby="t-proto" hidden>
+  <div class="doc" style="display:grid;gap:8px">
+    <div class="eyebrow">Phase 7</div>
+    <h2 style="font-size:26px">프로토타입</h2>
+    <p class="lead" style="margin:0">더미 데이터로 실제 클릭해 볼 수 있습니다. 판매자가 공구를 열고 고객이 신청하면 두 화면이 같은 상태를 공유합니다. 오른쪽 시뮬레이션 패널로 다른 고객의 신청과 시간 흐름을 대신 일으킬 수 있습니다.</p>
+  </div>
+  <div class="p-controls" role="group" aria-label="프로토타입 제어">
+    <div class="seg" role="radiogroup" aria-label="사용자 유형">
+      <button role="radio" data-role="seller" id="r-seller">판매자 앱</button>
+      <button role="radio" data-role="cust" id="r-cust">고객 화면</button>
+    </div>
+    <label class="switch"><input type="checkbox" id="techToggle"><span class="track"><span class="knob"></span></span>기술 레이어</label>
+    <button class="ghost" id="p-reset">처음부터</button>
+  </div>
+  <div class="p-stage">
+    <div class="p-phone-wrap" id="p-wrap"><div class="p-phone" id="p-phone"></div></div>
+    <aside class="p-side">
+      <div class="card" style="display:grid;gap:12px">
+        <div class="eyebrow">공유 상태</div>
+        <div id="p-state"></div>
+      </div>
+      <div class="card" style="display:grid;gap:10px">
+        <div class="eyebrow">시뮬레이션</div>
+        <button class="simbtn" data-sim="pledge">다른 고객 신청 +15개</button>
+        <button class="simbtn" data-sim="judge">마감 시각으로 이동 (판정)</button>
+        <button class="simbtn" data-sim="settle">결제 기간 종료 (72시간 후)</button>
+        <p class="small">공구를 열기 전에는 판정 버튼이 동작하지 않습니다. 목표를 못 채운 채 마감하면 미달 경로를 볼 수 있습니다.</p>
+      </div>
+      <div class="card" style="display:grid;gap:8px">
+        <div class="eyebrow">기술 레이어 범례</div>
+        <div class="legend" style="gap:8px 14px">
+          <span><span class="dot g"></span>🟢 즉시 가능</span><span><span class="dot y"></span>🟡 조건부</span><span><span class="dot r"></span>🔴 현재 불가</span><span><span class="dot w"></span>⚪ 미확인</span>
+        </div>
+        <p class="small">🟡·⚪ 배지에 마우스를 올리거나 포커스하면 조건과 대체 경로가 보입니다. 현재 MVP에는 🔴 요소가 없습니다.</p>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<section class="panel" id="appendix" role="tabpanel" aria-labelledby="t-appendix" hidden>
+  <div class="doc" style="display:grid;gap:8px"><div class="eyebrow">부록</div><h2 style="font-size:26px">출처 · 인벤토리 · API · 프롬프트 · 가정</h2>
+    <nav class="chips-nav"><a href="#a-src" data-jump>A. 출처</a><a href="#a-inv" data-jump>B. 연동 인벤토리 전체</a><a href="#a-api" data-jump>C. API 초안 (YAML)</a><a href="#a-prompt" data-jump>D. 이미지 프롬프트</a><a href="#a-assume" data-jump>E. [추정] 가정</a></nav></div>
+
+  <div class="tsec doc" id="a-src"><h3>A. 출처 (확인일 2026-10-06)</h3>
+    <div class="src">
+      <h4>시장 · 경쟁</h4><ul>
+        <li><a href="https://apps.apple.com/KR/app/id1045928392">위시어폰(WishUpon) App Store</a> · 레퍼런스 서비스 기능</li>
+        <li><a href="https://dealsite.co.kr/articles/141056">딜사이트</a> · 카페24 고객사 200만 곳</li>
+        <li><a href="https://www.ddaily.co.kr/page/view/2026080616403560109">디지털데일리</a> · 카페24 2026년 2분기 거래액 3.75조 원</li>
+        <li><a href="https://byline.network/2026/03/09_cafe24/">바이라인네트워크</a> · 카페24 스토어 2025 거래액 679억 원</li>
+        <li><a href="https://byline.network/2025/06/26-455/">바이라인네트워크</a> · 아임웹 누적 거래액 6조 원</li>
+        <li><a href="https://baymard.com/lists/cart-abandonment-rate">Baymard Institute</a> · 장바구니 이탈률 70.22% (2025-09-22)</li>
+        <li><a href="https://byline.network/2021/10/25-168/">바이라인네트워크</a> · 올웨이즈 팀구매 구조</li>
+        <li><a href="https://www.unicornfactory.co.kr/article/2026071009284975776">유니콘팩토리</a> · 와디즈 수수료 지원</li>
+        <li><a href="https://clobe.ai/blog/crowdfunding-profit-margin-hidden-cost-analysis">클로브</a> · 크라우드펀딩 실질 비용률 (2차 자료)</li>
+        <li><a href="https://blog.bizgo.io/inside/cafe24-imweb-alimtalk-limit-api-upgrade/">비즈고</a> · 카페24 알림톡·SMS 차감 단가</li></ul>
+      <h4>법규</h4><ul>
+        <li><a href="https://www.newsseoul.co.kr/news/view/1065579616591557">공정위 다크패턴 문답서 보도</a> · 전자상거래법 개정, 2025-02-14 시행</li>
+        <li><a href="https://solapi.com/guides/sms-ad-guide">솔라피 광고 문자 가이드</a> · 정보통신망법 제50조 요약</li>
+        <li><a href="https://www.law.go.kr/법령/전자상거래등에서의소비자보호에관한법률">국가법령정보센터 · 전자상거래법</a> · 제15조 공급 시기</li>
+        <li><a href="https://www.law.go.kr/법령/개인정보보호법">국가법령정보센터 · 개인정보보호법</a> · 제26조 처리 위탁</li>
+        <li><a href="https://www.law.go.kr/법령/정보통신망이용촉진및정보보호등에관한법률">국가법령정보센터 · 정보통신망법</a> · 제50조 광고성 정보</li></ul>
+      <h4>기술 (카페24 · 표준)</h4><ul id="src-tech"></ul>
+    </div></div>
+
+  <div class="tsec" id="a-inv"><h3>B. 연동 인벤토리 전체</h3>
+    <div class="tblwrap"><table class="tbl inv"><thead><tr><th>#</th><th>판정</th><th>MVP 기능 · 연동</th><th>수단 · 권한</th><th>접근 조건</th><th>한도 · 비용</th><th>문서 · 확인일</th><th>조건 · 대체 경로</th></tr></thead><tbody id="inv-full"></tbody></table></div></div>
+
+  <div class="tsec doc" id="a-api"><h3>C. 우리 제품 API 초안 (OpenAPI 요약)</h3>
+<pre class="code"><code>openapi: 3.1.0
+info: { title: JjimGonggu API, version: 0.1-draft }
+servers: [{ url: https://api.example/v1 }]
+components:
+  securitySchemes:
+    sellerAuth: { type: http, scheme: bearer }        # 판매자 세션 (카페24 OAuth 후 발급)
+  schemas:
+    Campaign:
+      id: string; mall_id: string; product_no: integer; variant_codes: [string]
+      target_qty: integer; deal_price: integer; list_price: integer
+      deadline_at: date-time; pay_window_h: integer      # 기본 72
+      per_member_limit: integer; ship_eta: date
+      state: [draft, open, reached, failed, forced, settled]
+      cafe24_coupon_no: string; extended: boolean
+    Pledge:
+      id: string; campaign_id: string; member_id: string; qty: integer
+      state: [pledged, coupon_issued, paid, cancelled, expired]
+paths:
+  /demand:
+    get:  { security: [sellerAuth], params: [period, sort],
+            200: [{ product_no, wishlist, cart, reachable }] }
+  /campaigns:
+    post: { security: [sellerAuth], body: Campaign(draft fields), 201: Campaign,
+            errors: [422 원가 미만 미확인, 409 쿠폰 생성 실패 → 롤백] }
+    get:  { security: [sellerAuth], params: [status], 200: [Campaign] }
+  /campaigns/{id}:
+    get:  { 200: Campaign + funnel{ invited, pledged, paid } }
+  /campaigns/{id}/extend:
+    post: { body: { new_deadline_at, reason }, errors: [409 이미 연장함] }
+  /campaigns/{id}/report:
+    get:  { 200: { confirmed_qty, revenue, unpaid, cancelled, fee } }
+  /public/campaigns/{id}/progress:          # 위젯용, CDN 30초 캐시
+    get:  { 200: { pledged, target, deadline_at, state } }
+  /public/campaigns/{id}/pledges:
+    post: { headers: [Idempotency-Key], body: { encrypted_member_id, qty },
+            201: Pledge, errors: [401 검증 실패, 409 마감됨, 422 한도 초과] }
+  /public/pledges/{id}:
+    delete: { note: 마감 전 취소만 허용 }
+webhooks:                                   # 판매자가 연결한 외부 도구로 발송
+  campaign.reached:  { campaign_id, pledged, target }
+  campaign.failed:   { campaign_id, pledged, target }
+  pledge.created:    { campaign_id, pledge_id, qty }
+  pledge.paid:       { campaign_id, pledge_id, order_id, amount }
+  campaign.settled:  { campaign_id, confirmed_qty, revenue }</code></pre></div>
+
+  <div class="tsec" id="a-prompt"><h3>D. 이미지 생성 프롬프트 (Figma generate_image)</h3>
+    <div class="prompts" id="prompts"></div></div>
+
+  <div class="tsec doc" id="a-assume"><h3>E. [추정] 수치의 가정</h3>
+    <div class="tblwrap"><table class="tbl"><thead><tr><th>수치</th><th>가정 · 계산</th><th>검증 방법</th></tr></thead><tbody>
+      <tr><td>국내 활성 자사몰 40만</td><td>카페24 활성 30만(출처 미검증) + 아임웹·기타 10만(가정)</td><td>카페24·아임웹 IR, 제휴 미팅</td></tr>
+      <tr><td>자체 브랜드 비율 30%</td><td>근거 없는 가정</td><td>카페24 업종 통계 문의, 파일럿 모집 데이터</td></tr>
+      <tr><td>구독료 월 3만 원 (TAM·SAM)</td><td>카페24 유료 앱 통상 가격대 1만~5만 원의 중간값 (출처 신뢰도 낮음)</td><td>E3 가격 실험</td></tr>
+      <tr><td>홈리빙 비중 9% (교두보 8,100몰)</td><td>온라인쇼핑 중 생활용품 7.3%(국가데이터처 2026년 5월, 보도 재인용) + 가구 약 2%(미확인)</td><td>국가데이터처 원문, 카페24 업종 통계 문의</td></tr>
+      <tr><td>3년 점유 10% (SOM 홈리빙 800몰)</td><td>근거 없는 가정</td><td>6개월 성장률로 재추정</td></tr>
+      <tr><td>공구당 초대 2,000명</td><td>찜·장바구니 중 수신동의 도달 인원 가정</td><td>수요 레이더 실측</td></tr>
+      <tr><td>신청 전환 10%, 결제 전환 60%</td><td>공개 통계 없음</td><td>E1, E2</td></tr>
+      <tr><td>객단가 70,000원</td><td>홈리빙(침구·그릇) 공구 할인가 가정</td><td>4주 파일럿 주문 데이터</td></tr>
+      <tr><td>스토어 수수료 20%</td><td>미확인</td><td>P6</td></tr>
+      <tr><td>인프라 월 300만 원 (300몰)</td><td>소형 DB + 컨테이너 2~3개 + Redis + CDN</td><td>파일럿 실제 청구액</td></tr>
+      <tr><td>SMS 1건 약 19원, LMS 약 57원</td><td>알림톡 13.3원 = SMS 0.7건에서 역산, LMS는 SMS 3건으로 가정</td><td>카페24 SMS 요금 확인</td></tr>
+      <tr><td>CAC 15만 원, 월 이탈 5%</td><td>가정</td><td>3~6개월 코호트</td></tr>
+      <tr><td>심사 4~6주</td><td>문서에 기간 명시 없음</td><td>P4</td></tr>
+      <tr><td>공수 38인·주 (4주 MVP 약 12인·주)</td><td>기능별 추정 합계, 4주 범위는 핵심 경로만</td><td>1~2주 차 속도로 보정</td></tr>
+    </tbody></table></div></div>
+</section>
+
+</div>
+</main>
+
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="m-title">
+  <div class="modal-box">
+    <div id="m-frame"></div>
+    <div class="modal-meta">
+      <div class="navbtns"><button class="closebtn" id="m-prev">← 이전 화면</button><button class="closebtn" id="m-next">다음 화면 →</button><button class="closebtn" id="m-close">닫기 (Esc)</button></div>
+      <div><div class="eyebrow" id="m-id"></div><h3 id="m-title"></h3></div>
+      <p id="m-purpose" style="margin:0;color:var(--fg2)"></p>
+      <div class="kv" id="m-tags"></div>
+      <ol id="m-notes"></ol>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- tabs ---------- */
+const TABS=['plan','tech','flow','proto','appendix'];
+function showTab(t){
+  if(!TABS.includes(t)) t='plan';
+  TABS.forEach(id=>{document.getElementById(id).hidden=id!==t;document.getElementById('t-'+id).setAttribute('aria-selected',id===t)});
+  if(location.hash.slice(1)!==t){try{history.replaceState(null,'','#'+t)}catch(e){}}
+}
+document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
+showTab(location.hash.slice(1)||'plan');
+
+/* ---------- wireframe data ---------- */
+const V={g:['g','🟢'],y:['y','🟡'],w:['w','⚪']};
+const S=[
+ {id:'S-01',name:'설치 시작',purpose:'카페24에서 앱을 설치한 판매자에게 요청 권한과 이유를 보여주고 동의를 받는다.',fn:'F1',ext:[['I-01 카페24 OAuth','y']],
+  els:[{t:'bar',title:'찜 공구 설치'},{t:'img',h:70,label:'서비스 로고'},{t:'h',text:'카페24 쇼핑몰과 연결합니다'},
+   {t:'card',n:1,html:'<b>요청 권한과 이유</b>상품 · 찜 · 장바구니 · 회원 수신동의<br>쿠폰 · 주문 · 문자 발송 (항목마다 1줄 설명)',h:150},
+   {t:'txt',n:2,text:'개인정보 처리 위탁 안내 · 이용약관 보기'},{t:'sp'},{t:'btn',n:3,text:'카페24에서 권한 동의하기'}],
+  notes:['권한 범위별로 사용 목적을 한 줄씩 보여준다. 카페24 심사의 "과도한 권한 요구" 항목 대응.','우리는 판매자의 개인정보 처리 수탁자임을 고지한다 (개인정보보호법 제26조).','카페24 OAuth 동의 화면으로 이동하고, 돌아오면 S-02로 간다. 실패하면 S-E3.']},
+ {id:'S-02',name:'초기 설정 마법사',purpose:'문자 발신번호, 실시간 주문 알림, 상품 페이지 위젯 설치를 한 번에 끝낸다.',fn:'F1·F5',ext:[['I-06 SMS 발신번호','g'],['I-09 웹훅','g'],['I-08 스크립트태그','g']],
+  els:[{t:'bar',title:'초기 설정',r:'1 / 3'},{t:'prog',v:33,label:'설정 진행'},
+   {t:'list',n:1,rows:['문자 발신번호 확인 · 등록됨 ✓']},{t:'list',n:2,rows:['실시간 주문 알림 동의 · 필요']},
+   {t:'card',n:3,html:'<b>상품 페이지 위젯</b>설치할 위치 미리보기 (상품명 아래)',h:150},{t:'sp'},{t:'btn',n:4,text:'다음'}],
+  notes:['카페24에 등록된 발신번호를 불러온다. 없으면 카페24 관리자 등록 화면 링크를 안내.','웹훅 사용 동의가 있어야 결제 추적(F9)이 실시간으로 동작한다.','스크립트태그로 위젯을 설치한다. 쇼핑몰 성능에 영향 없도록 비동기 로드.','완료하면 알림 권한 요청(S-P1)으로 이동.']},
+ {id:'S-P1',name:'알림 권한 요청',purpose:'공구 결과를 휴대폰으로 받도록 홈 화면 추가와 푸시 허용을 안내한다.',fn:'–',ext:[['I-12 Web Push','g']],
+  els:[{t:'bar',title:'초기 설정',r:'3 / 3'},{t:'p',lines:4},{t:'dim',center:true,els:[{t:'img',h:90,label:'알림 아이콘'},{t:'h',text:'결과를 휴대폰으로 받아보세요'},{t:'txt',n:1,text:'아이폰은 홈 화면에 추가한 뒤 알림을 켤 수 있어요 (iOS 16.4 이상)'},{t:'btn',n:2,text:'알림 허용'},{t:'btn2',n:3,text:'나중에'}]}],
+  notes:['iOS는 홈 화면 웹앱에서만 Web Push를 지원하므로 기기별로 안내 문구를 바꾼다.','브라우저 권한 팝업을 띄운다. 거절되면 앱 안 알림으로 대신한다.','설정 탭에서 언제든 다시 켤 수 있다.']},
+ {id:'S-03',name:'홈',purpose:'진행 중인 공구와 이번 달 성과를 한눈에 보고, 다음 공구 후보로 이동한다.',fn:'F11',ext:[],
+  els:[{t:'bar',title:'홈',r:'알림'},{t:'kpi',n:1,cols:[['이번 달 확정 매출','3,240,000'],['진행 중 공구','2']]},
+   {t:'card',n:2,html:'<b>스톤웨어 디너 접시 4P 공구</b>72 / 100 · 마감 D-2<div class="e-prog" style="margin-top:8px"><div class="t"><i style="width:72%"></i></div></div>',h:0},
+   {t:'card',n:3,html:'<b>찜이 많은 상품</b>워싱 린넨 이불 커버 · 찜 412<br>린넨 암막 커튼 · 찜 288',h:0},{t:'sp'},{t:'tab',on:0}],
+  notes:['확정 매출은 결제 완료 기준(Phase 2 정책). 신청 수와 섞지 않는다.','진행 중 공구 카드를 누르면 S-09.','수요 레이더 상위 상품. 누르면 S-05.']},
+ {id:'S-04',name:'수요 레이더',purpose:'상품별로 찜·장바구니 수와, 그중 문자를 받을 수 있는 인원을 비교한다.',fn:'F2',ext:[['I-02 찜 회원','g'],['I-03 장바구니','g'],['I-04 수신동의','g']],
+  els:[{t:'bar',title:'수요 레이더',r:'필터'},{t:'chips',n:1,items:['최근 30일','찜 많은 순','장바구니 순']},
+   {t:'list',n:2,rows:['워싱 린넨 이불 커버 · 찜 412 · 장바구니 88 (최근 7일)','린넨 암막 커튼 · 찜 288 · 장바구니 41','스톤웨어 디너 접시 4P · 찜 260 · 장바구니 63','원목 수납 트레이 · 찜 97 · 장바구니 12']},
+   {t:'note',n:3,text:'마지막 갱신 오늘 03:00 · 매일 새벽 갱신'},{t:'sp'},{t:'tab',on:1}],
+  notes:['기간과 정렬 기준을 바꾼다.','레이더는 count만 보여준다. 도달 가능 인원(수신동의자)은 공구를 열 상품에서만 계산해 호출량과 개인정보 조회를 줄인다.','카페24 호출 한도 때문에 배치로 갱신한다. 장바구니는 웹훅(90084)으로 중간 보정. 첫 수집 중이면 S-E2.']},
+ {id:'S-05',name:'상품 수요 상세',purpose:'한 상품의 수요 추이를 보고, 추천 목표 수량을 참고해 공구를 연다.',fn:'F2',ext:[],
+  els:[{t:'bar',title:'상품 수요',back:1},{t:'img',h:120,label:'상품 이미지'},{t:'kpi',n:1,cols:[['찜','412'],['장바구니','88'],['도달 가능','236']]},
+   {t:'card',n:2,html:'<b>최근 8주 추이</b>',h:110},{t:'card',n:3,cls:'fill',html:'<b>추천 목표 수량 18~35개</b>도달 236명 × 예상 전환 8~15%',h:0},{t:'sp'},{t:'btn',n:4,text:'이 상품으로 공구 열기'}],
+  notes:['도달 가능 인원이 0이면 공구 열기 버튼 대신 "수신동의 고객이 없어요" 안내.','찜·장바구니 수의 주간 변화.','목표 미달 리스크를 줄이는 추천(Phase 4 제안). 범위로 보여주고 단정하지 않는다.','S-06으로 이동, 상품 정보가 채워진 상태.']},
+ {id:'S-06',name:'공구 개설 ① 조건',purpose:'목표 수량과 할인가를 정하고, 원가 미만 할인을 막는다.',fn:'F3',ext:[],
+  els:[{t:'bar',title:'공구 개설',back:1,r:'1 / 3'},{t:'input',n:1,label:'목표 수량',val:'100개'},{t:'input',n:2,label:'할인가 (정가 52,000원)',val:'39,000원 · 25% 할인'},
+   {t:'input',n:3,label:'원가 (선택, 고객에게 보이지 않음)',val:'31,000원'},{t:'card',n:4,cls:'dash',html:'할인가가 원가보다 낮으면 여기에 경고가 나타나요',h:0},{t:'sp'},{t:'btn',text:'다음'}],
+  notes:['목표 수량은 1 이상. S-05 추천값을 기본으로 채운다.','할인 전 가격은 실제로 판매했던 정가만 표시 (표시광고 리스크).','원가는 마진 경고에만 쓴다.','원가 미만이면 경고하고 확인을 한 번 더 받는다.']},
+ {id:'S-07',name:'공구 개설 ② 일정',purpose:'실제 마감일과 결제 기간, 예상 출고일, 1인 한도를 정한다.',fn:'F3',ext:[],
+  els:[{t:'bar',title:'공구 개설',back:1,r:'2 / 3'},{t:'input',n:1,label:'마감 일시 (이 시각이 지나야 판정)',val:'10월 9일 (목) 14:00'},{t:'input',n:2,label:'결제 기간',val:'달성 후 72시간'},
+   {t:'input',n:3,label:'예상 출고일 (필수)',val:'11월 6일'},{t:'input',n:4,label:'1인 최대 수량',val:'2개'},{t:'sp'},{t:'btn',text:'다음'}],
+  notes:['가짜 카운트다운 없이 실제 마감만 사용. 연장은 진행 중 1회만 가능.','확정 수량 = 이 기간 안에 결제한 수량 (Phase 2 결정).','전자상거래법 제15조 대응. 고객 신청 화면(C-04)에 그대로 노출.','허수 신청 방지 규칙.']},
+ {id:'S-08',name:'공구 개설 ③ 대상·발송',purpose:'초대받을 인원과 문자 내용, 예상 문자비를 확인하고 공구를 연다.',fn:'F4',ext:[['I-07 쿠폰 생성','g'],['I-06 SMS 발송','g']],
+  els:[{t:'bar',title:'공구 개설',back:1,r:'3 / 3'},{t:'kpi',n:1,cols:[['찜 + 장바구니','348'],['문자 발송 대상','236']]},
+   {t:'card',n:2,html:'<b>문자 미리보기</b>(광고)[브랜드] 찜하신 스톤웨어 디너 접시 4P 공동구매가 열렸어요. 100개 모이면 39,000원. 10/9 14:00 마감. 결제는 달성 후에. 무료수신거부 080-000-0000',h:0},
+   {t:'txt',n:3,text:'예상 문자비 약 13,500원 · 판매자 SMS 충전분에서 차감'},{t:'txt',n:4,text:'지금은 21:40이라 내일 08:00에 예약 발송돼요'},{t:'sp'},{t:'btn',n:5,text:'공구 열기'}],
+  notes:['수신동의(sms=T)만 남긴 인원. 수신 미동의자는 시스템이 자동 제외.','(광고) 표기와 무료수신거부 문구는 지울 수 없게 고정.','문자는 카페24 SMS로 나가며 판매자 충전분에서 차감. 장문 기준 추정치.','21시~08시에는 광고 문자를 보내지 않는다 (정보통신망법).','쿠폰을 먼저 생성하고, 실패하면 개설을 되돌리고 S-E3을 보여준다.']},
+ {id:'S-09',name:'공구 상세 (진행 중)',purpose:'진행률과 초대→신청 퍼널을 보고, 필요하면 마감을 한 번 연장한다.',fn:'F7·F11',ext:[],push:1,
+  els:[{t:'bar',title:'스톤웨어 디너 접시 4P 공구',back:1,r:'더보기'},{t:'prog',n:1,v:72,label:'72 / 100 · 마감 10/9 14:00 (D-2)'},
+   {t:'kpi',n:2,cols:[['초대','236'],['신청','72'],['결제','–']]},{t:'list',n:3,rows:['ha***님 · 2개 · 5분 전','ki***님 · 1개 · 12분 전','so***님 · 1개 · 38분 전']},{t:'sp'},{t:'btn2',n:4,text:'마감 연장 (1회 · 사유 공개)'}],
+  notes:['고객 신청이 실시간 반영되는 지점(레인이 만나는 지점 ①). 50%·100%에서 푸시.','결제는 마감·달성 후에만 집계된다.','회원 ID는 일부 가림 처리.','연장 사유는 위젯과 참여자에게 공개된다.']},
+ {id:'S-10',name:'마감 결과',purpose:'달성 여부와 쿠폰 발급 진행 상황을 확인한다.',fn:'F7·F8',ext:[['I-07 쿠폰 발급','g']],push:1,
+  els:[{t:'bar',title:'마감 결과',back:1},{t:'card',n:1,cls:'fill',html:'<b style="font-size:22px">목표 달성 118 / 100</b>10월 9일 14:00 마감',h:0},
+   {t:'list',n:2,rows:['쿠폰 발급 118명 중 118명 완료 ✓','결과 문자 발송 완료 ✓']},{t:'txt',n:3,text:'결제 기간: 10월 12일 14:00까지'},
+   {t:'card',n:4,cls:'dash',html:'<b>미달이었다면</b>"진행 안 됨"으로 종료하거나, 참여자 전원에게 다시 안내하고 "그래도 진행"',h:0}],
+  notes:['마감 판정 결과(레인이 만나는 지점 ②). 고객 결과 문자와 동시에 발생.','쿠폰은 나눠서 발급하고 발급 내역으로 대사. 누락이 있으면 재시도.','결제 기한이 지나면 자동으로 S-11 리포트가 만들어진다.','예외 경로. 미달 시 판매자 선택지.']},
+ {id:'S-11',name:'확정 리포트',purpose:'결제가 끝난 확정 수량을 보고 발주·생산을 결정한다.',fn:'F9·F10',ext:[['I-09 주문 웹훅·조회','g']],push:1,
+  els:[{t:'bar',title:'확정 리포트',back:1},{t:'kpi',n:1,cols:[['결제 완료','81'],['미결제','34'],['취소','3']]},
+   {t:'card',n:2,html:'<b>확정 매출 3,159,000원</b>성공 수수료 47,385원 (1.5%)',h:0},{t:'input',n:3,label:'발주 메모',val:'공방 A · 90개 발주 (여유분 9)'},{t:'sp'},{t:'btn',n:4,text:'리포트 링크 복사'}],
+  notes:['주문 웹훅(90023/90025)과 매일 밤 대사로 집계. 취소·환불 웹훅이 오면 차감 (레인이 만나는 지점 ③).','수수료는 확정 결제액 기준으로만 계산.','발주 결정을 기록해 다음 공구 목표 추천에 쓴다.','팀과 공장에 공유할 수 있는 읽기 전용 링크.']},
+ {id:'S-12',name:'공구 목록',purpose:'진행 중인 공구와 완료된 공구를 오간다.',fn:'–',ext:[],aux:1,
+  els:[{t:'bar',title:'공구'},{t:'chips',n:1,items:['진행 중 2','완료 5']},{t:'list',n:2,rows:['스톤웨어 디너 접시 4P · 72/100 · D-2','워싱 린넨 이불 커버 · 31/60 · D-5']},{t:'sp'},{t:'tab',on:2}],
+  notes:['상태별 탭.','누르면 S-09 또는 S-11.']},
+ {id:'S-13',name:'설정',purpose:'요금제, 연동 상태, 재입고 신청자 업로드를 관리한다.',fn:'F12',ext:[['I-10 앱 과금','y'],['I-05 재입고 신청자','w']],aux:1,
+  els:[{t:'bar',title:'설정'},{t:'list',n:1,rows:['요금제 · 스타터 (29,000원 + 1.5%)']},{t:'list',n:2,rows:['카페24 연결 · 정상','상품 페이지 위젯 · 설치됨']},{t:'list',n:3,rows:['재입고 신청자 엑셀 업로드']},{t:'list',rows:['알림 설정','개인정보 처리 위탁 문서']},{t:'sp'},{t:'tab',on:3}],
+  notes:['카페24 스토어 인앱결제로 과금 (수수료율 확인 필요).','연결이 끊기면 S-E3로 안내.','카페24 API가 없을 때의 대체 경로 (Phase 3 결정).']},
+ {id:'S-E1',name:'빈 상태',purpose:'첫 공구가 없을 때 다음 행동을 안내한다.',fn:'–',ext:[],aux:1,
+  els:[{t:'bar',title:'공구'},{t:'sp'},{t:'img',h:150,label:'일러스트'},{t:'h',text:'아직 연 공구가 없어요'},{t:'txt',text:'찜이 많은 상품부터 공구를 열어 보세요.'},{t:'btn',n:1,text:'수요 레이더 보기'},{t:'sp'},{t:'tab',on:2}],
+  notes:['S-04로 이동.']},
+ {id:'S-E2',name:'첫 수집 중',purpose:'설치 직후 전 상품의 찜·장바구니 수를 처음 모으는 동안 진행 상황을 보여준다. 수 분~수 시간 걸릴 수 있다.',fn:'F2',ext:[['I-02 찜 수 (count)','y'],['I-03 장바구니 수','g']],
+  els:[{t:'bar',title:'수요 레이더'},{t:'prog',n:1,v:68,label:'찜 데이터 수집 중 · 상품 340 / 500'},{t:'txt',text:'몇 분 걸릴 수 있어요. 끝나면 알림으로 알려 드려요.'},{t:'list',rows:['','','']},{t:'sp'},{t:'tab',on:1}],
+  notes:['상품당 count 2회 호출. 몰별 초당 2회 회복 한도 때문에 상품 500개 약 8분, 5,000개 1시간 이상 [추정]. 찜이 많은 상품부터 채우고, 끝나면 푸시.']},
+ {id:'S-E3',name:'오류',purpose:'연결 끊김이나 쿠폰 발급 실패를 알리고 복구 방법을 준다.',fn:'–',ext:[['I-01 OAuth','y'],['I-07 쿠폰','g']],aux:1,
+  els:[{t:'bar',title:'연결 상태',back:1},{t:'card',n:1,html:'<b>카페24 연결이 끊겼어요</b>권한이 만료됐어요. 다시 연결하면 진행 중인 공구는 그대로 이어져요.',h:0},{t:'btn',n:2,text:'다시 연결'},
+   {t:'card',n:3,cls:'dash',html:'<b>쿠폰 발급 12명 실패</b>자동 재시도 중 · 10분 뒤에도 실패하면 직접 재시도할 수 있어요',h:0}],
+  notes:['갱신 토큰(2주)이 만료되거나 앱 권한이 바뀐 경우.','OAuth를 다시 진행.','발급 내역 대사로 누락 인원을 찾아 재발급.']}
+];
+const C=[
+ {id:'C-01',name:'초대 문자',purpose:'수신동의한 찜·장바구니 고객이 공구 초대를 받는다.',fn:'F4',ext:[['I-06 SMS','g']],
+  els:[{t:'bar',title:'메시지 · 브랜드',back:1},{t:'note',text:'오늘 오전 8:00'},{t:'sms',n:1,text:'(광고)[브랜드] 찜하신 스톤웨어 디너 접시 4P 공동구매가 열렸어요. 100개 모이면 39,000원(정가 52,000원). 10/9(목) 14:00 마감. 결제는 달성 후에 해요.'},{t:'sms',n:2,text:'참여하기 ▶ brand.co.kr/p/123'},{t:'sms',n:3,text:'무료수신거부 080-000-0000'}],
+  notes:['(광고) 표기를 맨 앞에. 실제 마감 시각과 할인 조건을 숨기지 않는다.','상품 페이지(C-02)로 이동. 위젯이 공구 상태를 보여준다.','정보통신망법상 수신거부 방법 고지.']},
+ {id:'C-02',name:'상품 페이지 위젯',purpose:'자사몰 상품 페이지에서 공구 진행률을 보고 참여 신청을 시작한다.',fn:'F5',ext:[['I-08 스크립트태그','g']],
+  els:[{t:'bar',title:'브랜드 쇼핑몰',shop:1},{t:'img',h:190,label:'상품 이미지'},{t:'txt',text:'스톤웨어 디너 접시 4P · 52,000원'},
+   {t:'card',n:1,cls:'fill',html:'<b>공동구매 진행 중</b>72 / 100 · 10/9 14:00 마감<div class="e-prog" style="margin:8px 0 6px"><div class="t"><i style="width:72%"></i></div></div>달성하면 39,000원',h:0},
+   {t:'btn',n:2,text:'참여 신청 (지금 결제 없음)'},{t:'btn2',n:3,text:'정가로 바로 구매'}],
+  notes:['위젯은 진행률을 30초 캐시로 보여준다. 마감·달성 상태에 따라 문구가 바뀐다.','비로그인이면 C-03, 로그인 상태면 C-04.','기존 구매 버튼은 그대로 둔다. 공구가 쇼핑몰 흐름을 막지 않는다.']},
+ {id:'C-03',name:'로그인 필요',purpose:'회원만 신청할 수 있으므로 자사몰 로그인으로 보낸다.',fn:'F6',ext:[],aux:0,
+  els:[{t:'bar',title:'브랜드 쇼핑몰',shop:1},{t:'sp'},{t:'h',text:'회원만 참여할 수 있어요'},{t:'txt',text:'로그인하면 신청 화면으로 바로 돌아와요.'},{t:'btn',n:1,text:'로그인하고 계속'},{t:'btn2',n:2,text:'회원가입'},{t:'sp'}],
+  notes:['자사몰 로그인 후 원래 상품 페이지로 복귀하면 C-04를 연다.','가입 직후 계정의 신청은 판매자 화면에 "검토" 표시 (어뷰징 규칙).']},
+ {id:'C-04',name:'참여 신청 시트',purpose:'수량을 고르고, 결제 조건과 출고일을 이해한 뒤 신청한다.',fn:'F6',ext:[['I-08 회원 검증 (Front SDK)','g']],
+  els:[{t:'bar',title:'브랜드 쇼핑몰',shop:1},{t:'img',h:170,label:'상품 이미지'},{t:'dim',els:[{t:'grab'},{t:'h',text:'참여 신청'},{t:'input',n:1,label:'수량 (1인 최대 2개)',val:'1개'},
+   {t:'card',n:2,html:'✓ 지금은 결제하지 않아요<br>✓ 100개가 모이면 쿠폰을 드려요. 72시간 안에 결제<br>✓ 예상 출고 11월 6일',h:0},{t:'btn',n:3,text:'신청하기'}]}],
+  notes:['1인 한도를 넘기면 C-E1.','가장 중요한 고지. 결제·쿠폰·출고 조건을 한 화면에서 확인.','암호화된 회원 ID로 서버가 본인을 검증한다(PoC P2). 같은 요청은 한 번만 처리.']},
+ {id:'C-05',name:'신청 완료',purpose:'신청이 접수됐고 다음에 무슨 일이 일어나는지 안내한다.',fn:'F6',ext:[],
+  els:[{t:'bar',title:'브랜드 쇼핑몰',shop:1},{t:'sp'},{t:'img',h:110,label:'완료 아이콘'},{t:'h',text:'신청했어요'},{t:'txt',n:1,text:'10월 9일 14:00 마감 후 결과를 문자로 알려 드려요. 그 전까지는 언제든 취소할 수 있어요.'},{t:'btn',n:2,text:'내 공구 보기'},{t:'btn2',text:'쇼핑 계속하기'},{t:'sp'}],
+  notes:['결과 안내 문자의 성격(정보성/광고성)은 법무 확인 항목(P5).','C-06으로 이동. 이 순간 판매자 S-09 진행률이 올라간다.']},
+ {id:'C-06',name:'내 공구',purpose:'신청한 공구 상태를 확인하고 마감 전에 취소한다.',fn:'F6',ext:[],
+  els:[{t:'bar',title:'내 공구',back:1,shop:0},{t:'list',n:1,rows:['스톤웨어 디너 접시 4P · 1개 · 진행 중 72/100','원목 수납 트레이 · 1개 · 진행 안 됨']},{t:'btn2',n:2,text:'스톤웨어 디너 접시 4P 신청 취소'},{t:'sp'}],
+  notes:['상태: 진행 중 / 달성(쿠폰 발급) / 결제 완료 / 진행 안 됨.','마감 전까지만 취소 가능. 취소하면 진행률에서 즉시 빠진다.']},
+ {id:'C-07',name:'달성 안내',purpose:'목표 달성과 쿠폰 발급을 알리고 결제 기한 안에 결제하게 한다.',fn:'F7·F8',ext:[['I-07 쿠폰 발급','g'],['I-06 결과 문자','g']],
+  els:[{t:'bar',title:'브랜드 쇼핑몰',shop:1},{t:'card',n:1,cls:'fill',html:'<b style="font-size:20px">목표 달성 · 쿠폰 1장 발급</b>스톤웨어 디너 접시 4P 공동구매가 118명으로 마감됐어요.',h:0},
+   {t:'txt',n:2,text:'결제 기한 10월 12일 (일) 14:00 · 지나면 쿠폰이 사라져요'},{t:'btn',n:3,text:'결제하러 가기'},{t:'sp'}],
+  notes:['결과 문자 링크로 진입 (레인이 만나는 지점 ②).','결제 기한이 지나면 쿠폰 만료 → 대기열(Should)로 넘어간다.','카페24 주문서(C-08)로 이동하고 쿠폰이 자동 선택된다.']},
+ {id:'C-08',name:'결제 (카페24 주문서)',purpose:'판매자 자사몰 주문서에서 쿠폰을 적용해 결제한다.',fn:'F9',ext:[['판매자 PG','g'],['I-09 주문 웹훅','g']],
+  els:[{t:'bar',title:'주문서 · 카페24 기본 화면',shop:1},{t:'list',rows:['스톤웨어 디너 접시 4P 1개 · 52,000원']},{t:'card',n:1,html:'<b>쿠폰</b>공구 할인 −13,000원 (자동 선택)',h:0},{t:'list',rows:['결제 수단 · 카드']},{t:'sp'},{t:'btn',n:2,text:'39,000원 결제하기'},{t:'note',n:3,text:'결제는 판매자 쇼핑몰에서 처리돼요'}],
+  notes:['회원 지정·상품 한정·1회용 쿠폰이라 공유하거나 다른 상품에 쓸 수 없다.','주문 웹훅으로 판매자 확정 수량(S-11)이 올라간다 (레인이 만나는 지점 ③).','찜 공구는 결제금을 받지 않는다 → PG·전자금융 인허가 불필요한 구조.']},
+ {id:'C-09',name:'미달 안내',purpose:'목표를 못 채운 경우 진행되지 않았고 결제된 금액이 없음을 알린다.',fn:'F7',ext:[['I-06 결과 문자','g']],aux:1,
+  els:[{t:'bar',title:'메시지 · 브랜드',back:1},{t:'note',text:'10월 9일 14:01'},{t:'sms',n:1,text:'[브랜드] 스톤웨어 디너 접시 4P 공동구매가 목표(100개)에 못 미쳐 진행되지 않아요. 결제된 금액은 없어요. 신청해 주셔서 감사합니다.'}],
+  notes:['카드에 적힌 "진행 안 됨 안내만 받는다"를 그대로 구현. 다른 홍보 문구를 붙이지 않는다.']},
+ {id:'C-E1',name:'신청 오류',purpose:'마감, 한도 초과, 본인 확인 실패를 알기 쉽게 알리고 다음 행동을 준다.',fn:'F6',ext:[],aux:1,
+  els:[{t:'bar',title:'브랜드 쇼핑몰',shop:1},{t:'sp'},{t:'card',n:1,html:'<b>1인 최대 2개까지 신청할 수 있어요</b>이미 2개를 신청했어요. 수량을 바꾸려면 내 공구에서 취소 후 다시 신청해 주세요.',h:0},{t:'btn2',n:2,text:'내 공구 보기'},{t:'sp'}],
+  notes:['같은 자리에 "마감된 공구예요", "본인 확인에 실패했어요. 다시 로그인해 주세요" 문구가 상황별로 들어간다.','C-06 또는 상품 페이지로.']},
+ {id:'C-E2',name:'빈 상태',purpose:'신청한 공구가 없을 때.',fn:'–',ext:[],aux:1,
+  els:[{t:'bar',title:'내 공구',back:1},{t:'sp'},{t:'img',h:140,label:'일러스트'},{t:'h',text:'신청한 공구가 없어요'},{t:'btn2',n:1,text:'찜한 상품 보기'},{t:'sp'}],
+  notes:['자사몰 관심상품 페이지로 이동.']}
+];
+const FLOW_S=[['S-01','권한 동의'],['S-02','설정 완료'],['S-P1','알림 허용'],['S-E2','수집 완료'],['S-03','수요 탭'],['S-04','상품 선택'],['S-05','공구 열기'],['S-06','다음'],['S-07','다음'],['S-08','공구 열기'],['S-09','마감 판정'],['S-10','결제 기간 종료'],['S-11',null]];
+const FLOW_C=[['C-01','링크'],['C-02','참여 신청'],['C-03','로그인'],['C-04','신청하기'],['C-05','내 공구'],['C-06','달성 문자'],['C-07','결제하러 가기'],['C-08',null]];
+const ALL=[...S,...C]; const byId=Object.fromEntries(ALL.map(s=>[s.id,s]));
+
+/* ---------- wireframe renderer ---------- */
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function el(e){
+  const mk=e.n?`<span class="mk">${e.n}</span>`:'';
+  switch(e.t){
+    case 'bar': return `<div class="e e-bar${e.shop?' shop':''}">${e.back?'<span>←</span>':''}<span>${esc(e.title)}</span>${e.r?`<span class="r">${esc(e.r)}</span>`:''}${mk}</div>`;
+    case 'h': return `<div class="e e-h">${esc(e.text)}${mk}</div>`;
+    case 'p': return `<div class="e e-p">${Array.from({length:e.lines||3},(_,i)=>`<i style="width:${[100,92,78,86][i%4]}%"></i>`).join('')}${mk}</div>`;
+    case 'txt': return `<div class="e e-txt">${esc(e.text)}${mk}</div>`;
+    case 'note': return `<div class="e e-note">${esc(e.text)}${mk}</div>`;
+    case 'card': return `<div class="e e-card ${e.cls||''}" style="${e.h?`min-height:${e.h}px`:''}">${e.html}${mk}</div>`;
+    case 'img': return `<div class="e e-img" style="height:${e.h}px"><span>${esc(e.label||'이미지')}</span>${mk}</div>`;
+    case 'kpi': return `<div class="e e-kpi" style="grid-template-columns:repeat(${e.cols.length},1fr)">${e.cols.map(c=>`<div><small>${esc(c[0])}</small><strong>${esc(c[1])}</strong></div>`).join('')}${mk}</div>`;
+    case 'input': return `<label class="e e-input">${esc(e.label)}<div>${esc(e.val||'')}</div>${mk}</label>`;
+    case 'btn': return `<div class="e e-btn">${esc(e.text)}${mk}</div>`;
+    case 'btn2': return `<div class="e e-btn2">${esc(e.text)}${mk}</div>`;
+    case 'chips': return `<div class="e e-chips">${e.items.map(i=>`<span>${esc(i)}</span>`).join('')}${mk}</div>`;
+    case 'list': return `<div class="e e-list">${e.rows.map(r=>`<div><em></em><span>${r?esc(r):'<span class="e-p" style="width:200px"><i></i><i style="width:60%"></i></span>'}</span></div>`).join('')}${mk}</div>`;
+    case 'prog': return `<div class="e e-prog"><span>${esc(e.label)}</span><div class="t"><i style="width:${e.v}%"></i></div>${mk}</div>`;
+    case 'sms': return `<div class="e e-sms">${esc(e.text)}${mk}</div>`;
+    case 'grab': return `<div class="grab"></div>`;
+    case 'sp': return `<div style="flex:1"></div>`;
+    default: return '';
+  }
+}
+function phone(s){
+  const bar=s.els.find(e=>e.t==='bar'), tab=s.els.find(e=>e.t==='tab'), dim=s.els.find(e=>e.t==='dim');
+  const body=s.els.filter(e=>!['bar','tab','dim'].includes(e.t));
+  const tabs=tab?`<div class="e-tab">${['홈','수요','공구','설정'].map((t,i)=>`<div class="${i===tab.on?'on':''}">${t}</div>`).join('')}</div>`:'';
+  const ov=dim?`<div class="e-dim${dim.center?' center':''}"><div class="e-sheet">${dim.els.map(el).join('')}</div></div>`:'';
+  return `<div class="phone" aria-hidden="true"><div class="ph-status"><span>9:41</span><span>▮▮▮ ◔</span></div><div class="ph-body">${bar?el(bar):''}<div class="ph-scroll">${body.map(el).join('')}</div>${tabs}</div>${ov}</div>`;
+}
+function scaled(s,scale){
+  return `<div class="scaled" style="width:${Math.round(390*scale)}px;height:${Math.round(844*scale)}px">${phone(s).replace('class="phone"',`class="phone" style="transform:scale(${scale})"`)}</div>`;
+}
+const SC=.42;
+function thumb(s){
+  return `<div class="wf-item"><button class="wf-thumb" data-id="${s.id}" aria-label="${s.id} ${esc(s.name)} 크게 보기">${scaled(s,SC)}</button><div class="wf-cap"><b>${s.id}</b><br>${esc(s.name)}${s.push?'<br><span class="wf-push">푸시 진입</span>':''}</div></div>`;
+}
+const arrow=lbl=>`<div class="wf-arrow" aria-hidden="true"><span>${esc(lbl)}</span><svg width="70" height="14"><line x1="2" y1="7" x2="60" y2="7" stroke="var(--ink)" stroke-width="2.5"/><polygon points="60,2 68,7 60,12" fill="var(--ink)"/></svg></div>`;
+function board(flow,list,target){
+  let h=flow.map(([id,lbl])=>thumb(byId[id])+(lbl?arrow(lbl):'')).join('');
+  const aux=list.filter(s=>!flow.some(f=>f[0]===s.id));
+  if(aux.length) h+=`<div class="wf-gap" aria-hidden="true"></div>`+aux.map(thumb).join('<div style="width:22px"></div>');
+  document.getElementById(target).innerHTML=h;
+}
+board(FLOW_S,S,'wf-seller'); board(FLOW_C,C,'wf-cust');
+
+/* ---------- modal ---------- */
+const ORDER=[...FLOW_S.map(f=>f[0]),...S.filter(s=>!FLOW_S.some(f=>f[0]===s.id)).map(s=>s.id),...FLOW_C.map(f=>f[0]),...C.filter(s=>!FLOW_C.some(f=>f[0]===s.id)).map(s=>s.id)];
+let cur=null,lastFocus=null; const M=document.getElementById('modal');
+function openWF(id){
+  const s=byId[id]; cur=id;
+  const sc=Math.min(1,(window.innerHeight-90)/844,(window.innerWidth-80)/390);
+  document.getElementById('m-frame').innerHTML=scaled(s,Math.max(.45,sc));
+  document.getElementById('m-id').textContent=s.id+(s.id[0]==='S'?' · 판매자 앱':' · 고객 화면');
+  document.getElementById('m-title').textContent=s.name;
+  document.getElementById('m-purpose').textContent=s.purpose;
+  document.getElementById('m-tags').innerHTML=`<span class="pill">기능 ${esc(s.fn)}</span>`+(s.ext.length?s.ext.map(([n,v])=>`<span class="pill ${v}">${V[v][1]} ${esc(n)}</span>`).join(''):'<span class="pill">외부 연동 없음</span>');
+  document.getElementById('m-notes').innerHTML=s.notes.map((n,i)=>`<li><b>${i+1}</b><span>${esc(n)}</span></li>`).join('');
+  M.hidden=false; document.getElementById('m-close').focus();
+}
+function closeWF(){M.hidden=true; if(lastFocus) lastFocus.focus()}
+function step(d){const i=ORDER.indexOf(cur); openWF(ORDER[(i+d+ORDER.length)%ORDER.length])}
+document.addEventListener('click',e=>{const b=e.target.closest('.wf-thumb'); if(b){lastFocus=b; openWF(b.dataset.id)}});
+document.getElementById('m-close').onclick=closeWF; document.getElementById('m-prev').onclick=()=>step(-1); document.getElementById('m-next').onclick=()=>step(1);
+M.addEventListener('click',e=>{if(e.target===M) closeWF()});
+document.addEventListener('keydown',e=>{if(M.hidden) return; if(e.key==='Escape') closeWF(); if(e.key==='ArrowRight') step(1); if(e.key==='ArrowLeft') step(-1)});
+
+/* ---------- swimlane diagram ---------- */
+(function(){
+  const LX=128, CW=124, NW=108, NH=44, lanes={seller:{y:44,name:'판매자 앱'},sys:{y:214,name:'시스템 · 카페24'},cust:{y:384,name:'고객 화면'}}, LH=170;
+  const N=[
+   ['S01','seller',0,0,'S-01 설치','s'],['OA','sys',1,0,'카페24 OAuth','y'],['S02','seller',2,0,'S-02 초기 설정','s'],['WH','sys',3,0,'위젯·웹훅 설치','g'],
+   ['S04','seller',4,0,'S-04·05 수요 확인','s'],['SE2','seller',4,1,'S-E2 첫 수집 중','s'],['S08','seller',5,0,'S-06~08 공구 개설','s'],
+   ['CP','sys',6,0,'쿠폰 생성 · SMS 큐','g'],['SE3','seller',6,1,'S-E3 오류·재시도','e'],
+   ['C01','cust',7,0,'C-01 초대 문자','s'],['C02','cust',8,0,'C-02 위젯','s'],['C03','cust',8,1,'C-03 로그인','e'],['C04','cust',9,0,'C-04 참여 신청','s'],['CE1','cust',10,1,'C-E1 한도·마감','e'],
+   ['MV','sys',10,0,'회원 검증 (SDK)','g'],['C05','cust',11,0,'C-05 신청 완료','s'],['S09','seller',11,0,'S-09 진행률','m'],
+   ['JD','sys',12,0,'마감 판정','i'],['S10','seller',13,0,'S-10 결과·쿠폰 발급','m'],['C07','cust',13,0,'C-07 달성 안내','m'],['C09','cust',13,1,'C-09 미달 안내','e'],
+   ['C08','cust',14,0,'C-08 결제','s'],['EXP','cust',15,1,'쿠폰 만료 → 대기열','e'],['OW','sys',15,0,'주문 웹훅 · 대사','g'],['S11','seller',16,0,'S-11 확정 리포트','m']
+  ];
+  const P={}; N.forEach(([id,l,c,r,label,k])=>P[id]={x:LX+28+c*CW+NW/2,y:lanes[l].y+(r?122:56),label,k});
+  const W=LX+28+17*CW+20, H=lanes.cust.y+LH+16;
+  const E=[['S01','OA'],['OA','S02'],['S02','WH'],['WH','SE2'],['SE2','S04'],['S04','S08'],['S08','CP'],['CP','C01'],['C01','C02'],['C02','C04'],['C04','MV'],['MV','C05'],['C05','S09','①'],['S09','JD'],['JD','S10','②'],['JD','C07','②'],['C07','C08'],['C08','OW'],['OW','S11','③']];
+  const X=[['CP','SE3','실패'],['SE3','S08','재시도'],['C02','C03','비로그인'],['C03','C04'],['C04','CE1','한도·마감'],['JD','C09','미달'],['C07','EXP','72시간 경과']];
+  const col={s:'var(--ink)',e:'var(--muted)',m:'var(--primary)',g:'var(--success)',y:'var(--warning)',i:'var(--primary)'};
+  function path(a,b){
+    const A=P[a],B=P[b]; const ext=k=>['g','y','i'].includes(k);
+    const ax=A.x+(ext(A.k)?NW/2+2:NW/2), bx=B.x-(ext(B.k)?NW/2+2:NW/2);
+    if(Math.abs(A.x-B.x)<2){const s=Math.sign(B.y-A.y);return `M${A.x} ${A.y+s*NH/2} L${B.x} ${B.y-s*(NH/2+6)}`}
+    if(B.x<A.x){return `M${A.x} ${A.y-NH/2} C${A.x} ${A.y-60} ${B.x} ${B.y-60} ${B.x} ${B.y-NH/2-6}`}
+    const mx=(ax+bx)/2; return `M${ax} ${A.y} C${mx} ${A.y} ${mx} ${B.y} ${bx-6} ${B.y}`;
+  }
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="판매자·시스템·고객 3개 레인에 걸친 핵심 태스크 유저 플로우" font-family="IBM Plex Sans KR, system-ui, sans-serif">
+  <defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="var(--ink)"/></marker>
+  <marker id="ahm" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="var(--muted)"/></marker>
+  <marker id="ahp" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="var(--primary)"/></marker></defs>`;
+  // task bands
+  [[0,6,'판매자 T1 · 설치 → 첫 공구 개설'],[7,11,'고객 T1 · 초대 → 참여 신청'],[11,16,'판매자 T2 · 진행 → 발주   /   고객 T2 · 결과 → 결제']].forEach(([a,b,t],i)=>{
+    const x1=LX+20+a*CW, x2=LX+28+b*CW+NW+8; s+=`<rect x="${x1}" y="8" width="${x2-x1}" height="24" rx="6" fill="var(--soft)"/><text x="${x1+10}" y="25" font-size="12" font-weight="600" fill="var(--fg2)">${t}</text>`});
+  Object.values(lanes).forEach((l,i)=>{s+=`<rect x="0" y="${l.y}" width="${W}" height="${LH}" fill="${i%2?'var(--bg)':'var(--surface)'}"/><line x1="0" y1="${l.y}" x2="${W}" y2="${l.y}" stroke="var(--line)"/>
+   <text x="16" y="${l.y+30}" font-size="13" font-weight="700" fill="var(--fg)">${l.name}</text><text x="16" y="${l.y+48}" font-size="11" fill="var(--muted)">${['PWA','백엔드·외부 연동','자사몰 모바일 웹'][i]}</text>
+   <line x1="${LX}" y1="${l.y+8}" x2="${LX}" y2="${l.y+LH-8}" stroke="var(--line)"/>`});
+  // meeting highlight bands
+  [[11,'①'],[13,'②'],[15.5,'③']].forEach(([c,t])=>{const x=LX+28+c*CW-8; s+=`<rect x="${x}" y="${lanes.seller.y+6}" width="${NW+16}" height="${lanes.cust.y+LH-lanes.seller.y-12}" rx="10" fill="var(--primary)" opacity=".07"/>`});
+  X.forEach(([a,b,t])=>{const d=path(a,b); s+=`<path d="${d}" fill="none" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ahm)"/>`;
+    if(t){const A=P[a],B=P[b]; s+=`<text x="${(A.x+B.x)/2+(A.x===B.x?8:0)}" y="${(A.y+B.y)/2-(A.x===B.x?0:6)}" font-size="10.5" fill="var(--muted)" text-anchor="${A.x===B.x?'start':'middle'}">${t}</text>`}});
+  E.forEach(([a,b,t])=>{const meet=!!t; s+=`<path d="${path(a,b)}" fill="none" stroke="${meet?'var(--primary)':'var(--ink)'}" stroke-width="${meet?3:2.6}" marker-end="url(#${meet?'ahp':'ah'})"/>`;
+    if(t){const A=P[a],B=P[b]; s+=`<circle cx="${(A.x+B.x)/2}" cy="${(A.y+B.y)/2}" r="10" fill="var(--primary)"/><text x="${(A.x+B.x)/2}" y="${(A.y+B.y)/2+4}" font-size="11" font-weight="700" fill="var(--surface)" text-anchor="middle">${t}</text>`}});
+  N.forEach(([id])=>{const p=P[id],k=p.k,c=col[k];
+    if(['g','y','i'].includes(k)){s+=`<polygon points="${p.x},${p.y-NH/2-4} ${p.x+NW/2+4},${p.y} ${p.x},${p.y+NH/2+4} ${p.x-NW/2-4},${p.y}" fill="var(--surface)" stroke="${c}" stroke-width="2.4"/>`}
+    else{s+=`<rect x="${p.x-NW/2}" y="${p.y-NH/2}" width="${NW}" height="${NH}" rx="9" fill="${k==='m'?'color-mix(in srgb, var(--primary) 12%, var(--surface))':'var(--surface)'}" stroke="${c}" stroke-width="${k==='e'?1.4:2}" ${k==='e'?'stroke-dasharray="4 3"':''}/>`}
+    const words=p.label.split(' '); const lines=[]; let cur='';
+    words.forEach(w=>{if((cur+' '+w).trim().length>(['g','y','i'].includes(k)?9:11)&&cur){lines.push(cur);cur=w}else cur=(cur+' '+w).trim()}); lines.push(cur);
+    lines.slice(0,2).forEach((ln,i)=>{s+=`<text x="${p.x}" y="${p.y+4+(i-(Math.min(lines.length,2)-1)/2)*14}" font-size="11.5" font-weight="${k==='e'?400:600}" fill="${k==='e'?'var(--fg2)':'var(--fg)'}" text-anchor="middle">${esc(ln)}</text>`});
+  });
+  s+=`<text x="${P.S09.x}" y="${lanes.seller.y+LH-14}" font-size="10.5" fill="var(--primary)" text-anchor="middle">① 신청 → 진행률·푸시</text>
+      <text x="${P.S10.x}" y="${lanes.seller.y+LH-14}" font-size="10.5" fill="var(--primary)" text-anchor="middle">② 판정 → 양쪽 동시 알림</text>
+      <text x="${P.S11.x-36}" y="${lanes.seller.y+LH-14}" font-size="10.5" fill="var(--primary)" text-anchor="middle">③ 결제 → 확정 수량</text></svg>`;
+  document.getElementById('lane').innerHTML=s;
+})();
+</script>
+
+<script>
+/* ================= Phase 7 prototype ================= */
+(function(){
+const won=n=>Math.round(n).toLocaleString('ko-KR')+'원';
+const PRODUCTS=[
+  {no:101,name:'워싱 린넨 이불 커버',price:129000,wish:412,cart:88,reach:236},
+  {no:102,name:'스톤웨어 디너 접시 4P',price:52000,wish:260,cart:63,reach:171},
+  {no:103,name:'린넨 암막 커튼',price:89000,wish:288,cart:41,reach:150},
+  {no:104,name:'원목 수납 트레이',price:39000,wish:97,cart:12,reach:55}
+];
+const TAGS={D:'Ⓓ 프로모션 설계',A:'Ⓐ 담기·보관',E:'Ⓔ 망설임·이탈 회수'};
+const PAIN={'S-01':'D','S-02':'D','S-P1':'D','S-E2':'A','S-03':'D','S-04':'A','S-05':'A','S-06':'D','S-07':'D','S-08':'D','S-09':'D','S-10':'D','S-11':'D','S-12':'D','S-13':'A',
+            'C-01':'A','C-02':'E','C-03':'E','C-04':'E','C-05':'E','C-06':'E','C-07':'E','C-08':'E','C-09':'E','C-E1':'E'};
+const PAIN2={'S-04':'D','S-05':'D','C-01':'E','C-02':'A','C-07':'D'};
+function fresh(){return{role:'seller',tech:document.getElementById('techToggle')?.checked||false,s:'S-01',c:'C-01',setup:[false,false,false],installed:false,
+  prod:PRODUCTS[0],form:{target:100,deal:34500,cost:27000,limit:2,night:false},
+  camp:null,loggedIn:false,mine:0,minePaid:false,qty:1,sheet:false,push:null,toast:null,msgs:[]}}
+let st=fresh();
+const $=id=>document.getElementById(id);
+const T=(code,v,label,tip)=>`<span class="tb ${v}" tabindex="0"${tip?` data-tip="${esc(tip)}"`:''}><span class="tx">${code} ${esc(label)}</span></span>`;
+const bar=(title,back,r,shop)=>`<div class="pp-bar${shop?' shop':''}">${back?`<button class="back" data-go="${back}" aria-label="뒤로">←</button>`:''}<span>${esc(title)}</span>${r?`<span class="r">${r}</span>`:''}</div>`;
+const ico={home:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',radar:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 12l6-6"/>',list:'<path d="M5 6h14M5 12h14M5 18h9"/>',gear:'<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>'};
+const tabbar=on=>`<nav class="pp-tab">${[['S-03','홈','home'],['S-04','수요','radar'],['S-12','공구','list'],['S-13','설정','gear']].map(([id,l,i],k)=>`<button data-go="${id}" class="${k===on?'on':''}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ico[i]}</svg>${l}</button>`).join('')}</nav>`;
+const pbar=(v,t,ok)=>`<div class="pbar${ok?' ok':''}" role="progressbar" aria-valuemin="0" aria-valuemax="${t}" aria-valuenow="${v}"><i style="width:${Math.min(100,v/t*100)}%"></i></div>`;
+const stateChip=c=>!c?'<span class="pchip">공구 없음</span>':({open:'<span class="pchip open">진행 중</span>',reached:'<span class="pchip ok">목표 달성 · 결제 기간</span>',failed:'<span class="pchip bad">진행 안 됨</span>',settled:'<span class="pchip ok">확정 완료</span>',forced:'<span class="pchip open">그래도 진행 · 결제 기간</span>'}[c.state]);
+const kpi=cols=>`<div class="pk" style="grid-template-columns:repeat(${cols.length},1fr)">${cols.map(c=>`<div><small>${c[0]}</small><strong>${c[1]}</strong></div>`).join('')}</div>`;
+const stLabel={open:'진행 중',reached:'달성',failed:'진행 안 됨',settled:'확정 완료',forced:'그래도 진행'};
+const campRoute=c=>c.state==='open'?'S-09':c.state==='settled'?'S-11':'S-10';
+function smsText(){const f=st.form,p=st.prod;return `(광고)[브랜드] 찜하신 ${p.name} 공동구매가 열렸어요. ${f.target}개 모이면 ${won(f.deal)}(정가 ${won(p.price)}). 10/9(목) 14:00 마감. 결제는 달성 후에 해요.`}
+function openCamp(){
+  const f=st.form,p=st.prod;
+  st.camp={prod:p,target:+f.target,deal:+f.deal,price:p.price,limit:+f.limit,pledged:0,state:'open',extended:false,invited:p.reach,paid:0,cancelled:0,night:f.night};
+  st.msgs=[{t:f.night?'내일 오전 8:00':'오늘 오후 2:10',body:smsText(),link:'C-02'},{t:'',body:'무료수신거부 080-000-0000'}];
+  st.mine=0;st.minePaid=false;
+}
+function pushTo(msg,go){st.push={msg,go}}
+let syncTimer=null;
+function startSync(){clearInterval(syncTimer);syncTimer=setInterval(()=>{st.sync=Math.min(100,(st.sync||0)+5);if(st.sync>=100){clearInterval(syncTimer);pushTo('찜·장바구니 첫 수집 완료 · 상품 500개','S-04')}if(st.role==='seller'&&st.s==='S-E2')render();else if(st.sync>=100)render()},350)}
+const row=(b,s,extra)=>`<div class="prow" style="cursor:default"><span class="meta"><b>${b}</b><small>${s}</small>${extra||''}</span></div>`;
+/* ---------- seller screens ---------- */
+const SS={
+ 'S-01':()=>bar('찜 공구 설치')+`<div class="pp-body">
+   <div class="pc hl"><h4>찜만 쌓인 수요를 확정 주문으로</h4><p class="psub">카페24 쇼핑몰과 연결하면 찜·장바구니 고객에게 목표 수량 공동구매를 열 수 있어요.</p></div>
+   <div class="pc"><h4>요청하는 권한과 이유</h4>
+     <div class="psub">상품 · 찜 · 장바구니: 수요를 집계해요</div><div class="psub">회원 수신동의: 동의한 고객에게만 문자를 보내요</div><div class="psub">쿠폰 · 주문: 할인 쿠폰을 발급하고 결제를 집계해요</div><div class="psub">문자: 쇼핑몰 SMS로 초대와 결과를 보내요</div>
+     ${T('I-01','y','카페24 OAuth · 스토어 심사','조건: 카페24 스토어 심사(4~6주 추정)와 READ_PRIVACY 권한 소명이 필요. 대체 경로: 심사 전에는 특정 몰 지정 설치로 파일럿 운영.')}</div>
+   <p class="psub">개인정보 처리 위탁 안내 · 이용약관</p><div style="flex:1"></div>
+   <button class="pbtn" data-act="oauth">카페24에서 권한 동의하기</button></div>`,
+ 'S-02':()=>{const s=st.setup,done=s.filter(Boolean).length,items=[['문자 발신번호 확인','등록된 번호 02-000-0000',T('I-06','g','SMS 발신자 조회')],['실시간 주문 알림 동의','결제 추적에 필요해요',T('I-09','g','웹훅 설정')],['상품 페이지 위젯 설치','상품명 아래에 진행률이 보여요',T('I-08','g','스크립트태그')]];
+   return bar('초기 설정',null,`${done} / 3`)+`<div class="pp-body">${pbar(done,3)}
+   <div class="plist">${items.map((it,i)=>`<button class="prow" data-act="setup" data-i="${i}" aria-pressed="${s[i]}"><span class="th" style="${s[i]?'background:var(--success)':''}"></span><span class="meta"><b>${it[0]}</b><small>${s[i]?'완료 ✓':it[1]}</small>${it[2]}</span><span class="chev">${s[i]?'':'설정'}</span></button>`).join('')}</div>
+   <p class="psub">항목을 눌러 하나씩 완료하세요.</p><div style="flex:1"></div>
+   <button class="pbtn" data-go="S-P1" ${s.every(Boolean)?'':'disabled'}>다음</button></div>`},
+ 'S-P1':()=>bar('알림 받기')+`<div class="pp-body" style="justify-content:center;text-align:center">
+   <div class="ph1">결과를 휴대폰으로 받아보세요</div><p class="psub">목표 50%·100% 도달, 마감 결과, 확정 리포트를 알려 드려요. 아이폰은 홈 화면에 추가한 뒤 켤 수 있어요(iOS 16.4 이상).</p>
+   <div style="justify-self:center">${T('I-12','g','Web Push')}</div>
+   <button class="pbtn" data-act="install">알림 허용</button><button class="pbtn2" data-act="install">나중에</button></div>`,
+ 'S-E2':()=>{const v=st.sync||0,done=v>=100,n=Math.round(500*v/100);return bar('첫 수집 중')+`<div class="pp-body">
+   <div class="pc ${done?'ok':'hl'}"><h4>${done?'수집을 마쳤어요':'찜·장바구니 수를 처음 모으고 있어요'}</h4><div style="font:600 18px var(--mono)">상품 ${n} / 500</div>${pbar(v,100,done)}<p class="psub">${done?'이제 수요 레이더를 볼 수 있어요. 앞으로는 매일 새벽 자동으로 갱신돼요.':'카페24 호출 한도 때문에 상품 500개 기준 약 8분 걸려요. 찜이 많은 상품부터 채우고, 끝나면 알림으로 알려 드려요. 앱을 닫아도 계속 진행돼요.'}</p>${T('I-02','y','찜 수 count · 상품 단위 조회','상품마다 호출해야 해서 즉시 표시 불가. 몰별 초당 2회 회복 한도. 회원 목록은 페이지 넘김이 없어 100명 초과분은 회원별 찜(I-14)으로 보완(P8).')}${T('I-03','g','장바구니 count · 보관 기간 내만')}</div>
+   <div class="pc"><h4>미리 알아 두세요</h4><p class="psub">· 찜은 설치 전에 쌓인 것도 모두 보여요<br>· 장바구니는 쇼핑몰 보관 기간(예: 7일) 안의 것만 보여요<br>· 고객 개인정보는 공구를 여는 상품에서만 조회해요</p></div>
+   <div style="flex:1"></div>${done?'<button class="pbtn" data-act="syncDone">수요 레이더 보러 가기</button>':'<button class="pbtn2" data-act="syncDone">기다리지 않고 홈으로 (수집은 계속돼요)</button>'}</div>`},
+ 'S-03':()=>{const c=st.camp;const rev=c&&c.state==='settled'?c.paid*c.deal:0;
+   return bar('홈',null,'브랜드 스튜디오')+`<div class="pp-body">
+   ${kpi([['이번 달 확정 매출',won(rev)],['진행 중 공구',c&&['open','reached','forced'].includes(c.state)?'1':'0']])}
+   ${c?`<button class="pc hl prow" data-go="${campRoute(c)}" style="display:grid;border:1px solid var(--primary)"><span style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>${esc(c.prod.name)} 공구</b>${stateChip(c)}</span><span class="psub">${c.pledged} / ${c.target} 신청 · 마감 10/9 14:00</span>${pbar(c.pledged,c.target,c.pledged>=c.target)}</button>`
+      :`<div class="pc"><h4>아직 연 공구가 없어요</h4><p class="psub">찜이 많은 상품부터 시작해 보세요.</p><button class="pbtn2" data-go="S-04">수요 레이더 보기</button></div>`}
+   <div class="pc"><h4>찜이 많은 상품</h4><div class="plist" style="border:0">${PRODUCTS.slice(0,2).map(p=>`<button class="prow" data-act="pick" data-no="${p.no}"><span class="th"></span><span class="meta"><b>${p.name}</b><small>찜 ${p.wish} · 도달 가능 ${p.reach}</small></span><span class="chev">›</span></button>`).join('')}</div></div>
+   </div>`+tabbar(0)},
+ 'S-04':()=>bar('수요 레이더',null,'최근 30일')+`<div class="pp-body">
+   <p class="psub">상품별 찜·장바구니 수예요. 문자를 받을 수 있는 인원은 상품을 고르면 그 상품만 계산해요.</p>
+   <div style="display:flex;flex-wrap:wrap;gap:6px">${T('I-02','y','찜 수 count','상품 단위 조회 · 찜 웹훅 없어 매일 새벽 배치 갱신.')}${T('I-03','g','장바구니 수 · 웹훅 90084')}</div>
+   <div class="plist">${PRODUCTS.map(p=>`<button class="prow" data-act="pick" data-no="${p.no}"><span class="th"></span><span class="meta"><b>${p.name}</b><small>찜 ${p.wish} · 장바구니 ${p.cart} (최근 7일)</small></span><span class="chev">›</span></button>`).join('')}</div>
+   <p class="small" style="text-align:center">마지막 갱신 오늘 03:00 · 매일 새벽 자동 갱신</p></div>`+tabbar(1),
+ 'S-05':()=>{const p=st.prod,lo=Math.round(p.reach*.08),hi=Math.round(p.reach*.15);
+   return bar('상품 수요','S-04')+`<div class="pp-body">
+   <div class="pc" style="grid-template-columns:56px 1fr;align-items:center"><span class="th" style="width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,color-mix(in srgb,var(--primary) 30%,var(--soft)),var(--soft))"></span><div><b>${p.name}</b><div class="psub">정가 ${won(p.price)}</div></div></div>
+   ${kpi([['찜',p.wish],['장바구니',p.cart],['도달 가능',p.reach]])}
+   <p class="small">도달 가능 = 이 상품의 찜·장바구니 회원 중 문자 수신 동의자 (중복 제거). 이 상품을 열 때만 회원 목록과 수신동의를 대조해요.</p>
+   <div style="display:flex;flex-wrap:wrap;gap:6px">${T('I-02','y','찜 회원 목록','페이지 넘김 없음 · 요청 제한 100건. 찜 100명 초과 시 전원 수집 미확인(P8) → 회원별 찜 목록(I-14) + 로그인 웹훅 90143으로 보완.')}${T('I-14','g','회원별 찜 · 찜한 날짜')}${T('I-04','g','수신동의 sms=T','몰 개인정보 제공 설정에 따라 막히는지 미확인(P9).')}</div>
+   <div class="pc"><h4>최근 8주 찜 추이</h4><svg viewBox="0 0 300 70" width="100%" height="70" role="img" aria-label="최근 8주 찜 수가 꾸준히 늘어난 추이"><polyline fill="none" stroke="var(--primary)" stroke-width="2.5" points="5,58 45,54 85,49 125,44 165,36 205,30 245,22 290,12"/><circle cx="290" cy="12" r="4" fill="var(--primary)"/></svg></div>
+   <div class="pc hl"><h4>추천 목표 수량 ${lo}~${hi}개</h4><p class="psub">도달 ${p.reach}명 × 예상 신청 전환 8~15% [추정]. 처음엔 낮게 잡아 성사율을 높이세요.</p></div>
+   <button class="pbtn" data-act="startCreate">이 상품으로 공구 열기</button></div>`},
+ 'S-06':()=>{const f=st.form,p=st.prod,low=+f.deal<+f.cost,disc=Math.round((1-f.deal/p.price)*100);
+   return bar('공구 개설','S-05','1 / 3')+`<div class="pp-body">${pbar(1,3)}
+   <label class="pf">목표 수량 (개)<input id="f-target" type="number" min="1" value="${f.target}" inputmode="numeric"></label>
+   <label class="pf">할인가 (정가 ${won(p.price)})<input id="f-deal" type="number" min="0" step="500" value="${f.deal}" inputmode="numeric"></label>
+   <p class="psub">${disc}% 할인 · 할인 전 가격은 실제 판매가만 표시해요</p>
+   <label class="pf">원가 (고객에게 보이지 않아요)<input id="f-cost" type="number" min="0" step="500" value="${f.cost}" inputmode="numeric"></label>
+   <div class="pc ${low?'bad':'ok'}">${low?'<h4>할인가가 원가보다 낮아요</h4><p class="psub">팔수록 손해예요. 할인가를 다시 확인하세요.</p>':'<p class="psub">원가 대비 마진 '+won(f.deal-f.cost)+' / 개</p>'}</div>
+   <div style="flex:1"></div><button class="pbtn" data-go="S-07">다음</button></div>`},
+ 'S-07':()=>{const f=st.form;return bar('공구 개설','S-06','2 / 3')+`<div class="pp-body">${pbar(2,3)}
+   <label class="pf">마감 일시 (이 시각이 지나야 판정해요)<input value="10월 9일 (목) 14:00" readonly></label>
+   <label class="pf">결제 기간<select id="f-pay"><option>달성 후 72시간</option><option>달성 후 48시간</option></select></label>
+   <label class="pf">예상 출고일 (필수 · 고객에게 보여요)<input value="11월 6일 (월)" readonly></label>
+   <label class="pf">1인 최대 수량<input id="f-limit" type="number" min="1" max="5" value="${f.limit}"></label>
+   <p class="small">가짜 카운트다운은 쓰지 않아요. 연장은 진행 중 한 번만, 사유를 공개해요.</p>
+   <div style="flex:1"></div><button class="pbtn" data-go="S-08">다음</button></div>`},
+ 'S-08':()=>{const f=st.form,p=st.prod,cost=Math.round(p.reach*57);
+   return bar('공구 개설','S-07','3 / 3')+`<div class="pp-body">${pbar(3,3)}
+   ${kpi([['찜 + 장바구니',p.wish+p.cart],['문자 발송 대상',p.reach]])}
+   <p class="small">수신 미동의 고객은 자동으로 빠져요. 찜·장바구니 중복은 한 명으로 셉니다.</p>
+   <div class="pc"><h4>문자 미리보기</h4><div class="psms" style="max-width:none">${esc(smsText())} 무료수신거부 080-000-0000</div>${T('I-06','g','SMS 발송 · 수신거부자 자동 제외')}</div>
+   <p class="psub">예상 문자비 약 ${won(cost)} · 판매자 SMS 충전분에서 차감 [추정]</p>
+   <label class="pchk"><input type="checkbox" id="f-night" ${f.night?'checked':''}>지금이 밤 9시 40분이라고 가정하기</label>
+   ${f.night?'<div class="pc warn"><p class="psub">밤 9시~오전 8시에는 광고 문자를 보낼 수 없어요. 내일 오전 8:00에 예약 발송돼요.</p></div>':''}
+   ${T('I-07','g','쿠폰 생성 POST /coupons')}
+   <button class="pbtn" data-act="open">공구 열기</button></div>`},
+ 'S-09':()=>{const c=st.camp;if(!c)return SS['S-12']();const ok=c.pledged>=c.target;
+   return bar(`${c.prod.name} 공구`,'S-03')+`<div class="pp-body">
+   <div class="pc ${ok?'ok':'hl'}"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px">${stateChip(c)}<span class="psub">마감 ${c.extended?'10/10 14:00 (연장)':'10/9 14:00'}</span></div>
+     <div class="ph1" style="font-family:var(--mono)">${c.pledged} <span style="font-size:15px;color:var(--fg2)">/ ${c.target}개</span></div>${pbar(c.pledged,c.target,ok)}
+     ${ok&&c.state==='open'?'<p class="psub">목표를 채웠어요. 마감 시각이 되면 쿠폰이 자동 발급돼요.</p>':''}</div>
+   ${kpi([['초대',c.invited],['신청',c.pledged],['결제','마감 후']])}
+   <div class="pc"><h4>최근 신청</h4>${c.pledged?`<p class="psub">${st.mine?`me***님 · ${st.mine}개 · 방금<br>`:''}${c.pledged>st.mine?'ha***님 · 2개 · 5분 전<br>ki***님 · 1개 · 12분 전':''}</p>`:'<p class="psub">아직 신청이 없어요. 오른쪽 시뮬레이션이나 고객 화면에서 신청해 보세요.</p>'}</div>
+   <button class="pbtn2" data-act="extend" ${c.extended||c.state!=='open'?'disabled':''}>${c.extended?'연장 사용함 (1회)':'마감 하루 연장 (1회 · 사유 공개)'}</button>
+   ${c.state!=='open'?`<button class="pbtn" data-go="S-10">마감 결과 보기</button>`:''}</div>`},
+ 'S-10':()=>{const c=st.camp;if(!c||c.state==='open')return SS['S-09']();
+   if(c.state==='failed') return bar('마감 결과','S-03')+`<div class="pp-body"><div class="pc bad"><h4>목표 미달 ${c.pledged} / ${c.target}</h4><p class="psub">참여자에게 '진행 안 됨' 문자를 보냈어요. 결제된 금액은 없어요.</p>${T('I-06','g','결과 문자')}</div>
+     ${c.pledged?`<div class="pc"><h4>그래도 진행할까요?</h4><p class="psub">${c.pledged}개 신청자에게 다시 안내하고 할인 쿠폰을 발급해요. 남는 재고 위험은 판매자가 져요.</p><button class="pbtn2" data-act="force">그래도 진행</button></div>`:''}
+     <button class="pbtn" data-act="reset">공구 종료하고 처음부터</button></div>`;
+   return bar('마감 결과','S-03')+`<div class="pp-body"><div class="pc ok"><h4 style="font-size:20px">${c.state==='forced'?'그래도 진행':'목표 달성'} ${c.pledged} / ${c.target}</h4><p class="psub">10월 9일 14:00 마감</p></div>
+     <div class="plist">${row(`쿠폰 발급 ${c.pledged}명 완료 ✓`,'회원 지정 · 상품 한정 · 1회용',T('I-07','g','쿠폰 발급 POST /coupons/{no}/issues','1회에 몇 명까지 발급되는지는 PoC P3에서 확인. 대체: 나눠서 발급 + 발급 내역 대사.'))}
+     ${row('결과 문자 발송 완료 ✓','정보성/광고성 판단은 법무 확인 중',T('I-06','g','SMS · P5 법무 확인','결과 안내가 정보성인지 법무 확인 필요(P5). 확인 전에는 수신동의자에게만 발송.'))}</div>
+     <p class="psub">결제 기간: 10월 12일 14:00까지 · ${c.state==='settled'?'종료됨':'진행 중'}</p>
+     ${c.state==='settled'?'<button class="pbtn" data-go="S-11">확정 리포트 보기</button>':'<p class="small">시뮬레이션 패널의 "결제 기간 종료"로 72시간 뒤로 이동하세요.</p>'}</div>`},
+ 'S-11':()=>{const c=st.camp;if(!c||c.state!=='settled')return SS['S-10']();const unpaid=c.pledged-c.paid-c.cancelled,rev=c.paid*c.deal;
+   return bar('확정 리포트','S-03')+`<div class="pp-body">
+   <div class="pc ok"><span class="psub">확정 수량 (결제 완료 기준)</span><div class="ph1" style="font-family:var(--mono);font-size:32px">${c.paid}개</div></div>
+   ${kpi([['결제 완료',c.paid],['미결제',unpaid],['취소',c.cancelled]])}
+   ${T('I-09','g','주문 웹훅 90023/90025 + 야간 대사')}
+   <div class="pc"><h4>확정 매출 ${won(rev)}</h4><p class="psub">성공 수수료 ${won(rev*.015)} (1.5%, 스타터 요금제)</p></div>
+   <label class="pf">발주 메모<input id="f-memo" placeholder="예: 공방 A · ${Math.ceil(c.paid*1.1)}개 발주 (여유분 10%)"></label>
+   <button class="pbtn" data-act="copy">리포트 링크 복사</button></div>`},
+ 'S-12':()=>{const c=st.camp;return bar('공구')+`<div class="pp-body">
+   ${c?`<div class="plist"><button class="prow" data-go="${campRoute(c)}"><span class="th"></span><span class="meta"><b>${esc(c.prod.name)}</b><small>${c.pledged}/${c.target} · ${stLabel[c.state]}</small></span><span class="chev">›</span></button></div>`
+     :`<div style="flex:1;display:grid;place-content:center;text-align:center;gap:10px"><div class="ph1">아직 연 공구가 없어요</div><p class="psub">찜이 많은 상품부터 시작해 보세요.</p><button class="pbtn" data-go="S-04">수요 레이더 보기</button></div>`}</div>`+tabbar(2)},
+ 'S-13':()=>bar('설정')+`<div class="pp-body">
+   <div class="plist">${row('요금제 · 스타터','월 29,000원 + 확정 결제액 1.5%',T('I-10','y','카페24 인앱결제','조건: 카페24 스토어 PG(KG모빌리언스) 신청 필요, 수수료율 미확인(P6). 대체: 파일럿 기간 무료 운영.'))}
+   ${row('카페24 연결 · 정상','토큰 자동 갱신 · 상품 페이지 위젯 설치됨')}
+   ${row('재입고 신청자 엑셀 업로드','카페24 관리자에서 내려받은 파일을 올려요',T('I-05','w','재입고 신청자 API 미확인','공식 문서에서 신청자 목록 API를 찾지 못함. 확인: 카페24 개발자센터 문의(P1). 대체: 엑셀 업로드 수작업, 불가하면 찜·장바구니만 대상.'))}
+   ${row('개인정보 처리 위탁 문서','판매자 처리방침에 넣을 문구 복사')}</div></div>`+tabbar(3)
+};
+/* ---------- customer screens ---------- */
+const CS={
+ 'C-01':()=>{const c=st.camp;
+   if(!c) return bar('메시지 · 브랜드')+`<div class="pp-body"><div class="pdemo"><b>아직 받은 초대가 없어요</b>판매자 앱에서 공구를 열면 수신동의 고객에게 초대 문자가 와요.<button class="pbtn" data-act="quickOpen">데모 공구로 바로 시작</button></div></div>`;
+   return bar('메시지 · 브랜드')+`<div class="pp-body">${st.msgs.map(m=>`${m.t?`<div class="ptime">${m.t}</div>`:''}<div class="psms">${esc(m.body)}${m.link?`<br><a href="#" data-go="${m.link}">${m.link==='C-02'?`참여하기 ▶ brand.co.kr/p/${c.prod.no}`:'결제하러 가기 ▶'}</a>`:''}</div>`).join('')}
+   ${T('I-06','g','카페24 SMS · (광고) 표기 · 21~08시 차단')}</div>`},
+ 'C-02':()=>{const c=st.camp;if(!c)return CS['C-01']();const open=c.state==='open';
+   return bar('BRAND',null,null,true)+`<div class="pp-body">
+   <div style="aspect-ratio:4/3;border-radius:14px;background:linear-gradient(160deg,color-mix(in srgb,var(--primary) 22%,var(--soft)),var(--soft));display:grid;place-items:center;color:var(--fg2);font-size:13px">상품 이미지</div>
+   <div><b style="font-size:17px">${esc(c.prod.name)}</b><div class="psub">${won(c.price)}</div></div>
+   <div class="pc hl"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px">${stateChip(c)}<span class="psub">${c.extended?'10/10':'10/9'} 14:00 마감</span></div>
+     <div style="font:600 18px var(--mono)">${c.pledged} / ${c.target}개</div>${pbar(c.pledged,c.target,c.pledged>=c.target)}
+     <p class="psub">달성하면 <b style="color:var(--fg)">${won(c.deal)}</b> · 지금은 결제하지 않아요${c.extended?'<br>마감 연장 사유: 재고 확보 일정 확인':''}</p>${T('I-08','g','스크립트태그 위젯 · 30초 캐시')}</div>
+   ${st.mine?`<button class="pbtn2" data-go="C-06">신청함 (${st.mine}개) · 내 공구 보기</button>`:`<button class="pbtn" data-act="apply" ${open?'':'disabled'}>${open?'참여 신청 (지금 결제 없음)':'마감된 공구예요'}</button>`}
+   <button class="pbtn2" data-act="buyFull">정가로 바로 구매</button></div>`},
+ 'C-03':()=>bar('BRAND','C-02',null,true)+`<div class="pp-body" style="justify-content:center;text-align:center"><div class="ph1">회원만 참여할 수 있어요</div><p class="psub">로그인하면 신청 화면으로 바로 돌아와요.</p>
+   <button class="pbtn" data-act="login">로그인하고 계속</button><button class="pbtn2" data-act="login">회원가입</button></div>`,
+ 'C-05':()=>bar('BRAND',null,null,true)+`<div class="pp-body" style="justify-content:center;text-align:center"><div style="width:64px;height:64px;border-radius:50%;background:var(--success);color:#fff;display:grid;place-items:center;font-size:30px;justify-self:center">✓</div>
+   <div class="ph1">신청했어요</div><p class="psub">마감 후 결과를 문자로 알려 드려요. 마감 전까지는 언제든 취소할 수 있어요.</p>
+   <button class="pbtn" data-go="C-06">내 공구 보기</button><button class="pbtn2" data-go="C-02">쇼핑 계속하기</button></div>`,
+ 'C-06':()=>{const c=st.camp;if(!c||!st.mine)return bar('내 공구','C-02')+`<div class="pp-body" style="justify-content:center;text-align:center"><div class="ph1">신청한 공구가 없어요</div><button class="pbtn2" data-go="C-02">공구 상품 보기</button></div>`;
+   const lbl=st.minePaid?'<span class="pchip ok">결제 완료</span>':stateChip(c);
+   return bar('내 공구','C-02')+`<div class="pp-body"><div class="pc"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>${esc(c.prod.name)}</b>${lbl}</div><p class="psub">신청 ${st.mine}개 · ${c.pledged}/${c.target} · 예상 출고 11/6</p>${pbar(c.pledged,c.target,c.pledged>=c.target)}</div>
+   ${c.state==='open'?'<button class="pbtn2" data-act="cancel">신청 취소 (마감 전까지 가능)</button>':''}
+   ${['reached','forced'].includes(c.state)&&!st.minePaid?'<button class="pbtn ok" data-go="C-07">쿠폰 받았어요 · 결제하러 가기</button>':''}
+   ${c.state==='settled'&&!st.minePaid?'<div class="pc warn"><p class="psub">결제 기한이 지나 쿠폰이 만료됐어요.</p></div>':''}
+   ${c.state==='failed'?'<div class="pc bad"><p class="psub">목표에 못 미쳐 진행되지 않았어요. 결제된 금액은 없어요.</p></div>':''}
+   <button class="pbtn2" data-go="C-01">문자함 보기</button></div>`},
+ 'C-07':()=>{const c=st.camp;if(!c||!['reached','forced'].includes(c.state)||st.minePaid)return CS['C-06']();return bar('BRAND',null,null,true)+`<div class="pp-body"><div class="pc ok"><h4 style="font-size:20px">목표 달성 · 쿠폰 1장 발급</h4><p class="psub">${esc(c.prod.name)} 공동구매가 ${c.pledged}개로 마감됐어요.</p>${T('I-07','g','회원 지정 쿠폰')}</div>
+   <div class="pc warn"><p class="psub"><b style="color:var(--fg)">결제 기한 10월 12일 (일) 14:00</b><br>지나면 쿠폰이 사라지고 다음 대기자에게 넘어가요.</p></div>
+   <div style="flex:1"></div><button class="pbtn" data-go="C-08">결제하러 가기</button></div>`},
+ 'C-08':()=>{const c=st.camp,q=st.mine;if(!c||!q)return CS['C-06']();return bar('주문서',null,null,true)+`<div class="pp-body"><p class="small" style="text-align:center">카페24 기본 주문서 화면</p>
+   <div class="plist"><div class="prow" style="cursor:default"><span class="th"></span><span class="meta"><b>${esc(c.prod.name)} × ${q}</b><small>${won(c.price*q)}</small></span></div></div>
+   <div class="pc hl"><h4>쿠폰 · 공구 할인 −${won((c.price-c.deal)*q)}</h4><p class="psub">자동 선택됨 · 이 상품에만 1회 사용</p></div>
+   <div class="plist">${row('결제 수단 · 카드','판매자 쇼핑몰 PG로 결제돼요',T('I-09','g','주문 웹훅 → 판매자 확정 수량'))}</div>
+   <div style="flex:1"></div><button class="pbtn" data-act="pay">${won(c.deal*q)} 결제하기</button></div>`},
+ 'C-E1':()=>bar('BRAND','C-02',null,true)+`<div class="pp-body" style="justify-content:center"><div class="pc bad"><h4>1인 최대 ${st.camp.limit}개까지 신청할 수 있어요</h4><p class="psub">수량을 줄여서 다시 신청해 주세요.</p></div><button class="pbtn2" data-go="C-02">상품 페이지로</button></div>`
+};
+function sheet(){const c=st.camp;return `<div class="psheet" data-act="closeSheet"><div class="in" data-stop="1"><div style="width:44px;height:5px;border-radius:3px;background:var(--line);justify-self:center"></div>
+   <b style="font-size:19px">참여 신청 · C-04</b>
+   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span class="psub">수량 (1인 최대 ${c.limit}개)</span><div class="pstep"><button data-act="qty" data-d="-1" aria-label="수량 줄이기">−</button><span>${st.qty}</span><button data-act="qty" data-d="1" aria-label="수량 늘리기">+</button></div></div>
+   <div class="pc"><p class="psub">✓ 지금은 결제하지 않아요<br>✓ ${c.target}개가 모이면 ${won(c.deal)} 쿠폰을 드려요. 72시간 안에 결제<br>✓ 못 모이면 '진행 안 됨' 안내만 가요<br>✓ 예상 출고 11월 6일</p></div>
+   ${T('I-08','g','암호화 회원 ID 서버 검증','검증 방식은 PoC P2에서 확정. 대체: getCustomerIDInfo + 서버 세션 대조, 실패 시 재로그인 요청.')}
+   <button class="pbtn" data-act="submitPledge">신청하기</button></div></div>`}
+/* ---------- render ---------- */
+let toastTimer=null;
+function render(){
+  const seller=st.role==='seller', id=seller?st.s:st.c;
+  let shown=id; const fn=(seller?SS:CS)[id]||(seller?SS['S-03']:CS['C-01']);
+  if(!seller&&st.sheet) shown='C-04';
+  const p2=PAIN2[shown]?' · '+TAGS[PAIN2[shown]]:'';
+  $('p-phone').className='p-phone'+(st.tech?' tech-on':'');
+  $('p-phone').innerHTML=`<div class="pp-status"><span>9:41</span><span>${seller?'찜 공구':'브랜드 쇼핑몰'}</span></div>${fn()}
+   <div class="pp-foot"><span>${shown}</span><span>${TAGS[PAIN[shown]||'D']}${p2}</span></div>
+   ${st.sheet&&!seller?sheet():''}
+   ${st.push&&seller?`<button class="ppush" data-act="push"><small>찜 공구 · 지금</small><b>${esc(st.push.msg)}</b></button>`:''}
+   ${st.toast?`<div class="ptoast" role="status">${esc(st.toast)}</div>`:''}`;
+  ['seller','cust'].forEach(r=>$('r-'+r).setAttribute('aria-checked',st.role===r));
+  const c=st.camp;
+  $('p-state').innerHTML=`<dl class="stv"><dt>공구</dt><dd>${c?esc(c.prod.name):'없음'}</dd><dt>상태</dt><dd>${stateChip(c)}</dd><dt>신청</dt><dd>${c?`${c.pledged} / ${c.target}개`:'–'}</dd><dt>내 신청 (고객)</dt><dd>${st.mine?st.mine+'개'+(st.minePaid?' · 결제 완료':''):'없음'}</dd><dt>확정 수량</dt><dd>${c&&c.state==='settled'?c.paid+'개':'–'}</dd>${st.push?`<dt>판매자 푸시</dt><dd>${esc(st.push.msg)}</dd>`:''}</dl>`;
+  document.querySelector('[data-sim="pledge"]').disabled=!(c&&c.state==='open');
+  document.querySelector('[data-sim="judge"]').disabled=!(c&&c.state==='open');
+  document.querySelector('[data-sim="settle"]').disabled=!(c&&['reached','forced'].includes(c.state));
+  if(st.toast){const t=st.toast;clearTimeout(toastTimer);toastTimer=setTimeout(()=>{if(st.toast===t){st.toast=null;render()}},2600)}
+  bindForm(); fit();
+}
+function go(id){if(st.role==='seller'){st.s=id}else{st.c=id} st.sheet=false; render(); const b=document.querySelector('#p-phone .pp-body'); if(b) b.scrollTop=0}
+function bindForm(){
+  [['f-target','target'],['f-limit','limit']].forEach(([i,k])=>{const e=$(i);if(e)e.addEventListener('input',()=>{st.form[k]=Math.max(1,+e.value||1)})});
+  [['f-deal','deal'],['f-cost','cost']].forEach(([i,k])=>{const e=$(i);if(e)e.addEventListener('change',()=>{st.form[k]=+e.value||0;render()})});
+  const n=$('f-night');if(n)n.addEventListener('change',()=>{st.form.night=n.checked;render()});
+}
+function judge(){const c=st.camp;if(!c||c.state!=='open')return;
+  if(c.pledged>=c.target){c.state='reached';st.msgs.push({t:'10월 9일 오후 2:01',body:`[브랜드] ${c.prod.name} 공동구매 목표 달성! 쿠폰이 발급됐어요. 10/12(일) 14:00까지 결제해 주세요.`,link:st.mine?'C-07':null});pushTo(`${c.prod.name} 목표 달성 · 쿠폰 ${c.pledged}명 발급 완료`,'S-10')}
+  else{c.state='failed';if(st.mine)st.msgs.push({t:'10월 9일 오후 2:01',body:`[브랜드] ${c.prod.name} 공동구매가 목표(${c.target}개)에 못 미쳐 진행되지 않아요. 결제된 금액은 없어요.`});pushTo(`${c.prod.name} 목표 미달 (${c.pledged}/${c.target})`,'S-10')}
+  if(st.role==='seller'&&st.s==='S-09')st.s='S-10';
+  if(st.role==='cust'&&st.mine)st.c='C-01';
+}
+function settle(){const c=st.camp;if(!c||!['reached','forced'].includes(c.state))return;const others=c.pledged-st.mine;
+  c.paid=(st.minePaid?st.mine:0)+Math.round(others*.68); c.cancelled=Math.round(others*.03); c.state='settled';
+  pushTo(`확정 리포트 준비 완료 · 결제 ${c.paid}개`,'S-11'); if(st.role==='seller')st.s='S-11';}
+document.getElementById('proto').addEventListener('click',e=>{
+  const sim=e.target.closest('[data-sim]');
+  if(sim){const c=st.camp,k=sim.dataset.sim;
+    if(k==='pledge'&&c&&c.state==='open'){const before=c.pledged;c.pledged+=15;if(before<c.target&&c.pledged>=c.target)pushTo(`${c.prod.name} 공구 목표 달성! 마감까지 신청을 더 받아요`,'S-09');else if(before<c.target/2&&c.pledged>=c.target/2)pushTo(`${c.prod.name} 공구 50% 도달 (${c.pledged}/${c.target})`,'S-09');st.toast='다른 고객 15명이 신청했어요';}
+    if(k==='judge')judge(); if(k==='settle')settle(); render(); return}
+  const roleB=e.target.closest('[data-role]'); if(roleB){st.role=roleB.dataset.role;st.sheet=false;render();return}
+  const inPhone=n=>n&&$('p-phone').contains(n);
+  const g=e.target.closest('[data-go]'); if(inPhone(g)){e.preventDefault();go(g.dataset.go);return}
+  const a=e.target.closest('[data-act]'); if(!inPhone(a)) return;
+  if(a.dataset.act==='closeSheet'&&e.target.closest('[data-stop]'))return;
+  const act=a.dataset.act,c=st.camp;
+  switch(act){
+    case 'oauth': st.toast='카페24 권한 동의 완료 (OAuth)'; go('S-02'); break;
+    case 'setup': st.setup[+a.dataset.i]=true; render(); break;
+    case 'install': st.installed=true; st.sync=0; go('S-E2'); startSync(); break;
+    case 'syncDone': go('S-03'); break;
+    case 'pick': st.prod=PRODUCTS.find(p=>p.no==a.dataset.no); go('S-05'); break;
+    case 'startCreate': {const p=st.prod;st.form.target=Math.max(10,Math.round(p.reach*.12/5)*5);st.form.deal=Math.round(p.price*.75/500)*500;st.form.cost=Math.round(p.price*.55/500)*500;go('S-06');break}
+    case 'open': if(+st.form.deal<+st.form.cost&&!a.dataset.confirm){a.dataset.confirm='1';a.textContent='원가보다 낮아요 · 그래도 열기';break} openCamp(); st.toast=st.form.night?'쿠폰 생성 완료 · 문자는 내일 08:00 예약 발송':`쿠폰 생성 완료 · 문자 ${st.prod.reach}건 발송 시작`; go('S-09'); break;
+    case 'extend': if(c&&!c.extended){c.extended=true;st.toast='마감을 10/10 14:00으로 연장했어요 · 사유가 위젯에 공개돼요';render()} break;
+    case 'force': c.state='forced'; if(st.mine)st.msgs.push({t:'10월 9일 오후 3:10',body:`[브랜드] ${c.prod.name} 공동구매를 그대로 진행하기로 했어요. 쿠폰이 발급됐어요. 10/12(일) 14:00까지 결제해 주세요.`,link:'C-07'}); st.toast='참여자 전원에게 다시 안내하고 쿠폰을 발급했어요'; render(); break;
+    case 'reset': st=fresh(); render(); break;
+    case 'copy': {const t='https://app.example/report/'+(c?c.prod.no:''); const ok=()=>{st.toast='리포트 링크를 복사했어요';render()}, no=()=>{st.toast='복사가 막혀 있어요: '+t;render()}; try{navigator.clipboard.writeText(t).then(ok,no)}catch(err){no()} break}
+    case 'push': {const p=st.push;st.push=null;go(p.go);break}
+    case 'quickOpen': st.prod=PRODUCTS[1];st.form={target:60,deal:39000,cost:28500,limit:2,night:false};openCamp();pushTo('스톤웨어 디너 접시 4P 공구가 열렸어요 (데모)','S-09');render();break;
+    case 'apply': if(!st.loggedIn){go('C-03')}else{st.qty=1;st.sheet=true;render()} break;
+    case 'login': st.loggedIn=true; st.qty=1; st.c='C-02'; st.sheet=true; render(); break;
+    case 'closeSheet': st.sheet=false; render(); break;
+    case 'qty': st.qty=Math.max(1,Math.min(c.limit+1,st.qty+(+a.dataset.d))); render(); break;
+    case 'submitPledge': if(st.qty>c.limit){go('C-E1');break} {const before=c.pledged;st.mine=st.qty;c.pledged+=st.qty;pushTo(before<c.target&&c.pledged>=c.target?`${c.prod.name} 공구 목표 달성!`:`새 신청 ${st.qty}개 · ${c.pledged}/${c.target}`,'S-09')} go('C-05'); break;
+    case 'cancel': c.pledged-=st.mine; st.mine=0; st.toast='신청을 취소했어요'; go('C-02'); break;
+    case 'pay': st.minePaid=true; st.toast='결제 완료 · 판매자 확정 수량에 반영돼요'; pushTo(`결제 1건 · ${c.prod.name}`,'S-10'); go('C-06'); break;
+    case 'buyFull': st.toast='정가 구매는 쇼핑몰의 기존 주문 흐름으로 이어져요'; render(); break;
+  }
+});
+document.getElementById('techToggle').addEventListener('change',e=>{st.tech=e.target.checked;render()});
+document.getElementById('p-reset').addEventListener('click',()=>{clearInterval(syncTimer);st=fresh();render()});
+function fit(){const w=$('p-wrap'),ph=$('p-phone');if(!w||!ph)return;const stage=document.querySelector('#proto .p-stage');const avail=Math.min(stage&&stage.clientWidth?stage.clientWidth:390,window.innerWidth-32);
+  const sc=Math.max(.62,Math.min(1,avail/390,(window.innerHeight-110)/844));ph.style.transform=`scale(${sc})`;w.style.width=Math.round(390*sc)+'px';w.style.height=Math.round(844*sc)+'px'}
+window.addEventListener('resize',fit);
+document.getElementById('t-proto').addEventListener('click',()=>setTimeout(fit,0));
+render();
+})();
+</script>
+
+<script>
+/* ================= 기획서 · 기술 검증 · 부록 렌더링 ================= */
+(function(){
+const $=id=>document.getElementById(id);
+const F='font-family="IBM Plex Sans KR, system-ui, sans-serif"';
+const svg=(w,h,body,label)=>`<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img" aria-label="${esc(label)}" ${F} style="display:block;max-width:none">${body}</svg>`;
+const fluid=(w,h,body,label)=>`<svg viewBox="0 0 ${w} ${h}" width="100%" role="img" aria-label="${esc(label)}" ${F} style="display:block">${body}</svg>`;
+const VC={g:'var(--success)',y:'var(--warning)',r:'var(--danger)',w:'var(--muted)'};
+const VL={g:'🟢 즉시 가능',y:'🟡 조건부',r:'🔴 현재 불가',w:'⚪ 미확인'};
+function wrap(t,n){const out=[];let cur='';String(t).split(' ').forEach(w=>{if(cur&&(cur+' '+w).length>n){out.push(cur);cur=w}else cur=cur?cur+' '+w:w});if(cur)out.push(cur);return out}
+function text(x,y,t,o={}){const lines=Array.isArray(t)?t:wrap(t,o.n||99);const lh=o.lh||15;const y0=y-((lines.length-1)*lh)/2*(o.mid?1:0);
+  return lines.map((l,i)=>`<text x="${x}" y="${y0+i*lh}" font-size="${o.fs||12}" font-weight="${o.fw||400}" fill="${o.fill||'var(--fg)'}" text-anchor="${o.a||'start'}">${esc(l)}</text>`).join('')}
+const defs=`<defs>${['ink','primary','success','muted','warning'].map(c=>`<marker id="m-${c}" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--${c})"/></marker>`).join('')}</defs>`;
+
+/* ---------- inventory data ---------- */
+const D='2026-10-06';
+const INV=[
+ {id:'I-01',v:'y',f:'F1 설치',n:'카페24 앱 등록 · OAuth',m:'REST · OAuth 2.0 (액세스 토큰 2시간, 갱신 토큰 2주)',a:'개발사 셀프 등록. 공개 판매는 카페24 스토어 심사',l:'몰별 10분 3,000회 · 버킷 40 (초당 2회 회복)',docs:[['OAuth','https://apidocs.cafe24.com/docs/guide/oauth2-authentication'],['쿼터','https://apidocs.cafe24.com/docs/guide/api-quota'],['심사','https://developers.cafe24.com/app/front/app/launch/examine']],alt:'개발은 🟢, 판매는 심사 필요(기간 ⚪). 심사 전에는 지정 몰 설치(P7)로 파일럿.',core:1},
+ {id:'I-02',v:'y',f:'F2·F4 찜 고객',n:'상품별 찜 회원 목록 · 수',m:'GET /admin/products/{no}/wishlist/customers, /count · READ_PRIVACY',a:'셀프 (개인정보 권한 → 심사 소명)',l:'초당 40회 · 요청 제한 100건 · 페이지 넘김 없음 · 날짜 없음',docs:[['문서','https://apidocs.cafe24.com/docs/admin/get-products-by-product-no-wishlist-customers']],alt:'count는 🟢. 회원 목록은 100명 초과 시 전원 수집 여부 미확인(P8). 대체: 회원별 찜 목록(I-14) + 로그인 웹훅으로 보완. 찜 웹훅은 없어 배치 수집.',core:1},
+ {id:'I-14',v:'g',f:'F2·F4 찜 보완',n:'회원별 찜 목록 · 로그인 웹훅 90143',m:'GET /admin/customers/{member_id}/wishlist · READ_PERSONAL · 웹훅 90143',a:'셀프',l:'초당 40회 · 회원 수만큼 호출 (첫 백필 무거움)',docs:[['문서','https://apidocs.cafe24.com/docs/admin/get-customers-by-member-id-wishlist'],['웹훅','https://developers.cafe24.com/app/front/app/develop/webhook/sample']],alt:'찜한 날짜(created_date) 있음. 첫 백필 이후에는 로그인한 회원만 다시 조회.',core:0},
+ {id:'I-03',v:'g',f:'F2·F4 장바구니',n:'상품별 장바구니 회원 · 웹훅 90084',m:'GET /admin/products/{no}/carts, /count · READ_PERSONAL',a:'셀프',l:'초당 40회 · limit 100 · offset 최대 10,000 · 담은 날짜 있음',docs:[['문서','https://apidocs.cafe24.com/docs/admin/get-products-by-product-no-carts'],['웹훅','https://developers.cafe24.com/app/front/app/develop/webhook/sample'],['보관 기간','https://apidocs.cafe24.com/docs/admin/get-carts-setting']],alt:'몰의 장바구니 보관 기간(예: 7일)이 지나면 사라지므로 최근 의향만 반영.',core:1},
+ {id:'I-04',v:'g',f:'F4 수신동의',n:'회원 SMS·이메일 수신 여부 (sms, news_mail)',m:'GET /admin/customersprivacy · READ_PRIVACY',a:'셀프',l:'1회 최대 1,000건',docs:[['문서','https://apidocs.cafe24.com/docs/admin/get-customersprivacy']],alt:'몰의 개인정보 이용·위탁 동의 설정(웹훅 90116)을 끄면 막히는지 미확인(P9). 개인정보 최소 모드에서는 SMS 수신거부 자동 제외로 대체.',core:1},
+ {id:'I-05',v:'w',f:'F12 재입고',n:'재입고 알림 신청자 목록',m:'문서에는 설정 조회·수정(/restocknotification/setting)만 있음',a:'–',l:'–',docs:[['문서','https://apidocs.cafe24.com/docs/admin/get-restocknotification-setting']],alt:'확인: 카페24 개발자센터 문의(P1). 대체: 엑셀 업로드 수작업, 불가하면 찜·장바구니만 대상.'},
+ {id:'I-06',v:'g',f:'F4·F7 문자',n:'카페24 SMS 발송',m:'POST /admin/sms · WRITE_NOTIFICATION · 회원 ID 100명/회 · exclude_unsubscriber',a:'판매자 발신번호 등록 필요',l:'초당 1회 · 판매자 SMS 충전 차감 (단가 ⚪)',docs:[['문서','https://apidocs.cafe24.com/docs/admin/post-sms']],alt:'결과 문자의 정보성 여부는 법무 확인(P5).',core:1},
+ {id:'I-07',v:'g',f:'F3·F8 쿠폰',n:'쿠폰 생성 · 회원 지정 발급',m:'POST /admin/coupons · POST /admin/coupons/{no}/issues (M, member_id[]) · WRITE_PROMOTION',a:'셀프',l:'초당 40회 · 1회 발급 인원 ⚪',docs:[['생성','https://apidocs.cafe24.com/docs/admin/post-coupons'],['발급','https://apidocs.cafe24.com/docs/admin/post-coupons-by-coupon-no-issues']],alt:'대량 발급 한계는 PoC P3. 대체: 나눠서 발급 + 발급 내역 대사.',core:1},
+ {id:'I-08',v:'g',f:'F5·F6 위젯',n:'스크립트태그 · Front SDK 회원 식별',m:'POST /admin/scripttags (write_application) · CAFE24API.getEncryptedMemberId',a:'셀프 (Service Key 발급)',l:'스크립트태그 초당 10회',docs:[['스크립트','https://apidocs.cafe24.com/docs/admin/post-scripttags'],['SDK','https://developers.cafe24.com/app/front/common/frontsdk']],alt:'서버 검증 방식은 PoC P2.',core:1},
+ {id:'I-09',v:'g',f:'F9 결제 추적',n:'주문 웹훅 90023·90025·90026·90029 · 주문 쿠폰 조회',m:'Webhook + GET /admin/orders, /admin/orders/coupons · READ_ORDER',a:'몰 운영자 웹훅 동의',l:'초당 40회',docs:[['웹훅','https://developers.cafe24.com/app/front/app/develop/webhook/sample'],['주문 쿠폰','https://apidocs.cafe24.com/docs/admin/get-orders-coupons']],alt:'웹훅 누락 대비 야간 대사 배치.',core:1},
+ {id:'I-10',v:'y',f:'과금',n:'카페24 스토어 인앱결제 (정기과금)',m:'POST /admin/appstore/orders · 웹훅 90157',a:'PG 신청 (한국: KG모빌리언스, 카드만)',l:'수수료율 ⚪',docs:[['과금 API','https://apidocs.cafe24.com/docs/admin/post-appstore-orders'],['결제 안내','https://developers.cafe24.com/app/front/app/launch/payment']],alt:'수수료율은 P6로 확인. 파일럿은 무료 운영.'},
+ {id:'I-11',v:'w',f:'Could',n:'카페24 Mall MCP create-checkout-url',m:'MCP (JSON-RPC)',a:'공식 문서 있음',l:'인증 방식 ⚪',docs:[['도구','https://developers.cafe24.com/app/front/mcpserver/mcptools']],alt:'MVP는 의존하지 않음. 결제 바로가기 개선용으로만 검토.'},
+ {id:'I-12',v:'g',f:'판매자 알림',n:'Web Push (PWA)',m:'표준 Web Push · iOS 16.4+ 홈 화면 웹앱',a:'공개',l:'무료',docs:[['WebKit','https://webkit.org/blog/13878/web-push-for-web-apps-on-ios-and-ipados/']],alt:'',core:1},
+ {id:'I-13',v:'w',f:'Should',n:'카카오 알림톡 (결과 안내)',m:'발송대행사 경유',a:'발신 프로필·템플릿 심사',l:'⚪',docs:[],alt:'문서 미확인. MVP는 카페24 SMS로 대체.'}
+];
+const cnt=v=>INV.filter(i=>v==='all'||i.v===v).length;
+const docLinks=i=>i.docs.length?i.docs.map(([t,u])=>`<a href="${u}">${t}</a>`).join(' · '):'<span class="small">미확인</span>';
+const vpill=v=>`<span class="pill ${v==='r'?'w':v}" style="${v==='r'?'color:var(--danger)':''}">${VL[v]}</span>`;
+function invRows(list,full){return list.map(i=>`<tr data-v="${i.v}"><td class="mono">${i.id}</td><td>${vpill(i.v)}</td><td><b>${esc(i.f)}</b><br>${esc(i.n)}</td><td class="mono" style="font-size:12px">${esc(i.m)}</td><td>${esc(i.a)}</td><td>${esc(i.l)}</td><td>${docLinks(i)}${full?`<br><span class="small">확인 ${D}</span>`:''}</td>${full?`<td>${esc(i.alt||'–')}</td>`:''}</tr>`).join('')}
+$('inv-body').innerHTML=invRows(INV,false);
+$('inv-full').innerHTML=invRows(INV,true);
+['all','g','y','r','w'].forEach(v=>$('fc-'+v).textContent=cnt(v));
+document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('click',()=>{
+  const v=b.dataset.f; document.querySelectorAll('.filters button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  let shown=0; document.querySelectorAll('#inv-body tr').forEach(tr=>{const on=v==='all'||tr.dataset.v===v;tr.hidden=!on;if(on)shown++});
+  $('inv-empty').hidden=shown>0;}));
+/* verdict bar (plan tab) */
+(()=>{const tot=INV.length,parts=['g','y','w','r'].map(v=>[v,cnt(v)]).filter(p=>p[1]);
+  $('vbar').innerHTML=`<div class="bar" role="img" aria-label="연동 ${tot}개 중 즉시 가능 ${cnt('g')}, 조건부 ${cnt('y')}, 미확인 ${cnt('w')}, 현재 불가 ${cnt('r')}">${parts.map(([v,n])=>`<span style="width:${n/tot*100}%;background:${VC[v]}">${n}</span>`).join('')}</div>
+  <div class="legend" style="font-size:12.5px">${['g','y','w','r'].map(v=>`<span><span class="sw" style="background:${VC[v]}"></span>${VL[v]} ${cnt(v)}개</span>`).join('')}<span>· 연동 ${tot}개 기준</span></div>`})();
+/* tech sources list */
+$('src-tech').innerHTML=INV.flatMap(i=>i.docs.map(([t,u])=>[i.id+' '+i.n+' · '+t,u])).filter((x,k,a)=>a.findIndex(y=>y[1]===x[1])===k).map(([t,u])=>`<li><a href="${u}">${esc(t)}</a></li>`).join('')+'<li><a href="https://developers.cafe24.com/app/front/mcpserver/mcpstart">카페24 MCP server 시작하기</a></li><li><a href="https://github.com/cafe24-oss/cafe24-mcp-demo">cafe24-oss/cafe24-mcp-demo (GitHub)</a></li>';
+
+/* ---------- D6 market chart ---------- */
+(()=>{const W=760,L=150,R=150,bw=W-L-R,max=1440,rows=[['TAM','국내 활성 자사몰 · 구독료',1440,1440,'1,440억 원'],['SAM','카페24 자체 브랜드 · 구독료',324,324,'324억 원'],['교두보','홈리빙몰 8,100곳',151,273,'151~273억 원'],['SOM','3년 · 홈리빙 800몰',15,27,'15~27억 원']];
+  let s='';rows.forEach((r,i)=>{const y=18+i*58,x2=L+r[3]/max*bw,x1=L+r[2]/max*bw;
+    s+=text(0,y+16,r[0],{fs:14,fw:700})+text(0,y+33,r[1],{fs:11.5,fill:'var(--fg2)'});
+    s+=`<rect x="${L}" y="${y}" width="${bw}" height="34" rx="6" fill="var(--soft)"/>`;
+    s+=i<2?`<rect x="${L}" y="${y}" width="${x2-L}" height="34" rx="6" fill="var(--primary)" opacity="${1-i*.3}"/>`:`<rect x="${L}" y="${y}" width="${Math.max(3,x1-L)}" height="34" rx="3" fill="var(--success)"/><rect x="${x1}" y="${y}" width="${Math.max(3,x2-x1)}" height="34" fill="var(--success)" opacity=".45"/>`;
+    s+=text(Math.min(x2,L+bw)+10,y+22,r[4],{fs:14,fw:700,fill:'var(--fg)'});});
+  s+=text(L,258,'0',{fs:11,fill:'var(--muted)'})+text(L+bw,258,'1,440억',{fs:11,fill:'var(--muted)',a:'end'});
+  $('ch-market').innerHTML=fluid(W,264,s,'TAM 1,440억 원, SAM 324억 원, 교두보 홈리빙 151~273억 원, SOM 15~27억 원 막대 비교');})();
+
+/* ---------- D6 sensitivity chart ---------- */
+(()=>{const data=[['3%',104600,68680,'3.7%'],['5%',155000,109000,'2.8%'],['10%',281000,209800,'2.1%'],['15%',407000,310600,'1.9%']];
+  const W=760,H=300,L=70,B=250,T=40,max=450000,cw=(W-L-20)/4,y=v=>B-(v/max)*(B-T);
+  let s='';[0,100000,200000,300000,400000].forEach(v=>{s+=`<line x1="${L}" x2="${W-10}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/>`+text(L-8,y(v)+4,(v/10000)+'만',{fs:11,fill:'var(--muted)',a:'end'})});
+  data.forEach((d,i)=>{const cx=L+cw*i+cw/2,bw=38;
+    s+=`<rect x="${cx-bw-3}" y="${y(d[1])}" width="${bw}" height="${B-y(d[1])}" rx="4" fill="var(--primary)"/><rect x="${cx+3}" y="${y(d[2])}" width="${bw}" height="${B-y(d[2])}" rx="4" fill="var(--success)"/>`;
+    s+=text(cx-bw/2-3,y(d[1])-6,(d[1]/10000).toFixed(1)+'만',{fs:11,fw:600,a:'middle'})+text(cx+bw/2+3,y(d[2])-6,(d[2]/10000).toFixed(1)+'만',{fs:11,fw:600,a:'middle'});
+    s+=text(cx,B+20,'신청 전환 '+d[0],{fs:12.5,fw:i===2?700:500,a:'middle'})+text(cx,B+38,'판매자 비용률 '+d[3],{fs:11,fill:'var(--fg2)',a:'middle'});});
+  s+=`<rect x="${L}" y="8" width="12" height="12" rx="2" fill="var(--primary)"/>`+text(L+18,18,'우리 매출 / 몰 · 월',{fs:12})+`<rect x="${L+170}" y="8" width="12" height="12" rx="2" fill="var(--success)"/>`+text(L+188,18,'공헌이익 / 몰 · 월',{fs:12})+text(W-10,18,'기준값 = 10%',{fs:11.5,fill:'var(--muted)',a:'end'});
+  $('ch-sens').innerHTML=fluid(W,H,s,'신청 전환율 3, 5, 10, 15%일 때 몰당 월 매출과 공헌이익 막대 차트');})();
+
+/* ---------- D5 journey ---------- */
+(()=>{const stages=['수요 파악','결정','알림','참여','결과 · 발주'];
+  const rows=[
+   ['판매자','As-Is',['관리자 화면에서 찜 수를 대충 본다','감으로 MOQ 발주하거나 포기한다','SMS를 수동 발송하고 수신동의를 직접 거른다','구글폼으로 수요를 조사한다','재고가 남거나 모자란다'],[1,1,1,1,1]],
+   ['판매자','To-Be',['수요 레이더로 찜·장바구니·도달 가능 인원을 본다','추천 목표 수량으로 공구를 연다','수신동의자만 자동 추출, (광고)·야간 차단 자동','위젯 진행률을 실시간으로 본다','결제 완료 수량만큼 발주한다'],[0,0,0,0,0]],
+   ['고객','As-Is',['찜하고 잊어버린다','정가 결제를 망설인다','할인 소식을 놓친다','–','–'],[0,1,1,0,0]],
+   ['고객','To-Be',['찜한 상품의 초대 문자를 받는다','결제 없이 신청만 한다','마감 결과를 문자로 받는다','달성하면 쿠폰을 받는다','자사몰에서 할인가로 결제한다'],[0,0,0,0,0]]];
+  const L=118,cw=168,W=L+cw*5+10,rh=86,top=46,H=top+rh*4+10;let s='';
+  stages.forEach((t,i)=>{const x=L+i*cw;s+=`<path d="M${x} 6 h${cw-14} l12 16 l-12 16 h-${cw-14} l12 -16z" fill="var(--ink)" opacity="${.92-i*.08}"/>`+text(x+cw/2,27,t,{fs:12.5,fw:600,fill:'var(--surface)',a:'middle'})});
+  rows.forEach((r,ri)=>{const y=top+ri*rh,tobe=r[1]==='To-Be';
+    s+=text(0,y+rh/2-4,r[0],{fs:13,fw:700})+`<text x="0" y="${y+rh/2+14}" font-size="11.5" font-weight="600" fill="${tobe?'var(--success)':'var(--danger)'}">${r[1]}</text>`;
+    r[2].forEach((c,ci)=>{const x=L+ci*cw+4;s+=`<rect x="${x}" y="${y+6}" width="${cw-12}" height="${rh-12}" rx="8" fill="${tobe?'color-mix(in srgb, var(--success) 8%, var(--surface))':'var(--surface)'}" stroke="${tobe?'var(--success)':'var(--line)'}"/>`;
+      s+=text(x+10,y+30,wrap(c,13).slice(0,3),{fs:11.5,fill:c==='–'?'var(--muted)':'var(--fg)',lh:15});
+      if(r[3][ci])s+=`<circle cx="${x+cw-22}" cy="${y+18}" r="5" fill="var(--danger)"/>`;});
+    if(ri===1)s+=`<line x1="0" x2="${W}" y1="${y+rh+1}" y2="${y+rh+1}" stroke="var(--line)" stroke-dasharray="4 4"/>`;});
+  $('d-journey').innerHTML=svg(W,H,s,'판매자와 고객의 As-Is와 To-Be 여정을 5단계로 비교');})();
+
+/* ---------- D1 blueprint ---------- */
+(()=>{const cols=['① 공구 개설','② 참여 신청','③ 마감 · 쿠폰','④ 결제 · 발주'];
+  const lanes=[['고객 행동',['찜·장바구니에 담아 둔다','초대 문자 → 위젯 → 신청 (결제 없음)','결과 문자를 받는다','쿠폰으로 자사몰 결제'],'ink'],
+   ['판매자 행동',['수요 레이더 → 목표·할인가·마감 입력','진행률 확인, 연장 1회','결과 확인 (미달 시 그래도 진행)','확정 리포트 보고 발주'],'ink'],
+   ['찜 공구 시스템',['쿠폰 생성, 수신동의 대상 추출, 발송 큐','회원 검증, 1인 한도, 진행률 캐시','마감 판정, 쿠폰 발급 큐, 대사','웹훅 수신, 야간 대사, 리포트·푸시'],'primary'],
+   ['카페24',['찜·장바구니·수신동의 API, 쿠폰 생성','Front SDK, 스크립트태그','쿠폰 발급 API, SMS API','주문 웹훅, 주문 쿠폰 조회, 판매자 PG'],'success']];
+  const L=118,cw=196,W=L+cw*4+10,rh=78,top=44,H=top+rh*4+30;let s='';
+  cols.forEach((c,i)=>{s+=`<rect x="${L+i*cw+4}" y="6" width="${cw-8}" height="28" rx="6" fill="var(--ink)"/>`+text(L+i*cw+cw/2,25,c,{fs:12.5,fw:600,fill:'var(--surface)',a:'middle'})});
+  lanes.forEach((ln,li)=>{const y=top+li*rh+(li>=2?18:0);
+    s+=text(0,y+rh/2+4,ln[0],{fs:12.5,fw:700,fill:`var(--${ln[2]==='ink'?'fg':ln[2]})`});
+    ln[1].forEach((c,ci)=>{const x=L+ci*cw+4;s+=`<rect x="${x}" y="${y+5}" width="${cw-8}" height="${rh-10}" rx="8" fill="var(--surface)" stroke="var(--${ln[2]==='ink'?'line':ln[2]})" stroke-width="${ln[2]==='ink'?1:1.6}"/>`+text(x+10,y+28,wrap(c,15).slice(0,3),{fs:11.5,lh:15});
+      if(ci<3)s+=`<path d="M${x+cw-8} ${y+rh/2} L${x+cw} ${y+rh/2}" stroke="var(--muted)" marker-end="url(#m-muted)"/>`;});});
+  const vy=top+rh*2+9;s+=`<line x1="0" x2="${W}" y1="${vy}" y2="${vy}" stroke="var(--warning)" stroke-width="1.5" stroke-dasharray="6 4"/>`+text(W-6,vy-5,'가시선 (위: 사용자에게 보임 / 아래: 보이지 않음)',{fs:11,fill:'var(--warning)',a:'end'});
+  $('d-blueprint').innerHTML=svg(W,H,defs+s,'서비스 블루프린트: 고객, 판매자, 찜 공구 시스템, 카페24 4개 레인과 4단계');})();
+
+/* ---------- D2 money flow ---------- */
+(()=>{const W=800,H=380;const box=(x,y,w,h,t,sub,c)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="12" fill="var(--surface)" stroke="var(--${c})" stroke-width="2"/>`+text(x+w/2,y+h/2-2,t,{fs:14,fw:700,a:'middle'})+text(x+w/2,y+h/2+16,sub,{fs:11,fill:'var(--fg2)',a:'middle'});
+  let s=defs;
+  s+=box(20,70,160,64,'고객','찜·장바구니 회원','ink')+box(320,70,170,64,'판매자 자사몰','판매자 PG · 카페24 몰','ink')+box(620,70,160,64,'찜 공구','백엔드 · 위젯 · PWA','primary')+box(320,270,460,64,'카페24','API · 웹훅 · SMS · 쿠폰 · 스토어 인앱결제','success');
+  const money=(d,lbl,lx,ly)=>`<path d="${d}" fill="none" stroke="var(--ink)" stroke-width="2.6" marker-end="url(#m-ink)"/>`+`<rect x="${lx-4}" y="${ly-13}" width="${lbl.length*11.5+8}" height="19" rx="4" fill="var(--bg)"/>`+text(lx,ly+1,lbl,{fs:11.5,fw:600});
+  const data=(d,lbl,lx,ly)=>`<path d="${d}" fill="none" stroke="var(--primary)" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#m-primary)"/>`+text(lx,ly,lbl,{fs:11,fill:'var(--primary)'});
+  s+=money('M180 102 L316 102','₩ 상품 대금 (할인가)',192,94);
+  s+=money('M400 134 L400 266','₩ 앱 요금 · SMS 충전',410,200);
+  s+=money('M700 266 L700 138','₩ 앱 매출 정산',710,205)+text(710,222,'(스토어 수수료 차감 ⚪)',{fs:10.5,fill:'var(--fg2)'});
+  s+=data('M630 270 C 560 240, 560 170, 640 138','API · 웹훅',548,232);
+  s+=data('M340 270 C 200 260, 120 200, 100 138','초대 · 결과 문자 (카페24 SMS)',88,262);
+  s+=data('M100 70 C 200 10, 560 10, 690 66','참여 신청 (상품 페이지 위젯)',290,28);
+  s+=`<line x1="20" x2="52" y1="360" y2="360" stroke="var(--ink)" stroke-width="2.6"/>`+text(58,364,'돈의 흐름',{fs:11.5})+`<line x1="140" x2="172" y1="360" y2="360" stroke="var(--primary)" stroke-width="1.6" stroke-dasharray="5 4"/>`+text(178,364,'데이터 흐름',{fs:11.5});
+  $('d-money').innerHTML=svg(W,H,s,'시스템 구조와 돈의 흐름: 고객, 판매자 자사몰, 카페24, 찜 공구');})();
+
+/* ---------- D8 roadmap gantt ---------- */
+(()=>{const W=860,L=200,mw=(W-L-14)/12,x=m=>L+m*mw;
+  const rows=[['PoC P2·P3·P7·P8 (1주)',0,.23,'warning'],['카페24 · 법무 문의 (P1·P5·P6)',0,.8,'warning'],['4주 MVP 핵심 경로 (약 12인·주)',.1,.55,'primary'],['홈리빙 파일럿 공구 3건',.55,.93,'success'],['나머지 범위 개발 (26인·주)',1,2.6,'primary'],['카페24 스토어 심사',1.1,2.5,'warning'],['파일럿 10몰 확대 (무료)',1,3,'success'],['정식 출시 · 유료 전환',3,6,'success'],['대기열 · 목표 추천 · 알림톡',3.4,6,'primary'],['카페24 공식 제휴 협상',6,12,'ink'],['내부 운영 MCP → 판매자 MCP',6,12,'primary'],['아임웹 확장 타당성',9,12,'muted']];
+  const top=56,rh=30,H=top+rows.length*rh+40;let s='';
+  [[0,1,'0~1개월 · 4주 MVP'],[1,6,'1~6개월 · 심사 · 출시 · 50몰'],[6,12,'6~12개월 · 제휴 · 300몰']].forEach(([a,b,t],i)=>{s+=`<rect x="${x(a)}" y="6" width="${x(b)-x(a)-3}" height="24" rx="5" fill="${i===0?'var(--ink)':'var(--soft)'}"/>`+text(x(a)+8,22,t,{fs:11.5,fw:600,fill:i===0?'var(--surface)':'var(--fg2)'})});
+  for(let m=0;m<=12;m++){s+=`<line x1="${x(m)}" x2="${x(m)}" y1="${top-14}" y2="${H-30}" stroke="var(--line)"/>`+text(x(m),top-18+0,m+'M',{fs:10.5,fill:'var(--muted)',a:'middle'})}
+  rows.forEach((r,i)=>{const y=top+i*rh;s+=text(0,y+18,r[0],{fs:12});s+=`<rect x="${x(r[1])}" y="${y+6}" width="${Math.max(6,x(r[2])-x(r[1]))}" height="18" rx="5" fill="var(--${r[3]})" opacity="${r[3]==='muted'?.6:.9}"/>`});
+  [[.93,'28일 차 · Go 판정'],[6,'50몰'],[12,'300몰']].forEach(([m,t])=>{const yy=H-22;s+=`<polygon points="${x(m)},${yy-7} ${x(m)+7},${yy} ${x(m)},${yy+7} ${x(m)-7},${yy}" fill="var(--danger)"/>`+text(x(m)+(m===12?-10:10),yy+4,t,{fs:11,fw:600,a:m===12?'end':'start'})});
+  $('d-roadmap').innerHTML=svg(W,H,s,'0~12개월 로드맵 간트 차트');})();
+
+/* ---------- D3 integration map ---------- */
+(()=>{const W=820,H=480,cx=410,cy=240,rx=300,ry=180;let s=defs;
+  const nodes=INV.map((i,k)=>{const a=-Math.PI/2+k*(2*Math.PI/INV.length);return{...i,x:cx+rx*Math.cos(a),y:cy+ry*Math.sin(a)}});
+  nodes.forEach(n=>{s+=`<line x1="${cx}" y1="${cy}" x2="${n.x}" y2="${n.y}" stroke="${VC[n.v]}" stroke-width="${n.core?3:1.5}" ${n.v==='w'?'stroke-dasharray="5 4"':''} opacity=".8"/>`});
+  s+=`<circle cx="${cx}" cy="${cy}" r="62" fill="var(--ink)"/>`+text(cx,cy-4,'찜 공구',{fs:16,fw:700,fill:'var(--surface)',a:'middle'})+text(cx,cy+16,'백엔드 · 위젯 · PWA',{fs:10.5,fill:'var(--surface)',a:'middle'});
+  nodes.forEach(n=>{const w=158,h=46;s+=`<rect x="${n.x-w/2}" y="${n.y-h/2}" width="${w}" height="${h}" rx="9" fill="var(--surface)" stroke="${VC[n.v]}" stroke-width="2"/>`+`<circle cx="${n.x-w/2+12}" cy="${n.y-8}" r="5" fill="${VC[n.v]}"/>`+text(n.x-w/2+22,n.y-4,n.id+' · '+n.f,{fs:10.5,fw:600,fill:'var(--fg2)'})+text(n.x-w/2+10,n.y+13,wrap(n.n,20)[0],{fs:11.5,fw:600})});
+  s+=['g','y','w','r'].map((v,k)=>`<circle cx="${20+k*120}" cy="${H-12}" r="6" fill="${VC[v]}"/>`+text(32+k*120,H-8,VL[v]+' '+cnt(v),{fs:11.5})).join('');
+  $('d-intmap').innerHTML=svg(W,H,s,'찜 공구 중심 연동 지도, 판정 색 표시');})();
+
+/* ---------- D4 sequence ---------- */
+const SEQ=[
+ ['1','판매자 → 카페24','oauth/authorize → oauth/token [문서]','권한 범위, 토큰','토큰 암호화 저장, 만료 전 갱신, 실패 시 재설치 안내','실시간',0,4,'OAuth 승인 · 토큰',0],
+ ['2','백엔드 → 카페24','POST /scripttags · webhooks/setting [문서]','위젯 스크립트 URL','설치 마법사에서 재시도','실시간',2,4,'스크립트태그 · 웹훅 동의',0],
+ ['3','워커 → 카페24','GET /products [추정] → wishlist/customers/count · carts/count [문서]','찜 수, 장바구니 수','429면 1→2→4→8초 백오프, X-Api-Call-Limit로 속도 조절','배치 (매일)',3,4,'찜·장바구니 수 수집',1],
+ ['4','판매자 → 백엔드 → 카페24','POST /v1/campaigns → POST /admin/coupons [문서]','목표, 할인가(쿠폰액), 마감, 출고일','쿠폰 생성 실패 시 개설 롤백','실시간',0,2,'POST /v1/campaigns',0],
+ ['4b','','','','','',2,4,'POST /admin/coupons',0],
+ ['5','워커 → 카페24','찜·장바구니 회원 목록 → GET /customersprivacy (sms=T) [문서]','회원 ID 스냅샷','페이지별 체크포인트로 재개','배치',3,4,'대상 추출 · 수신동의 필터',1],
+ ['6','워커 → 카페24','POST /admin/sms (100명·초당 1회) [문서]','queue_code','21~08시 보류, 부분 실패 1회 재시도','큐',3,4,'SMS 발송 (광고)',1],
+ ['7','고객 → 위젯 → 백엔드','getEncryptedMemberId [문서] → POST /v1/public/campaigns/{id}/pledges','암호화 회원 ID, 수량','검증 실패 거절, 멱등 키, 1인 한도','실시간',1,2,'참여 신청',0],
+ ['8','스케줄러','마감 판정','신청 ≥ 목표?','1분 간격 재실행, 결과는 1회만 기록','배치 (정각)',3,3,'마감 판정',1],
+ ['9','워커 → 카페24','POST /coupons/{no}/issues → 결과 SMS [문서]','회원 ID 배열','나눠서 발급, GET /coupons/{no}/issues로 대사·재발급','큐',3,4,'쿠폰 발급 · 결과 문자',1],
+ ['10','카페24 → 백엔드','웹훅 90023/90025 → GET /orders/coupons [문서]','주문번호, 쿠폰번호, 금액','야간 GET /orders 대사, 90026·90029면 되돌림','실시간 + 배치',4,2,'주문 웹훅',0],
+ ['11','스케줄러 → 판매자','결제 기간 종료 → 확정 리포트 · Web Push','확정 수량, 미결제','푸시 실패 시 앱 안 알림','배치',3,0,'확정 리포트 푸시',1]];
+$('seq-body').innerHTML=SEQ.filter(r=>r[1]).map(r=>`<tr><td class="mono">${r[0]}</td><td>${esc(r[1])}</td><td class="mono" style="font-size:12px">${esc(r[2])}</td><td>${esc(r[3])}</td><td>${esc(r[4])}</td><td>${esc(r[5])}</td></tr>`).join('');
+(()=>{const lanes=['판매자 앱','고객 · 위젯','찜 공구 백엔드','워커 · 스케줄러','카페24 (API · 웹훅)'],lx=[80,240,410,580,750],W=840,top=58,rh=38,H=top+SEQ.length*rh+20;let s=defs;
+  lanes.forEach((l,i)=>{s+=`<rect x="${lx[i]-70}" y="6" width="140" height="32" rx="7" fill="${i===4?'var(--success)':i>=2?'var(--primary)':'var(--ink)'}"/>`+text(lx[i],27,l,{fs:12,fw:600,fill:'var(--surface)',a:'middle'})+`<line x1="${lx[i]}" x2="${lx[i]}" y1="40" y2="${H-6}" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="3 4"/>`});
+  SEQ.forEach((r,k)=>{const y=top+k*rh+10,a=lx[r[6]],b=lx[r[7]],batch=r[9],col=batch?'var(--muted)':'var(--ink)',mk=batch?'m-muted':'m-ink';
+    if(a===b){s+=`<path d="M${a} ${y-6} h34 v14 h-30" fill="none" stroke="${col}" stroke-width="1.8" ${batch?'stroke-dasharray="5 4"':''} marker-end="url(#${mk})"/>`+text(a+42,y+5,r[0]+' '+r[8],{fs:11.5,fw:600})}
+    else{const dir=b>a?1:-1;s+=`<line x1="${a}" y1="${y}" x2="${b-dir*4}" y2="${y}" stroke="${col}" stroke-width="${batch?1.8:2.2}" ${batch?'stroke-dasharray="5 4"':''} marker-end="url(#${mk})"/>`;
+      const mx=(a+b)/2;s+=`<rect x="${mx-r[8].length*6-16}" y="${y-17}" width="${r[8].length*12+32}" height="15" fill="var(--surface)"/>`+text(mx,y-5,r[0]+' '+r[8],{fs:11.5,fw:600,a:'middle'})}});
+  $('d-seq').innerHTML=svg(W,H,s,'핵심 플로우 기술 시퀀스 다이어그램 11단계');})();
+
+/* ---------- ERD ---------- */
+(()=>{const E={Mall:[20,50,['mall_id','토큰(암호화)','권한 범위','요금제']],Campaign:[250,50,['id · product_no','목표 · 할인가','마감 · 결제 기간','상태 · coupon_no']],Invitation:[500,6,['member_id','출처(찜/장바구니)','발송 상태']],Pledge:[500,130,['member_id · 수량','상태 (신청→쿠폰→결제)']],OrderLink:[720,130,['order_id','쿠폰번호 · 금액','결제·취소 시각']],MessageLog:[500,240,['유형(광고/결과)','수신자 수 · queue_code']]};
+  const bw=170,W=900,H=330;let s=defs;
+  const ctr=n=>{const [x,y,f]=E[n];return{x,y,h:30+f.length*17}};
+  const rel=(a,b,lbl)=>{const A=ctr(a),B=ctr(b);const x1=A.x+bw,y1=A.y+A.h/2,x2=B.x,y2=B.y+B.h/2,mx=(x1+x2)/2;return `<path d="M${x1} ${y1} C${mx} ${y1} ${mx} ${y2} ${x2-4} ${y2}" fill="none" stroke="var(--muted)" stroke-width="1.6" marker-end="url(#m-muted)"/>`+text(mx,(y1+y2)/2-6,lbl,{fs:10.5,fill:'var(--fg2)',a:'middle'})};
+  s+=rel('Mall','Campaign','1:N')+rel('Campaign','Invitation','1:N')+rel('Campaign','Pledge','1:N')+rel('Pledge','OrderLink','1:0..1')+rel('Campaign','MessageLog','1:N');
+  Object.entries(E).forEach(([n,[x,y,f]])=>{const h=30+f.length*17;s+=`<rect x="${x}" y="${y}" width="${bw}" height="${h}" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5"/><rect x="${x}" y="${y}" width="${bw}" height="24" rx="8" fill="var(--ink)"/><rect x="${x}" y="${y+14}" width="${bw}" height="10" fill="var(--ink)"/>`+text(x+10,y+17,n,{fs:12,fw:700,fill:'var(--surface)'})+f.map((t,i)=>text(x+10,y+42+i*17,t,{fs:11.5,fill:'var(--fg2)'})).join('')});
+  $('d-erd').innerHTML=svg(W,H,s,'핵심 엔티티 관계도');})();
+
+/* ---------- effort chart ---------- */
+(()=>{const d=[['F1 설치·OAuth',2,1],['F2 수요 레이더',3,0],['F3 공구 개설',3,0],['F4 대상 추출·발송',4,1],['F5 위젯',3,0],['F6 신청·검증',2,1],['F7 마감 판정',1.5,0],['F8 쿠폰 발급·대사',2,1],['F9 주문 대사',3,1],['F10 확정 리포트',1.5,0],['F11 대시보드',2,0],['공통 (인프라·보안·디자인·QA·심사)',11,0]];
+  const W=760,L=230,rh=26,H=d.length*rh+34,max=11,bw=W-L-60;let s='';
+  d.forEach((r,i)=>{const y=i*rh+6;s+=text(L-10,y+15,r[0],{fs:12,a:'end',fw:r[2]?600:400})+`<rect x="${L}" y="${y+3}" width="${r[1]/max*bw}" height="16" rx="4" fill="${r[2]?'var(--primary)':'var(--muted)'}" opacity="${r[2]?1:.55}"/>`+text(L+r[1]/max*bw+8,y+16,r[1]+'인·주',{fs:11.5,fw:600})});
+  s+=`<rect x="${L}" y="${H-16}" width="12" height="12" rx="2" fill="var(--primary)"/>`+text(L+18,H-6,'크리티컬 패스에 있는 기능',{fs:11.5})+text(W-10,H-6,'합계 38인·주',{fs:12,fw:700,a:'end'});
+  $('ch-effort').innerHTML=fluid(W,H,s,'기능별 개발 공수 가로 막대 차트, 합계 38인·주');})();
+
+/* ---------- image prompts ---------- */
+const PR=[
+ ['hero.png','히어로 · 16:9 · gemini-3.1-flash-image','Hero illustration, 16:9, clean flat vector style for a B2B SaaS product. Center: a modern smartphone showing a minimal dashboard with a large circular progress ring that is completed (120 of 100 reached) and a simple bar chart. Around the phone, small heart icons (saved wishlist items) on the left flow along a gentle curved path and transform into neatly stacked cardboard shipping boxes on the right, symbolizing saved interest turning into confirmed orders. Color palette strictly: deep navy #16233F, trustworthy blue #2F5BEA, soft teal-green #12B886 accent for success, light gray-blue background #F3F5F9, white surfaces. Calm, precise, professional mood, generous whitespace, subtle soft shadows. No readable text, no letters, no numbers rendered as text, no real brand logos, no real people, no photorealism.'],
+ ['persona-seller.jpg','페르소나 P1 · 1:1 · gemini-3.1-flash-lite-image','Persona illustration, 1:1, flat vector editorial illustration (clearly not a real person, simplified geometric features). A Korean small fashion-accessories brand owner in their mid-30s, sitting at a tidy small studio desk with fabric samples and a handbag prototype, looking thoughtfully at a smartphone. Muted palette: deep navy #16233F, blue #2F5BEA, teal-green #12B886 small accents, background light gray-blue #F3F5F9. Calm professional tone, soft shadows, plenty of negative space. No readable text, no brand logos, no photorealism.'],
+ ['persona-crm.jpg','페르소나 P2 · 1:1 · gemini-3.1-flash-lite-image','Persona illustration, 1:1, flat vector editorial illustration (clearly not a real person, simplified geometric features). A Korean CRM marketing manager in their late 20s at a small home-goods brand office, working on a laptop showing abstract charts and a checklist, a ceramic mug and a plant nearby. Muted palette: deep navy #16233F, blue #2F5BEA, teal-green #12B886 small accents, background light gray-blue #F3F5F9. Calm, organized, professional tone, soft shadows. No readable text, no brand logos, no photorealism.'],
+ ['persona-shopper.jpg','페르소나 P3 · 1:1 · gemini-3.1-flash-lite-image','Persona illustration, 1:1, flat vector editorial illustration (clearly not a real person, simplified geometric features). A Korean shopper in their early 30s relaxing on a sofa in the evening, scrolling a smartphone whose screen shows a grid of product cards with small heart icons. Muted palette: deep navy #16233F, blue #2F5BEA, teal-green #12B886 small accents, warm light, background light gray-blue #F3F5F9. Calm friendly tone, soft shadows. No readable text, no brand logos, no photorealism.'],
+ ['scene-seller.jpg','사용 장면 ① 판매자 · 16:9 · gemini-3.1-flash-lite-image','Use-case scene, 16:9, flat vector illustration. The decisive moment for a small brand owner: in a small workshop, a person (stylized, not a real individual) holds a smartphone showing a completed green progress bar and a confirmed-quantity number card, and with the other hand points at a production order clipboard next to a neat stack of fabric rolls; relief and confidence. Palette: deep navy #16233F, blue #2F5BEA, teal-green #12B886 highlight on the completed bar, background #F3F5F9. Clean B2B tone, generous whitespace. No readable text, no letters, no brand logos, no photorealism.'],
+ ['scene-shopper.jpg','사용 장면 ② 고객 · 16:9 · gemini-3.1-flash-lite-image','Use-case scene, 16:9, flat vector illustration. The decisive moment for a shopper: a stylized person (not a real individual) on a subway seat looks at a smartphone notification card; from the notification, a heart icon transforms into a discount coupon ticket and then a small shopping bag with a check mark. Palette: deep navy #16233F, blue #2F5BEA, teal-green #12B886 accents, background #F3F5F9. Light, calm, trustworthy tone, generous whitespace. No readable text, no letters, no brand logos, no photorealism.']];
+$('prompts').innerHTML=PR.map(([f,t,p])=>`<div class="prompt"><img src="images/${f}" alt="${esc(t)} 생성 결과" loading="lazy"><div><b>${esc(t)}</b><p>${esc(p)}</p><small>금지 요소: 실존 브랜드 로고, 실존 인물, 사진 같은 표현, 읽히는 글자</small></div></div>`).join('');
+
+/* ---------- navigation helpers ---------- */
+document.addEventListener('click',e=>{
+  const j=e.target.closest('[data-jump]'); if(j){e.preventDefault();const t=document.querySelector(j.getAttribute('href'));if(t)t.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});return}
+  const g=e.target.closest('[data-tabgo]'); if(g){document.getElementById('t-'+g.dataset.tabgo).click();window.scrollTo(0,0)}
+});
+const tocLinks=[...document.querySelectorAll('.toc a')];
+if('IntersectionObserver' in window){const io=new IntersectionObserver(es=>{es.forEach(en=>{if(en.isIntersecting){tocLinks.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+en.target.id))}})},{rootMargin:'-90px 0px -65% 0px'});document.querySelectorAll('#plan .sec').forEach(s=>io.observe(s))}
+})();
+</script>
+
+</body></html>

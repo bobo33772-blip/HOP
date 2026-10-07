@@ -1,0 +1,13 @@
+{
+  "name": "jjim-gonggu",
+  "version": "0.1.0",
+  "private": true,
+  "description": "찜 공구 4주 MVP: 찜 고객 초대 → 결제 없는 신청 → 마감 판정·쿠폰 → 결제 집계 → 확정 리포트",
+  "type": "module",
+  "engines": { "node": ">=22.6" },
+  "scripts": {
+    "start": "node --experimental-strip-types --disable-warning=ExperimentalWarning src/main.ts",
+    "demo": "node --experimental-strip-types --disable-warning=ExperimentalWarning src/demo.ts",
+    "test": "node --experimental-strip-types --disable-warning=ExperimentalWarning --test test/*.test.ts"
+  }
+}
