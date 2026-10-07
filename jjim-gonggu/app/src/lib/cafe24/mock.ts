@@ -25,6 +25,8 @@ export class MockCafe24 {
   /** 몇 번을 다시 발급해도 빠지는 회원 (영구 실패 테스트용) */
   blockIssue = new Set<string>();
   failNextSms = false;
+  /** 개인정보 권한 여부 (false면 찜·수신 동의 조회 불가 → 장바구니 고객 공구) */
+  privacy = true;
   /** 실제 카페24처럼 상품마다 조회 시간이 걸리는 것을 흉내 낸다 (첫 수집 화면 확인용) */
   delayMs = 0;
   private listeners: ((e: MockWebhook) => Promise<void> | void)[] = [];
@@ -86,6 +88,7 @@ export class MockCafe24 {
     const w = this;
     const m = () => w.mall(mallId);
     return {
+      get privacy() { return w.privacy; },
       async listProducts(offset, limit) { return m().products.slice(offset, offset + limit); },
       async wishlistCount(n) { await w.delay(); return m().wishlists.get(n)?.size ?? 0; },
       async cartCount(n) { return m().carts.get(n)?.size ?? 0; },
@@ -110,7 +113,7 @@ export class MockCafe24 {
       async listCouponHolders(no) { return [...(m().coupons.get(no)?.holders ?? [])]; },
       async sendSms(spec: SmsSpec) {
         if (w.failNextSms) { w.failNextSms = false; throw new Error("SMS 발송 실패 (모의)"); }
-        const ids = spec.isAd ? spec.memberIds.filter((id) => m().members.get(id)?.sms) : spec.memberIds; // 카페24의 수신거부자 자동 제외
+        const ids = spec.memberIds.filter((id) => m().members.get(id)?.sms); // 카페24의 수신거부자 자동 제외
         w.smsLog.push({ mallId, memberIds: ids, content: spec.content, isAd: spec.isAd, at: w.clock.now() });
         return { queueRef: `Q-${++w.seq}` };
       },

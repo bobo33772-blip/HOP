@@ -38,19 +38,20 @@ export async function pledgedQty(ctx: Ctx, campaignId: string): Promise<number> 
   return Number(r?.q ?? 0);
 }
 
-export interface Audience { wishlist: number; cart: number; unique: number; reachable: number; members: { memberId: string; source: string }[] }
+/** consentChecked=false: 개인정보 권한이 없어 수신 동의를 미리 확인하지 못했다. reachable은 최대치이고, 수신거부 고객은 카페24가 발송 때 뺀다 */
+export interface Audience { wishlist: number; cart: number; unique: number; reachable: number; consentChecked: boolean; members: { memberId: string; source: string }[] }
 
-/** 찜 ∪ 장바구니 회원에서 중복을 빼고, 문자 수신 동의자만 남긴다 */
+/** 찜 ∪ 장바구니 회원에서 중복을 빼고, 문자 수신 동의자만 남긴다. 개인정보 권한이 없으면 장바구니 회원만, 수신 동의는 카페24 발송 단계에 맡긴다 */
 export async function buildAudience(ctx: Ctx, mallId: string, productNo: number): Promise<Audience> {
   const api = await ctx.shop(mallId);
-  const [w, c] = await Promise.all([api.wishlistMembers(productNo), api.cartMembers(productNo)]);
+  const [w, c] = await Promise.all([api.privacy ? api.wishlistMembers(productNo) : Promise.resolve([] as string[]), api.cartMembers(productNo)]);
   const src = new Map<string, string>();
   for (const id of w) src.set(id, "wishlist");
   for (const id of c) src.set(id, src.has(id) ? "both" : "cart");
   const ids = [...src.keys()];
-  const ok = new Set((ids.length ? await api.consents(ids) : []).filter((x) => x.sms).map((x) => x.memberId));
+  const ok = api.privacy ? new Set((ids.length ? await api.consents(ids) : []).filter((x) => x.sms).map((x) => x.memberId)) : new Set(ids);
   const members = ids.filter((id) => ok.has(id)).map((id) => ({ memberId: id, source: src.get(id)! }));
-  return { wishlist: w.length, cart: c.length, unique: ids.length, reachable: members.length, members };
+  return { wishlist: w.length, cart: c.length, unique: ids.length, reachable: members.length, consentChecked: api.privacy, members };
 }
 
 type InviteFields = Pick<Campaign, "productName" | "targetQty" | "dealPrice" | "listPrice" | "deadlineAt" | "shipEta">;
@@ -82,7 +83,7 @@ export async function previewCampaign(ctx: Ctx, mallId: string, input: CampaignI
     errors: errorMessages(issues),
     warnings: issues.filter((i) => i.level === "warning").map((i) => i.message),
     message,
-    audience: { wishlist: aud.wishlist, cart: aud.cart, unique: aud.unique, reachable: aud.reachable },
+    audience: { wishlist: aud.wishlist, cart: aud.cart, unique: aud.unique, reachable: aud.reachable, consentChecked: aud.consentChecked },
     sendAt: nextAllowedSendTime(ctx.clock.now()),
     marginPerUnit: input.costPrice != null ? input.dealPrice - input.costPrice : null,
   };
@@ -96,7 +97,7 @@ export async function openCampaign(ctx: Ctx, actor: string, mallId: string, inpu
   }
   const errors = errorMessages(pv.issues);
   if (errors.length) throw new UserError("invalid_input", errors.join(" "));
-  if (pv.aud.reachable === 0) throw new UserError("no_audience", "문자를 받을 수 있는 찜·장바구니 고객이 없어요.");
+  if (pv.aud.reachable === 0) throw new UserError("no_audience", pv.aud.consentChecked ? "문자를 받을 수 있는 찜·장바구니 고객이 없어요." : "이 상품을 장바구니에 담은 고객이 없어요.");
   const [dup] = await ctx.db.select({ id: schema.campaigns.id }).from(schema.campaigns)
     .where(and(eq(schema.campaigns.mallId, mallId), eq(schema.campaigns.productNo, pv.product.productNo), inArray(schema.campaigns.state, ["open", "reached"])));
   if (dup) throw new UserError("duplicate", "이 상품은 이미 진행 중인 공구가 있어요.", 409);

@@ -55,7 +55,8 @@ export async function runCollection(db: Db, api: ShopApi, mallId: string, runId:
 
     let done = 0;
     for (const p of products) {
-      const [wishlist, cart] = await Promise.all([api.wishlistCount(p.productNo), api.cartCount(p.productNo)]);
+      // 찜 수는 개인정보 권한이 있어야 조회된다 (없으면 0으로 두고 장바구니만 본다)
+      const [wishlist, cart] = await Promise.all([api.privacy ? api.wishlistCount(p.productNo) : Promise.resolve(0), api.cartCount(p.productNo)]);
       await db.insert(schema.demandSnapshots).values({
         runId, mallId, productNo: p.productNo, productName: p.name, price: p.price, soldOut: !!p.soldOut, wishlistCount: wishlist, cartCount: cart,
       });
@@ -87,17 +88,14 @@ export interface Reach {
   interested: number; // 찜 ∪ 장바구니 회원 (중복 제거)
   reachable: number; // 그중 문자 수신동의
   wishlistCapped: boolean; // 찜 회원 목록이 100명에서 끊겼을 가능성 (PoC P8)
+  consentChecked: boolean; // false면 reachable은 최대치 (수신거부 고객은 카페24가 발송 때 뺀다)
 }
 
 /** 공구를 열 상품 하나에 대해서만 회원 목록을 모아 수신동의자 수를 센다. 회원 ID는 저장하지 않고 숫자만 돌려준다. */
 export async function computeReach(api: ShopApi, productNo: number): Promise<Reach> {
-  const [wishCount, wish, cart] = await Promise.all([api.wishlistCount(productNo), api.wishlistMembers(productNo), api.cartMembers(productNo)]);
+  const none = Promise.resolve([] as string[]);
+  const [wishCount, wish, cart] = await Promise.all([api.privacy ? api.wishlistCount(productNo) : Promise.resolve(0), api.privacy ? api.wishlistMembers(productNo) : none, api.cartMembers(productNo)]);
   const members = [...new Set([...wish, ...cart])];
-  const consents = members.length ? await api.consents(members) : [];
-  return {
-    productNo,
-    interested: members.length,
-    reachable: consents.filter((c) => c.sms).length,
-    wishlistCapped: wishCount > wish.length,
-  };
+  const reachable = api.privacy ? (members.length ? await api.consents(members) : []).filter((c) => c.sms).length : members.length;
+  return { productNo, interested: members.length, reachable, wishlistCapped: wishCount > wish.length, consentChecked: api.privacy };
 }

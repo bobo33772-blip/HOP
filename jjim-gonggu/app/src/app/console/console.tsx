@@ -23,7 +23,7 @@ export interface RadarRow { productNo: number; name: string; price: number; sold
 export interface Run { status: "running" | "done" | "failed"; total: number; done: number; finishedAt: string | null; startedAt: string }
 export interface Preview {
   errors: string[]; warnings: string[]; message: string; sendAt: string; marginPerUnit: number | null;
-  audience: { wishlist: number; cart: number; unique: number; reachable: number };
+  audience: { wishlist: number; cart: number; unique: number; reachable: number; consentChecked: boolean };
 }
 
 export const won = (n: number) => `${Math.round(n).toLocaleString("ko-KR")}원`;
@@ -210,9 +210,9 @@ export function CampaignDetail({ id, say, onChanged }: { id: string; say: (t: st
 
 export function NewTab({ mall, say, onOpened }: { mall: string; say: (t: string) => void; onOpened: (id: string) => void }) {
   const a = useConsole();
-  const [radar, setRadar] = useState<{ run: Run | null; current: Run | null; rows: RadarRow[] } | null>(null);
+  const [radar, setRadar] = useState<{ run: Run | null; current: Run | null; rows: RadarRow[]; privacy: boolean } | null>(null);
   const [pick, setPick] = useState<RadarRow | null>(null);
-  const load = useCallback(() => a.call<{ run: Run | null; current: Run | null; rows: RadarRow[] }>("GET", `${a.mallBase}/radar`).then(setRadar).catch((e) => say(e.message)), [a, mall, say]);
+  const load = useCallback(() => a.call<{ run: Run | null; current: Run | null; rows: RadarRow[]; privacy: boolean }>("GET", `${a.mallBase}/radar`).then(setRadar).catch((e) => say(e.message)), [a, mall, say]);
   const collect = async () => { await a.call("POST", `${a.mallBase}/radar`).catch((e) => say((e as Error).message)); load(); };
   useEffect(() => { load(); }, [load]);
   const running = radar?.current?.status === "running";
@@ -226,21 +226,22 @@ export function NewTab({ mall, say, onOpened }: { mall: string; say: (t: string)
   return (
     <>
       <div className="card">
-        <div className="row"><h2 style={{ fontSize: 18, margin: 0 }}>1. 상품 고르기 · 찜 많은 상위 20개</h2>
+        <div className="row"><h2 style={{ fontSize: 18, margin: 0 }}>1. 상품 고르기 · {radar.privacy ? "찜·장바구니" : "장바구니"} 많은 상위 20개</h2>
           <button className="ghost" onClick={collect} disabled={running}>{running ? `수집 중 ${radar.current!.done}/${radar.current!.total}` : radar.run ? "다시 수집" : "찜 데이터 모으기"}</button></div>
         <p className="muted">{a.role === "admin" ? "판매자와 통화하며 함께 고르세요. 이 목록은 숫자만 있어 판매자에게 그대로 보여 줘도 괜찮아요." : "찜·장바구니에 많이 담긴 상품부터 보여 드려요. 재생산을 고민 중인 상품을 골라 보세요."}{radar.run && ` · ${kst(radar.run.finishedAt ?? radar.run.startedAt)} 기준`}</p>
         {!radar.run ? <p className="muted">{running ? "상품마다 하나씩 확인하는 중이에요. 상품이 많으면 몇 분에서 몇 시간 걸려요." : "아직 모은 데이터가 없어요. 위 버튼으로 시작하세요."}</p> : (
           <div className="tw"><table>
-            <thead><tr><th>#</th><th>상품</th><th>정가</th><th>찜</th><th>장바구니</th><th /></tr></thead>
+            <thead><tr><th>#</th><th>상품</th><th>정가</th>{radar.privacy && <th>찜</th>}<th>장바구니</th><th /></tr></thead>
             <tbody>{radar.rows.map((p, i) => (
               <tr key={p.productNo}>
                 <td className="mono">{i + 1}</td><td>{p.name}{p.soldOut && <> <span className="chip">품절</span></>}</td>
-                <td className="mono">{won(p.price)}</td><td className="mono">{p.wishlist}</td><td className="mono">{p.cart}</td>
+                <td className="mono">{won(p.price)}</td>{radar.privacy && <td className="mono">{p.wishlist}</td>}<td className="mono">{p.cart}</td>
                 <td><button className="ghost" onClick={() => setPick(p)}>선택</button></td>
               </tr>
             ))}</tbody>
           </table></div>
         )}
+        {!radar.privacy && <p className="small">지금은 장바구니에 담은 고객에게 공구를 열어요. 찜한 고객은 카페24 개인정보 권한 승인 후 함께 초대돼요.</p>}
       </div>
       {pick && <CampaignForm key={pick.productNo} mall={mall} p={pick} say={say} onOpened={onOpened} />}
     </>
@@ -289,11 +290,12 @@ export function CampaignForm({ mall, p, say, onOpened }: { mall: string; p: Rada
       {pv && (
         <>
           <div className="kpi many">
-            <div><small>찜</small><strong>{pv.audience.wishlist}</strong></div>
+            {pv.audience.consentChecked && <div><small>찜</small><strong>{pv.audience.wishlist}</strong></div>}
             <div><small>장바구니</small><strong>{pv.audience.cart}</strong></div>
             <div><small>중복 제외</small><strong>{pv.audience.unique}</strong></div>
-            <div className="hl"><small>문자 발송 대상 (수신 동의)</small><strong>{pv.audience.reachable}</strong></div>
+            <div className="hl"><small>{pv.audience.consentChecked ? "문자 발송 대상 (수신 동의)" : "초대 대상 (최대)"}</small><strong>{pv.audience.reachable}</strong></div>
           </div>
+          {!pv.audience.consentChecked && <p className="small">문자 수신을 거부한 고객은 카페24가 발송할 때 자동으로 빼요. 실제 받는 사람은 이보다 적을 수 있어요.</p>}
           {pv.marginPerUnit != null && <p className="muted">개당 마진 {won(pv.marginPerUnit)}</p>}
           <p className="muted">초대 문자 발송: {kst(pv.sendAt)} (밤 9시~오전 8시는 자동으로 미뤄요)</p>
           <p className="msg">{pv.message}</p>

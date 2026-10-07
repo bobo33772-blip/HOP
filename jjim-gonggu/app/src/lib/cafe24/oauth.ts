@@ -1,7 +1,7 @@
 // 카페24 OAuth 2.0 (Authorization Code). 문서: https://apidocs.cafe24.com/docs/guide/oauth2-authentication
 // Access Token 2시간, Refresh Token 14일.
 
-import { SCOPE_STRING } from "./scopes";
+import { scopeString } from "./scopes";
 
 export const apiHost = (mallId: string) => `https://${mallId}.cafe24api.com`;
 
@@ -11,7 +11,7 @@ export function authorizeUrl(opts: { mallId: string; clientId: string; redirectU
     client_id: opts.clientId,
     state: opts.state,
     redirect_uri: opts.redirectUri,
-    scope: opts.scope ?? SCOPE_STRING,
+    scope: opts.scope ?? scopeString(),
   });
   return `${apiHost(opts.mallId)}/api/v2/oauth/authorize?${q}`;
 }

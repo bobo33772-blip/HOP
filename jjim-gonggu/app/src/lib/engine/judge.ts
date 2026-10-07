@@ -74,11 +74,12 @@ async function issueCoupons(ctx: Ctx, c: Campaign, memberIds: string[]) {
   if (missing.length) await recordIssue(ctx, c.id, "coupon_missing", { count: missing.length, members: missing });
 }
 
-/** 결과 안내 문자. 광고성 여부(P5) 결론 전이라 수신 동의 고객에게만 보낸다 */
+/** 결과 안내 문자. 광고성 여부(P5) 결론 전이라 수신 동의 고객에게만 보낸다 (개인정보 권한이 없으면 카페24가 수신거부자를 뺀다) */
 async function queueResult(ctx: Ctx, c: Campaign, pledgers: string[], total: number) {
   if (!pledgers.length) return;
   const mall = await getMall(ctx, c.mallId);
-  const ok = new Set((await (await ctx.shop(c.mallId)).consents(pledgers)).filter((x) => x.sms).map((x) => x.memberId));
+  const api = await ctx.shop(c.mallId);
+  const ok = api.privacy ? new Set((await api.consents(pledgers)).filter((x) => x.sms).map((x) => x.memberId)) : new Set(pledgers);
   const to = pledgers.filter((m) => ok.has(m));
   if (!to.length) return;
   const brand = mall.brandName || mall.mallId;

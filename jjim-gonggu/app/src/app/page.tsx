@@ -5,7 +5,7 @@ import { getDb, schema } from "@/db";
 import { fmtKst } from "@/lib/time";
 import { env } from "@/lib/env";
 import { getSession } from "@/lib/session";
-import { SCOPES } from "@/lib/cafe24/scopes";
+import { requestedScopes } from "@/lib/cafe24/scopes";
 
 export const dynamic = "force-dynamic";
 
@@ -51,8 +51,8 @@ export default async function Home() {
       <a className="btn" href="/campaigns">공구 관리 · 새 공구 열기</a>
       <a className="ghost" href="/radar" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none" }}>수요 레이더 보기</a>
       <div className="card">
-        <strong>찜꽁이 쓰는 권한 {SCOPES.length}개</strong>
-        {SCOPES.map((s) => (
+        <strong>찜꽁이 쓰는 권한 {requestedScopes().length}개</strong>
+        {requestedScopes().map((s) => (
           <p key={s.scope} className="muted"><code>{s.scope}</code> · {s.why}</p>
         ))}
       </div>

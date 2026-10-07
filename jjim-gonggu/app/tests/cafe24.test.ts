@@ -34,7 +34,11 @@ describe("OAuth", () => {
     const u = new URL(authorizeUrl({ mallId: "doyunbag", clientId: "cid", redirectUri: "https://app.example/cb", state: "s1" }));
     expect(u.origin).toBe("https://doyunbag.cafe24api.com");
     expect(u.pathname).toBe("/api/v2/oauth/authorize");
-    expect(u.searchParams.get("scope")).toContain("mall.read_privacy");
+    expect(u.searchParams.get("scope")).toContain("mall.read_personal");
+    expect(u.searchParams.get("scope")).not.toContain("mall.read_privacy"); // 개인정보 권한은 카페24 승인 전이라 요청하지 않는다
+    process.env.CAFE24_PRIVACY_SCOPE = "1";
+    expect(new URL(authorizeUrl({ mallId: "doyunbag", clientId: "cid", redirectUri: "https://app.example/cb", state: "s1" })).searchParams.get("scope")).toContain("mall.read_privacy");
+    delete process.env.CAFE24_PRIVACY_SCOPE;
   });
   it("토큰 교환: Basic 인증 + KST 만료시각 해석", async () => {
     let seen: RequestInit | undefined;

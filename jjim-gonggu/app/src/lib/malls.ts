@@ -49,5 +49,6 @@ function tokenProvider(mallId: string): TokenProvider {
 export async function realShopApi(mallId: string): Promise<ShopApi> {
   const db = await getDb();
   const [m] = await db.select().from(schema.malls).where(eq(schema.malls.mallId, mallId));
-  return new Cafe24Api(new Cafe24Client(mallId, tokenProvider(mallId)), m?.shopNo ?? 1, env().CAFE24_SERVICE_KEY);
+  // 개인정보 권한은 그 몰이 실제로 동의한 권한(설치 때 받은 토큰의 scopes)으로 판단한다
+  return new Cafe24Api(new Cafe24Client(mallId, tokenProvider(mallId)), m?.shopNo ?? 1, env().CAFE24_SERVICE_KEY, !!m?.scopes.includes("mall.read_privacy"));
 }

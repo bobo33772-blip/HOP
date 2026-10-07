@@ -28,6 +28,8 @@ export interface OrderInfo {
 }
 
 export interface ShopApi {
+  /** 개인정보(mall.read_privacy) 권한이 있는가. 없으면 찜 회원·수신 동의를 조회할 수 없다 → 장바구니 고객 + 카페24 수신거부 자동 제외로 동작 */
+  readonly privacy: boolean;
   listProducts(offset: number, limit: number): Promise<Product[]>;
   wishlistCount(productNo: number): Promise<number>;
   wishlistMembers(productNo: number): Promise<string[]>;
@@ -38,7 +40,7 @@ export interface ShopApi {
   /** 한 번에 최대 100명. 엔진이 100명씩 나눠 부른다 */
   issueCoupon(couponNo: string, memberIds: string[]): Promise<void>;
   listCouponHolders(couponNo: string): Promise<string[]>;
-  /** 회원 ID로 발송. 광고면 카페24가 수신거부자를 한 번 더 제외한다 */
+  /** 회원 ID로 발송. 카페24가 수신거부자를 자동으로 제외한다 (광고·결과 안내 모두) */
   sendSms(spec: SmsSpec): Promise<{ queueRef: string }>;
   installScriptTag(src: string): Promise<string>;
   getOrder(orderId: string): Promise<OrderInfo | null>;
@@ -76,7 +78,7 @@ function mapOrder(o: any): OrderInfo | null {
 }
 
 export class Cafe24Api implements ShopApi {
-  constructor(private c: Cafe24Client, private shopNo = 1, private serviceKey = "") {}
+  constructor(private c: Cafe24Client, private shopNo = 1, private serviceKey = "", readonly privacy = false) {}
 
   async listProducts(offset: number, limit: number) {
     const r = await this.c.request<{ products: { product_no: number; product_name: string; price: string; sold_out?: "T" | "F"; list_image?: string }[] }>("GET", "/products", {
@@ -173,7 +175,8 @@ export class Cafe24Api implements ShopApi {
           content: spec.content,
           member_id: spec.memberIds,
           type: spec.content.length > 45 ? "LMS" : "SMS",
-          exclude_unsubscriber: spec.isAd ? "T" : "F",
+          // 광고뿐 아니라 결과 안내도 수신거부 고객은 빼고 보낸다 (P5 결론 전까지 보수적으로)
+          exclude_unsubscriber: "T",
         },
       },
     });
