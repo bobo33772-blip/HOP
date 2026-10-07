@@ -15,7 +15,7 @@ export default function WidgetInstallButton() {
   };
   return (
     <>
-      <button className="ghost" onClick={run} disabled={state === "busy"}>{state === "busy" ? "설치 중…" : "상품 페이지 위젯 설치하기"}</button>
+      <button className="ghost" onClick={run} disabled={state === "busy"}>{state === "busy" ? "설치 중…" : "설치하기"}</button>
       {state === "error" && <p className="err">{msg}</p>}
     </>
   );

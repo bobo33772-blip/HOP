@@ -26,8 +26,9 @@ export default async function ReportPage({ params }: { params: Promise<{ token: 
 
   return (
     <main style={{ maxWidth: 720 }}>
+      <a className="logo" href="/" style={{ fontSize: 15 }}><img src="/logo.svg" alt="" />찜꽁 공구 리포트</a>
       <div className="row" style={{ alignItems: "baseline", flexWrap: "wrap" }}>
-        <h1>{k.productName} 공구 리포트</h1>
+        <h1>{k.productName}</h1>
         <span className={`chip ${cls}`}>{label}</span>
       </div>
       <p className="muted">정가 {won(k.listPrice)} → 공구가 {won(k.dealPrice)} · 목표 {k.targetQty}개 · 마감 {fmtKst(k.deadlineAt)} · 예상 출고 {k.shipEta}</p>
@@ -68,10 +69,9 @@ export default async function ReportPage({ params }: { params: Promise<{ token: 
         <tr><td>신청 → 결제</td><td className="mono">{pct(r.rates.pledgeToPaid)}</td></tr>
         <tr><td>확정 매출</td><td className="mono">{won(r.confirmed.revenue)}</td></tr>
         <tr><td>미결제 · 취소 · 기한 뒤 결제</td><td className="mono">{r.confirmed.unpaidMembers}명 · {r.confirmed.cancelledOrders}건 · {r.confirmed.lateOrders}건</td></tr>
-        <tr><td>성공 수수료 (스타터 1.5%)</td><td className="mono">{won(r.confirmed.successFee)} <span className="small">· 파일럿 기간은 받지 않아요</span></td></tr>
         {k.decision && <tr><td>생산·발주 결정</td><td>{k.decision.qty}개 · {k.decision.note} <span className="small">({fmtKst(k.decision.at)})</span></td></tr>}
       </tbody></table></div>
-      <p className="small">결제 완료 수량은 쇼핑몰 주문 기록과 매일 밤 다시 대조해요. 이 페이지는 읽기 전용이고, 고객 개인정보는 담지 않아요.</p>
+      <p className="small">결제 완료 수량은 쇼핑몰 주문 기록과 1시간마다 다시 대조해요. 이 페이지는 읽기 전용이고, 고객 개인정보는 담지 않아요.</p>
     </main>
   );
 }

@@ -3,6 +3,7 @@
 // S-03 수요 레이더 + S-E2 첫 수집 중. 숫자(count)만 보여 주고, 도달 가능 인원은 상품을 눌렀을 때만 계산한다.
 
 import { useCallback, useEffect, useState } from "react";
+import AppBar from "../components/app-bar";
 
 type Sort = "total" | "wishlist" | "cart";
 interface Row { productNo: number; name: string; price: number; wishlist: number; cart: number }
@@ -45,14 +46,13 @@ export default function RadarClient() {
     return () => clearInterval(t);
   }, [running, load]);
 
-  if (!data) return <main><h1>수요 레이더</h1><p className="muted">{error ?? "불러오는 중…"}</p></main>;
+  if (!data) return <><AppBar current="radar" /><main><h1>수요 레이더</h1><p className="muted">{error ?? "불러오는 중…"}</p></main></>;
 
   // 아직 완료된 수집이 없음: 첫 수집 화면(S-E2) 또는 시작 버튼
   if (!data.run) {
     const cur = data.current;
     return (
-      <main>
-        <a className="back" href="/">‹ 홈</a>
+      <><AppBar current="radar" /><main>
         <h1>수요 레이더</h1>
         {cur?.status === "running" ? (
           <div className="card" aria-live="polite">
@@ -68,14 +68,13 @@ export default function RadarClient() {
           </div>
         )}
         {error && <p className="err">{error}</p>}
-      </main>
+      </main></>
     );
   }
 
   const max = Math.max(1, ...data.rows.map((r) => r.wishlist + r.cart));
   return (
-    <main>
-      <a className="back" href="/">‹ 홈</a>
+    <><AppBar current="radar" /><main>
       <h1>수요 레이더</h1>
       <p className="muted">
         {when(data.run.finishedAt ?? data.run.startedAt)} 기준 · 상품 {data.run.total}개 확인
@@ -115,7 +114,7 @@ export default function RadarClient() {
       <p className="legend"><i /> 찜 <i className="c" /> 장바구니 · 장바구니는 쇼핑몰 보관 기간이 지나면 사라져 최근 관심만 반영돼요.</p>
       {error && <p className="err">{error}</p>}
       {picked && <ReachSheet row={picked} onClose={() => setPicked(null)} />}
-    </main>
+    </main></>
   );
 }
 
@@ -161,7 +160,7 @@ function ReachSheet({ row, onClose }: { row: Row; onClose: () => void }) {
             {reach.wishlistCapped && <p className="warn">찜한 회원이 많아 일부만 확인됐어요. 실제 대상은 이보다 많을 수 있어요.</p>}
           </>
         )}
-        <a className="btn" href="/campaigns">공구 관리에서 이 상품으로 공구 열기</a>
+        <a className="btn brand" href="/campaigns?tab=new">이 상품으로 공구 열기</a>
         <button className="ghost" onClick={onClose}>닫기</button>
       </div>
     </div>

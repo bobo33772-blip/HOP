@@ -104,18 +104,24 @@ export function ListTab({ mall, openId, setOpenId, say, goNew }: { mall: string;
   useEffect(() => { load(); }, [load]);
   if (!camps) return <p className="muted">불러오는 중…</p>;
   if (!camps.length) return (
-    <div className="card"><b>아직 연 공구가 없어요.</b><p className="muted">새 공구 탭에서 찜이 많은 상품을 골라 시작해 보세요.</p><div><button className="btn" onClick={goNew}>새 공구 열기</button></div></div>
+    <div className="card empty">
+      <img src="/logo.svg" alt="" />
+      <b>아직 연 공구가 없어요</b>
+      <p className="muted">고객이 장바구니·찜에 많이 담아 둔 상품으로 첫 공구를 열어 보세요.<br />목표 수량이 모이면 그때 결제를 받아요.</p>
+      <button className="btn brand" onClick={goNew}>첫 공구 열기</button>
+    </div>
   );
   return (
     <>
       <div className="camps">
         {camps.map((c) => {
           const [label, cls] = CHIP[c.state];
+          const ratio = Math.min(1, c.pledgedQty / c.targetQty);
           return (
-            <button key={c.id} className="card camp" aria-pressed={openId === c.id} onClick={() => setOpenId(c.id)}>
-              <div className="row"><b>{c.productName}</b><span className={`chip ${cls}`}>{label}</span></div>
-              <div className="mono" style={{ fontSize: 20 }}>{c.pledgedQty} / {c.targetQty}개</div>
-              <div className={`bar${c.pledgedQty >= c.targetQty ? " ok" : ""}`}><i style={{ width: `${Math.min(100, (c.pledgedQty / c.targetQty) * 100)}%` }} /></div>
+            <button key={c.id} className="card camp" aria-pressed={openId === c.id} onClick={() => setOpenId(openId === c.id ? null : c.id)}>
+              <div className="row"><span className="name">{c.productName}</span><span className={`chip ${cls}`}>{label}</span></div>
+              <div className="count">{c.pledgedQty}<small> / {c.targetQty}개 · {Math.round(ratio * 100)}%</small></div>
+              <div className={`bar${ratio >= 1 ? " ok" : ""}`} role="progressbar" aria-valuemin={0} aria-valuemax={c.targetQty} aria-valuenow={c.pledgedQty}><i style={{ width: `${ratio * 100}%` }} /></div>
               <span className="small">마감 {kst(c.deadlineAt)}{c.payUntil ? ` · 결제 기한 ${kst(c.payUntil)}` : ""}</span>
             </button>
           );
@@ -226,7 +232,7 @@ export function NewTab({ mall, say, onOpened }: { mall: string; say: (t: string)
   return (
     <>
       <div className="card">
-        <div className="row"><h2 style={{ fontSize: 18, margin: 0 }}>1. 상품 고르기 · {radar.privacy ? "찜·장바구니" : "장바구니"} 많은 상위 20개</h2>
+        <div className="row"><h2 className="step-title"><span className="n">1</span>상품 고르기 <span className="small">{radar.privacy ? "찜·장바구니" : "장바구니"} 많은 순 상위 20개</span></h2>
           <button className="ghost" onClick={collect} disabled={running}>{running ? `수집 중 ${radar.current!.done}/${radar.current!.total}` : radar.run ? "다시 수집" : "찜 데이터 모으기"}</button></div>
         <p className="muted">{a.role === "admin" ? "판매자와 통화하며 함께 고르세요. 이 목록은 숫자만 있어 판매자에게 그대로 보여 줘도 괜찮아요." : "찜·장바구니에 많이 담긴 상품부터 보여 드려요. 재생산을 고민 중인 상품을 골라 보세요."}{radar.run && ` · ${kst(radar.run.finishedAt ?? radar.run.startedAt)} 기준`}</p>
         {!radar.run ? <p className="muted">{running ? "상품마다 하나씩 확인하는 중이에요. 상품이 많으면 몇 분에서 몇 시간 걸려요." : "아직 모은 데이터가 없어요. 위 버튼으로 시작하세요."}</p> : (
@@ -236,7 +242,7 @@ export function NewTab({ mall, say, onOpened }: { mall: string; say: (t: string)
               <tr key={p.productNo}>
                 <td className="mono">{i + 1}</td><td>{p.name}{p.soldOut && <> <span className="chip">품절</span></>}</td>
                 <td className="mono">{won(p.price)}</td>{radar.privacy && <td className="mono">{p.wishlist}</td>}<td className="mono">{p.cart}</td>
-                <td><button className="ghost" onClick={() => setPick(p)}>선택</button></td>
+                <td><button className={pick?.productNo === p.productNo ? "btn" : "ghost"} style={pick?.productNo === p.productNo ? { minHeight: 40 } : undefined} onClick={() => setPick(p)}>{pick?.productNo === p.productNo ? "선택됨" : "선택"}</button></td>
               </tr>
             ))}</tbody>
           </table></div>
@@ -274,18 +280,18 @@ export function CampaignForm({ mall, p, say, onOpened }: { mall: string; p: Rada
   };
   return (
     <div className="card">
-      <h2 style={{ fontSize: 18, margin: 0 }}>2. 조건 정하기 · {p.name} (정가 {won(p.price)})</h2>
+      <h2 className="step-title"><span className="n">2</span>조건 정하기 <span className="small">{p.name} · 정가 {won(p.price)}</span></h2>
       <div className="form">
-        <label>목표 수량 (가마 1회분·원단 1롤 같은 최소 생산 수량)<input type="number" min={1} value={String(f.targetQty)} onChange={set("targetQty")} /></label>
-        <label>공구가 (원)<input type="number" min={0} step={500} value={String(f.dealPrice)} onChange={set("dealPrice")} /></label>
-        <label>원가 (고객에게 안 보여요)<input type="number" min={0} step={500} value={String(f.costPrice)} onChange={set("costPrice")} /></label>
+        <label>목표 수량<input type="number" min={1} value={String(f.targetQty)} onChange={set("targetQty")} /><span className="hint">가마 1회분·원단 1롤처럼 생산이 가능한 최소 수량</span></label>
+        <label>공구가 (원)<input type="number" min={0} step={500} value={String(f.dealPrice)} onChange={set("dealPrice")} /><span className="hint">정가보다 낮아야 해요{Number(f.dealPrice) > 0 && Number(f.dealPrice) < p.price ? ` · ${Math.round((1 - Number(f.dealPrice) / p.price) * 100)}% 할인` : ""}</span></label>
+        <label>원가 (원)<input type="number" min={0} step={500} value={String(f.costPrice)} onChange={set("costPrice")} /><span className="hint">고객에게 보이지 않아요. 마진 계산에만 써요</span></label>
         <label>1인 최대 수량<input type="number" min={1} max={5} value={String(f.perMemberLimit)} onChange={set("perMemberLimit")} /></label>
-        <label>마감 (한국 시간, 실제 마감)<input type="datetime-local" value={String(f.deadline)} onChange={set("deadline")} /></label>
+        <label>마감 일시<input type="datetime-local" value={String(f.deadline)} onChange={set("deadline")} /><span className="hint">한국 시간 · 이 시각에 목표 달성 여부를 판정해요</span></label>
         <label>결제 기간<select value={String(f.payWindowHours)} onChange={set("payWindowHours")}><option value="72">달성 후 72시간</option><option value="48">달성 후 48시간</option></select></label>
-        <label>예상 출고일 (필수 · 고객에게 보여요)<input type="date" value={String(f.shipEta)} onChange={set("shipEta")} /></label>
+        <label>예상 출고일<input type="date" value={String(f.shipEta)} onChange={set("shipEta")} /><span className="hint">고객에게 그대로 보여요</span></label>
         <label style={{ alignContent: "end" }}><span><input type="checkbox" checked={!!f.confirmBelowCost} onChange={set("confirmBelowCost")} /> 원가 미만이어도 열기</span></label>
       </div>
-      <div><button className="ghost" onClick={preview}>미리보기</button></div>
+      <div><button className="btn" onClick={preview}>미리보기 · 초대 대상 확인</button></div>
       {err && <p className="err" role="alert">{err}</p>}
       {pv && (
         <>
@@ -302,7 +308,7 @@ export function CampaignForm({ mall, p, say, onOpened }: { mall: string; p: Rada
           {pv.warnings.map((w) => <p key={w} className="warn">{w}</p>)}
           {pv.errors.length ? <div className="err" role="alert">{pv.errors.map((e) => <div key={e}>{e}</div>)}</div> : (
             <div className="actions"><b>{a.role === "admin" ? "판매자에게 조건을 다시 읽어 주고 동의를 받았나요?" : "조건을 확인했나요? 열면 쿠폰이 만들어지고, 수신 동의 고객에게 초대 문자가 예약돼요."}</b>
-              <button className="btn" disabled={busy} onClick={open}>공구 열기 · 쿠폰 생성 · 초대 {pv.audience.reachable}명 예약</button></div>
+              <button className="btn brand" disabled={busy} onClick={open}>{busy ? "여는 중…" : `공구 열기 · 초대 ${pv.audience.reachable}명 예약`}</button></div>
           )}
         </>
       )}

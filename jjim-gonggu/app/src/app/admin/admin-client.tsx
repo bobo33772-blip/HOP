@@ -29,9 +29,9 @@ export default function AdminClient({ mock }: { mock: boolean }) {
   const current = malls?.find((m) => m.mallId === mall);
   return (
     <>
-      <header className="adm-head">
+      <header className="appbar">
         <div className="in">
-          <div className="logo"><i>찜</i>찜꽁 운영자</div>
+          <div className="logo"><img src="/logo.svg" alt="" />찜꽁 운영자</div>
           {mock && <span className="chip warn">데모 모드</span>}
           <label className="small" htmlFor="mall">쇼핑몰</label>
           <select id="mall" className="field" style={{ width: "auto", padding: "6px 8px" }} value={mall} onChange={(e) => { setMall(e.target.value); setOpenId(null); setTab("list"); }}>
