@@ -9,7 +9,7 @@ import { buildReport } from "@/lib/engine/report";
 import { fmtKst, won } from "@/lib/time";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "공구 리포트 · 찜 공구", robots: { index: false, follow: false }, referrer: "no-referrer" };
+export const metadata: Metadata = { title: "공구 리포트 · 찜꽁", robots: { index: false, follow: false }, referrer: "no-referrer" };
 
 const pct = (r: number | null) => (r == null ? "–" : `${(r * 100).toFixed(1)}%`);
 const LABEL = { open: ["모집 중", "open"], reached: ["목표 달성 · 결제 기간", "ok"], failed: ["진행 안 됨", "bad"], settled: ["확정 완료", "ok"] } as const;

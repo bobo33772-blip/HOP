@@ -17,8 +17,8 @@ export default async function Home() {
     return (
       <main>
         <span className="pill">{mock ? "로컬 데모 모드" : "카페24 연동 모드"}</span>
-        <h1>찜 공구</h1>
-        <p className="muted">카페24 관리자 &gt; 앱에서 '찜 공구'를 실행하면 이 화면이 열려요.</p>
+        <h1>찜꽁</h1>
+        <p className="muted">카페24 관리자 &gt; 앱에서 '찜꽁'을 실행하면 이 화면이 열려요.</p>
         {mock && <a className="btn" href="/api/cafe24/launch">데모 쇼핑몰로 시작하기</a>}
         {mock && <a className="ghost" href="/demo" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none" }}>데모 안내 (운영자·고객 화면)</a>}
       </main>
@@ -50,7 +50,7 @@ export default async function Home() {
       </div>
       <a className="btn" href="/radar">수요 레이더 보기</a>
       <div className="card">
-        <strong>찜 공구가 쓰는 권한 {SCOPES.length}개</strong>
+        <strong>찜꽁이 쓰는 권한 {SCOPES.length}개</strong>
         {SCOPES.map((s) => (
           <p key={s.scope} className="muted"><code>{s.scope}</code> · {s.why}</p>
         ))}

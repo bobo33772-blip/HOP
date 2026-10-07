@@ -8,14 +8,14 @@ import { DEMO_BRAND } from "@/lib/cafe24/mock";
 import { fmtKst } from "@/lib/time";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "데모 · 찜 공구", robots: { index: false } };
+export const metadata: Metadata = { title: "데모 · 찜꽁", robots: { index: false } };
 
 export default async function DemoPage() {
   const demo = await getDemo();
   if (!demo) notFound();
   return (
     <main style={{ maxWidth: 720 }}>
-      <h1>찜 공구 데모</h1>
+      <h1>찜꽁 데모</h1>
       <p className="muted">모의 카페24 쇼핑몰({DEMO_BRAND})에서 공구 한 번을 끝까지 눌러 볼 수 있어요. 실제 문자·결제는 일어나지 않고, 서버를 다시 켜면 처음부터 시작해요. 데모 시각 {fmtKst(demo.clock.now())}</p>
       <div className="card">
         <b>1. 운영자 화면에서 공구 열기</b>

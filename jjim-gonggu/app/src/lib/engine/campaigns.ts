@@ -105,7 +105,7 @@ export async function openCampaign(ctx: Ctx, actor: string, mallId: string, inpu
   const deadline = input.deadlineAt;
   const api = await ctx.shop(mallId);
   const couponNo = await api.createCoupon({
-    name: `[찜 공구] ${pv.product.name}`,
+    name: `[찜꽁] ${pv.product.name}`,
     productNo: pv.product.productNo,
     discountAmount: pv.product.price - input.dealPrice,
     availableFrom: deadline,

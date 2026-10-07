@@ -1,4 +1,4 @@
-# 찜 공구
+# 찜꽁
 
 자사몰에서 찜하거나 장바구니에 담은 고객을 모아, 목표 수량을 채우면 할인가로 여는 **카페24 판매자용 예약 공동구매** 앱이에요.
 첫 타깃은 카페24 홈리빙 자체 브랜드예요.
@@ -9,7 +9,7 @@
 
 | 경로 | 내용 |
 |---|---|
-| [`app/`](app/README.md) | **찜 공구 서버** — Next.js 16 + Drizzle(Postgres/PGlite). 판매자 화면·운영자 화면·고객 위젯·공구 엔진을 한 서버에서 돌려요. 단계 계획은 [`app/docs/ROADMAP.md`](app/docs/ROADMAP.md) |
+| [`app/`](app/README.md) | **찜꽁 서버** — Next.js 16 + Drizzle(Postgres/PGlite). 판매자 화면·운영자 화면·고객 위젯·공구 엔진을 한 서버에서 돌려요. 단계 계획은 [`app/docs/ROADMAP.md`](app/docs/ROADMAP.md) |
 | [`plans/team/`](plans/team/index.html) | **제품 기획서 (팀원용)** — 기획서 · 기술 검증 · 유저 플로우 · 프로토타입 · 부록 |
 | [`plans/investor/`](plans/investor/index.html) | **투자 제안서** — 문제 · 해결책 · 데모 영상 · 시장 · 수익 모델 · 경쟁 · 첫 4주 |
 
