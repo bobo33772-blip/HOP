@@ -9,7 +9,7 @@ const demoApi = (): ShopApi => {
   seedDemoMall(w);
   return w.forMall(DEMO_MALL);
 };
-import { computeReach, getRadar, latestRun, runCollection, startCollection } from "@/lib/radar";
+import { computeReach, getRadar, latestRun, resumeCollections, runCollection, startCollection } from "@/lib/radar";
 
 describe("수요 레이더", () => {
   it("수집 전에는 비어 있고, 수집 후 합계순으로 정렬, 찜·장바구니 0인 상품은 제외", async () => {
@@ -29,6 +29,20 @@ describe("수요 레이더", () => {
     const byCart = await getRadar(db, "m", "cart");
     expect(byCart.rows[0].productNo).toBe(102);
     expect(byCart.rows[1].productNo).toBe(101);
+  });
+
+  it("시간 제한(서버리스)으로 멈추면 진행 중으로 남고, 정기 작업이 이어서 끝낸다", async () => {
+    const db = await createTestDb();
+    const api = demoApi();
+    const { run } = await startCollection(db, "m");
+    await runCollection(db, api, "m", run.id, { budgetMs: 0 }); // 첫 실행이 바로 시간 초과
+    expect(await latestRun(db, "m")).toMatchObject({ status: "running", total: 6, done: 0 });
+
+    expect(await resumeCollections(db, async () => api, Date.now())).toBe(0); // 시작 50초 안: 첫 실행이 돌고 있을 수 있어 건드리지 않음
+    expect(await resumeCollections(db, async () => api, Date.now() + 60_000)).toBe(1);
+    const r = await getRadar(db, "m");
+    expect(r.run).toMatchObject({ status: "done", total: 6, done: 6 });
+    expect(r.rows).toHaveLength(6);
   });
 
   it("진행 중인 수집이 있으면 새로 시작하지 않는다", async () => {

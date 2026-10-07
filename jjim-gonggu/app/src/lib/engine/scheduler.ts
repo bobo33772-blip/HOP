@@ -6,6 +6,7 @@ import { releaseDueMessages } from "./messages";
 import { judgeDue } from "./judge";
 import { reconcilePaying, reconcileRecent, settleDue } from "./payments";
 import { purgeExpired } from "./retention";
+import { resumeCollections } from "../radar";
 import { kstDate, kstHour } from "../time";
 
 // 같은 서버 안에서 tick이 겹치지 않게 한 줄로 세운다 (서버 안 정기 작업 · 데모 시간 넘기기 · 크론이 동시에 부를 수 있다)
@@ -41,5 +42,7 @@ export async function runScheduled(ctx: Ctx, state: { lastReconcileDay: string; 
     state.lastReconcileHour = hour;
     reconciled = await reconcilePaying(ctx);
   }
-  return { ...r, reconciled };
+  // 시간 제한으로 멈춘 수요 레이더 수집을 이어 간다 (실패해도 다른 정기 작업에는 영향 없음)
+  const collections = await resumeCollections(ctx.db, (m) => ctx.shop(m), now.getTime()).catch((e) => { ctx.log("레이더 이어 받기 실패", String(e)); return 0; });
+  return { ...r, reconciled, collections };
 }
