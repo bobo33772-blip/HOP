@@ -93,7 +93,7 @@ export function ProfileCard({ mall, onSaved, say, always = false }: { mall: Mall
           <label>문자 발신번호
             <select value={v.smsSender} onChange={(e) => setV({ ...v, smsSender: e.target.value })}>
               <option value="">카페24에 등록된 번호에서 고르기</option>
-              {mall.senders.map((s) => <option key={s.senderNo} value={s.number}>{s.number}{s.status && !["T", "Y", "approved"].includes(s.status) ? ` (상태: ${s.status})` : ""}</option>)}
+              {mall.senders.map((s) => <option key={s.senderNo} value={s.number}>{s.number}</option>)}
             </select>
             <span className="hint">카페24 관리자 › SMS 발신번호 관리에 등록된 번호예요</span>
           </label>
