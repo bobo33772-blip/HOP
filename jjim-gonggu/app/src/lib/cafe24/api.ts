@@ -197,6 +197,11 @@ export class Cafe24Api implements ShopApi {
   }
 
   async installScriptTag(src: string) {
+    // 이 앱이 예전에 넣은 위젯 태그(다른 주소로 설치했던 것 포함)를 먼저 지워 위젯이 두 번 뜨지 않게 한다. 앱 토큰으로는 이 앱의 태그만 보인다
+    const old = await this.c.request<{ scripttags: { script_no: string; src: string }[] }>("GET", "/scripttags", { query: { shop_no: this.shopNo } });
+    for (const t of old.scripttags ?? []) {
+      if (/\/widget\.js(\?|$)/.test(t.src)) await this.c.request("DELETE", `/scripttags/${encodeURIComponent(t.script_no)}`, { query: { shop_no: this.shopNo } });
+    }
     const r = await this.c.request<{ scripttag: { script_no: string } }>("POST", "/scripttags", {
       body: { shop_no: this.shopNo, request: { src, display_location: ["PRODUCT_DETAIL"] } },
     });
