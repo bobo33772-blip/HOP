@@ -95,3 +95,15 @@ main.wide { max-width: 1080px; }
 .hero-num { font: 700 44px/1 ui-monospace, Menlo, monospace; }
 .hero-num small { font-size: 18px; }
 details summary { cursor: pointer; font-weight: 600; font-size: 14px; }
+
+/* 처리방침·약관 */
+.doc { max-width: 720px; gap: 10px; }
+.doc h2 { font-size: 17px; margin: 14px 0 0; }
+.doc p, .doc ul { margin: 0; }
+.doc ul { padding-left: 20px; display: grid; gap: 4px; }
+.doc table { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--surface); }
+.doc th, .doc td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+.doc th { background: var(--soft); font-weight: 600; }
+.doc a { color: var(--primary); }
+.legal { display: flex; gap: 14px; justify-content: center; font-size: 13px; }
+.legal a { color: var(--fg2); }

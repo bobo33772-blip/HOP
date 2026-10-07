@@ -1,10 +1,11 @@
 // 정기 작업. 한 번의 tick: 예약 문자 발송 → 마감 판정 → 결제 기간 종료 확정 → (판정 직후 결과 문자).
-// 매시 결제 기간 중인 공구를, 매일 03:00 KST에는 최근 14일 공구를 대사한다.
+// 매시 결제 기간 중인 공구를, 매일 03:00 KST에는 최근 14일 공구를 대사하고 보관 기간이 지난 개인정보를 파기한다.
 
 import type { Ctx } from "./context";
 import { releaseDueMessages } from "./messages";
 import { judgeDue } from "./judge";
 import { reconcilePaying, reconcileRecent, settleDue } from "./payments";
+import { purgeExpired } from "./retention";
 import { kstDate, kstHour } from "../time";
 
 // 같은 서버 안에서 tick이 겹치지 않게 한 줄로 세운다 (서버 안 정기 작업 · 데모 시간 넘기기 · 크론이 동시에 부를 수 있다)
@@ -35,6 +36,7 @@ export async function runScheduled(ctx: Ctx, state: { lastReconcileDay: string; 
     state.lastReconcileDay = day;
     state.lastReconcileHour = hour;
     reconciled = await reconcileRecent(ctx);
+    await purgeExpired(ctx);
   } else if (hour !== state.lastReconcileHour) {
     state.lastReconcileHour = hour;
     reconciled = await reconcilePaying(ctx);

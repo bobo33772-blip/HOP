@@ -10,6 +10,7 @@ import { judgeNow } from "@/lib/engine/judge";
 import { handleOrderWebhook, reconcileCampaign } from "@/lib/engine/payments";
 import { buildReport, pilotScorecard } from "@/lib/engine/report";
 import { tick } from "@/lib/engine/scheduler";
+import { purgeExpired } from "@/lib/engine/retention";
 import { MALL, PRODUCT, baseInput, openAndFill, pledge, range, setup } from "./helpers";
 
 const DAY5 = 5 * 24 * HOUR;
@@ -248,5 +249,35 @@ describe("개인정보 권한 없는 몰 (장바구니 고객 공구)", () => {
     expect(sms.memberIds).toHaveLength(20); // m100~m139 중 수신 동의(짝수)만 실제로 받는다
     expect(sms.content).toMatch(/장바구니에 담아 두신 스톤웨어/);
     expect(sms.memberIds.every((id) => Number(id.slice(1)) % 2 === 0)).toBe(true);
+  });
+});
+
+describe("보관 기간 파기", () => {
+  it("끝난 지 180일 지난 공구는 회원 ID를 지우고 수량만 남기며, 앱 삭제 30일 뒤에는 몰 데이터를 모두 지운다", async () => {
+    const env = await setup();
+    const c = await openAndFill(env, range(1, 10));
+    env.clock.advance(DAY5);
+    await tick(env.ctx);
+    expect((await getCampaign(env.ctx, c.id)).state).toBe("failed");
+
+    env.clock.advance(179 * 24 * HOUR);
+    expect((await purgeExpired(env.ctx)).anonymized).toBe(0);
+
+    env.clock.advance(2 * 24 * HOUR);
+    expect((await purgeExpired(env.ctx)).anonymized).toBe(10);
+    const ps = await env.db.select().from(schema.pledges).where(eq(schema.pledges.campaignId, c.id));
+    expect(ps).toHaveLength(10);
+    expect(ps.every((p) => p.memberId.startsWith("anon:"))).toBe(true);
+    expect(await env.db.select().from(schema.invitations).where(eq(schema.invitations.campaignId, c.id))).toHaveLength(0);
+    const msgs = await env.db.select().from(schema.messages).where(eq(schema.messages.campaignId, c.id));
+    expect(msgs.every((m) => m.recipients.length === 0)).toBe(true);
+    expect((await purgeExpired(env.ctx)).anonymized).toBe(0); // 다시 돌아도 같다
+
+    await env.db.update(schema.malls).set({ uninstalledAt: env.clock.now() }).where(eq(schema.malls.mallId, MALL));
+    env.clock.advance(31 * 24 * HOUR);
+    expect((await purgeExpired(env.ctx)).mallsDeleted).toBe(1);
+    expect(await env.db.select().from(schema.campaigns).where(eq(schema.campaigns.mallId, MALL))).toHaveLength(0);
+    expect(await env.db.select().from(schema.pledges)).toHaveLength(0);
+    expect(await env.db.select().from(schema.malls).where(eq(schema.malls.mallId, MALL))).toHaveLength(0);
   });
 });

@@ -58,6 +58,7 @@ export default async function Home() {
           <p key={s.scope} className="muted"><code>{s.scope}</code> · {s.why}</p>
         ))}
       </div>
+      <nav className="legal"><a href="/privacy">개인정보 처리방침</a><a href="/terms">이용약관</a></nav>
     </main>
   );
 }
