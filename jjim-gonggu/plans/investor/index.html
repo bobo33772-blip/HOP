@@ -1,0 +1,838 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>찜 공구 투자 제안</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: investor narrative — one wide column of chapters, each chapter = claim headline + evidence; sticky chapter nav; demo stage with phone + caption */
+:root{
+  --ink:#16233F; --primary:#2F5BEA; --primary-2:#E8EEFF; --success:#12B886; --warning:#E8950A; --danger:#E03131; --muted:#7D879B;
+  --bg:#F4F6FA; --surface:#FFFFFF; --line:#DDE2EB; --soft:#EDF0F6; --fg:#16233F; --fg2:#4B5671; --hero:#16233F; --hero-fg:#FFFFFF;
+  --font:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace; --r:12px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ink:#E6EBF5; --primary:#6F8FF5; --primary-2:#1E2A4D; --success:#2FD3A0; --warning:#F5B342; --danger:#FF6B6B; --muted:#8E98AD;
+  --bg:#0E1424; --surface:#172038; --line:#28344F; --soft:#1E2944; --fg:#E6EBF5; --fg2:#AAB4C8; --hero:#0A1020; --hero-fg:#F2F5FB; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --ink:#E6EBF5; --primary:#6F8FF5; --primary-2:#1E2A4D; --success:#2FD3A0; --warning:#F5B342; --danger:#FF6B6B; --muted:#8E98AD;
+  --bg:#0E1424; --surface:#172038; --line:#28344F; --soft:#1E2944; --fg:#E6EBF5; --fg2:#AAB4C8; --hero:#0A1020; --hero-fg:#F2F5FB; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+img{max-width:100%;height:auto}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font);font-size:16px;line-height:1.65}
+h1,h2,h3,h4{margin:0;line-height:1.28;text-wrap:balance}
+a{color:var(--primary)}
+.mono{font-family:var(--mono)}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:20px}
+/* nav */
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;gap:20px;min-height:58px}
+.logo{display:flex;align-items:center;gap:9px;font-weight:700;white-space:nowrap}
+.logo i{width:26px;height:26px;border-radius:8px;background:var(--primary);color:#fff;display:grid;place-items:center;font-style:normal;font-size:13px}
+.nav-links{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin-left:auto}
+.nav-links a{font-size:14px;color:var(--fg2);text-decoration:none;padding:8px 11px;border-radius:8px;white-space:nowrap}
+.nav-links a:hover,.nav-links a.on{color:var(--fg);background:var(--soft)}
+/* hero */
+.hero{background:var(--hero);color:var(--hero-fg);padding-block:64px 56px;position:relative;overflow:hidden}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:40px;align-items:center}
+.hero .eyebrow{color:#9FB4FF}
+.hero h1{font-size:50px;letter-spacing:-.025em;line-height:1.15}
+.hero h1 em{font-style:normal;color:#7FA0FF}
+.hero p.lead{font-size:18px;color:#C9D3EA;margin:18px 0 0;max-width:34em}
+.hero-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:26px}
+.btn{font:inherit;font-size:15px;font-weight:600;border-radius:10px;padding:12px 18px;border:0;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+.btn.pri{background:#4F76F6;color:#fff}
+.btn.ghost{background:transparent;color:#E6ECFA;border:1.5px solid #3A4A70}
+.hero-img{border-radius:16px;display:block;box-shadow:0 30px 60px rgba(0,0,0,.35)}
+.hero-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:#2A3858;border-radius:14px;overflow:hidden;margin-top:44px;grid-column:1/-1}
+.hero-stats div{background:#1B2849;padding:16px 18px;display:grid;gap:2px}
+.hero-stats strong{font-size:24px;font-variant-numeric:tabular-nums;color:#fff}
+.hero-stats span{font-size:12.5px;color:#AEBBD8}
+.eyebrow{font-size:12px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;color:var(--muted)}
+/* chapters */
+.ch{padding-block:76px 20px;scroll-margin-top:60px}
+.ch-head{display:grid;gap:10px;max-width:780px;margin-bottom:30px}
+.ch-no{font:600 12.5px var(--mono);color:var(--primary);letter-spacing:.06em}
+.ch-head h2{font-size:34px;letter-spacing:-.015em}
+.ch-head p{margin:0;color:var(--fg2);font-size:17px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;min-width:0}
+.card h3{font-size:18px;margin-bottom:6px}
+.card p{margin:0;color:var(--fg2);font-size:15px}
+.num{font:600 32px/1.1 var(--mono);font-variant-numeric:tabular-nums;color:var(--fg);letter-spacing:-.02em}
+.num small{font-size:15px;color:var(--fg2);font-family:var(--font);font-weight:500;letter-spacing:0}
+.src{font-size:12px;color:var(--muted);margin-top:8px;display:block}
+.who{display:flex;gap:8px;align-items:center;font-size:12.5px;font-weight:700;color:var(--primary);margin-bottom:10px;letter-spacing:.02em}
+.statement{margin-top:22px;background:var(--ink);color:var(--surface);border-radius:var(--r);padding:26px 30px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:22px;align-items:center}
+:root[data-theme="dark"] .statement{background:#22305A;color:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .statement{background:#22305A;color:#fff}}
+.statement .eyebrow{color:inherit;opacity:.7}
+.statement p{margin:0;font-size:21px;font-weight:600;line-height:1.5;text-wrap:balance}
+.quote{display:grid;grid-template-columns:72px minmax(0,1fr);gap:16px;align-items:center}
+.quote img{border-radius:50%;aspect-ratio:1;object-fit:cover;border:1px solid var(--line)}
+.quote q{font-size:16px;font-weight:600;quotes:"“" "”"}
+.quote small{display:block;color:var(--muted);font-size:12.5px;margin-top:4px}
+.gap-table{width:100%;border-collapse:collapse;font-size:14.5px}
+.gap-table th,.gap-table td{padding:12px 14px;border-top:1px solid var(--line);text-align:left;vertical-align:top}
+.gap-table th{font-size:12.5px;color:var(--fg2);background:var(--soft);border-top:0;white-space:nowrap}
+.gap-table td:not(:first-child){text-align:center;white-space:nowrap}
+.gap-table tr.us td{background:var(--primary-2);font-weight:700}
+.y{color:var(--success);font-weight:700}.n{color:var(--muted)}.p{color:var(--warning);font-weight:700}
+.tblwrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.pick{margin-top:22px;display:grid;gap:12px}
+.pick h3{font-size:22px}
+.pick > p{margin:0;color:var(--fg2);font-size:15px;max-width:68ch}
+.gap-table td.why{white-space:normal;text-align:left;color:var(--fg2);font-size:13.5px;min-width:220px}
+.gap-table td.cat{font-size:13px}
+.gap-table th.hl,.gap-table td.hl{background:var(--primary-2)}
+.pick .concl{font-size:15px;font-weight:600;margin:0}
+.evt{width:100%;border-collapse:collapse;font-size:14.5px}
+.evt th,.evt td{padding:12px 14px;border-top:1px solid var(--line);text-align:left;vertical-align:top}
+.evt th{font-size:12.5px;color:var(--fg2);background:var(--soft);border-top:0;white-space:nowrap}
+.evt td.k{font-weight:700;white-space:nowrap;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.evt tr.one td{background:var(--primary-2);font-weight:600}
+.gates.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.gate.bad{border-top-color:var(--danger)}
+.wk{display:grid;gap:6px;align-content:start}
+.wk b.w{font:600 12.5px var(--mono);color:var(--primary)}
+.wk ul{margin:0;padding-left:18px;font-size:14px;color:var(--fg2);display:grid;gap:3px}
+.wk .done{font-size:13px;font-weight:600;background:var(--soft);border-radius:8px;padding:7px 10px;margin-top:4px}
+@media (max-width:720px){.gates.three{grid-template-columns:minmax(0,1fr)}}
+/* solution */
+.says{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.say{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px;display:grid;gap:8px;align-content:start;position:relative;overflow:hidden}
+.say b{font:600 13px var(--mono);color:var(--primary)}
+.say h3{font-size:22px}
+.say p{margin:0;color:var(--fg2);font-size:15px}
+.flow3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin-top:18px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.flow3 > div{padding:22px;display:grid;gap:8px;align-content:start;border-left:1px solid var(--line);position:relative}
+.flow3 > div:first-child{border-left:0}
+.flow3 .stp{width:34px;height:34px;border-radius:10px;background:var(--primary);color:#fff;display:grid;place-items:center;font:700 15px var(--mono)}
+.flow3 h4{font-size:17px}
+.flow3 p{margin:0;font-size:14.5px;color:var(--fg2)}
+.flow3 .who2{font-size:12px;font-weight:600;color:var(--muted)}
+.ba{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}
+.ba .card.after{border-color:var(--success);background:color-mix(in srgb,var(--success) 6%,var(--surface))}
+.ba ul{margin:8px 0 0;padding-left:18px;display:grid;gap:5px;font-size:15px;color:var(--fg2)}
+.ba .tag{font-size:12px;font-weight:700;letter-spacing:.06em}
+/* demo */
+.demo-video{background:var(--hero);border-radius:16px;overflow:hidden;border:1px solid var(--line)}
+.demo-video video{display:block;width:100%;height:auto;background:#0A1020}
+.demo-video .cap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 16px;color:#C9D3EA;font-size:13.5px}
+.proto-bar{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;margin:28px 0 16px}
+.seg{display:inline-flex;background:var(--soft);border-radius:10px;padding:3px}
+.seg button{font:inherit;font-size:14px;font-weight:600;border:0;background:none;color:var(--fg2);padding:8px 16px;border-radius:8px;cursor:pointer}
+.seg button[aria-checked="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 3px rgba(22,35,63,.15)}
+.switch{display:inline-flex;align-items:center;gap:10px;font-size:14px;font-weight:500;cursor:pointer}
+.switch input{position:absolute;opacity:0;width:1px;height:1px}
+.switch .track{width:40px;height:22px;border-radius:11px;background:var(--line);position:relative}
+.switch .knob{position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--surface);transition:left .15s}
+.switch input:checked + .track{background:var(--primary)}
+.switch input:checked + .track .knob{left:21px}
+.switch input:focus-visible + .track{outline:2px solid var(--primary);outline-offset:2px}
+.gbtn{font:inherit;font-size:14px;font-weight:600;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);border-radius:9px;padding:8px 14px;cursor:pointer}
+.gbtn.pri{background:var(--primary);border-color:var(--primary);color:#fff}
+.gbtn:disabled{opacity:.45;cursor:not-allowed}
+.stage{display:flex;gap:30px;align-items:flex-start;flex-wrap:wrap}
+.side{flex:1 1 300px;display:grid;gap:14px;min-width:0;max-width:420px}
+.capbox{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--primary);border-radius:var(--r);padding:18px 20px;display:grid;gap:6px}
+.capbox .k{font:600 12px var(--mono);color:var(--primary)}
+.capbox h3{font-size:19px}
+.capbox p{margin:0;color:var(--fg2);font-size:14.5px}
+.steps-list{display:grid;gap:2px;max-height:320px;overflow:auto;padding-right:4px}
+.steps-list button{font:inherit;font-size:13.5px;text-align:left;border:0;background:none;color:var(--fg2);padding:7px 10px;border-radius:8px;cursor:pointer;display:grid;grid-template-columns:26px minmax(0,1fr);gap:6px}
+.steps-list button span{font:600 12px var(--mono);color:var(--muted)}
+.steps-list button.on{background:var(--primary-2);color:var(--fg);font-weight:600}
+.steps-list button.on span{color:var(--primary)}
+.sim{display:flex;flex-wrap:wrap;gap:8px}
+.small{font-size:12.5px;color:var(--muted);margin:0;line-height:1.55}
+.phone-wrap{flex:none;position:relative}
+/* phone */
+.phone{width:390px;height:844px;transform-origin:0 0;background:#000;border-radius:56px;padding:12px;position:relative;box-shadow:0 0 0 2px #2B3346,0 30px 70px rgba(22,35,63,.30)}
+.screen{width:100%;height:100%;border-radius:44px;overflow:hidden;position:relative;background:#F5F6F8;color:#16233F;display:flex;flex-direction:column;font-size:15px;line-height:1.45}
+.screen *{scrollbar-width:none}
+.screen *::-webkit-scrollbar{display:none}
+.island{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:118px;height:34px;border-radius:20px;background:#000;z-index:20}
+.sbar{height:50px;flex:none;display:flex;justify-content:space-between;align-items:flex-end;padding:0 30px 6px;font:600 14px var(--font);color:#16233F}
+.sbar.dark{color:#fff}
+.sbar .ic{display:flex;gap:5px;align-items:center}
+.sbar .ic i{display:block;background:currentColor;border-radius:2px}
+/* app (seller) styles: brand */
+.s-top{flex:none;display:flex;align-items:center;gap:8px;padding:6px 16px 10px;font-weight:700;font-size:18px}
+.s-top .back{font:inherit;font-size:22px;border:0;background:none;color:inherit;cursor:pointer;padding:0 6px 0 0;line-height:1}
+.s-top .r{margin-left:auto;font-size:13px;font-weight:600;color:#5B6680}
+.s-body{flex:1;overflow-y:auto;padding:4px 16px 16px;display:flex;flex-direction:column;gap:12px}
+.s-tab{flex:none;display:grid;grid-template-columns:repeat(4,1fr);background:#fff;border-top:1px solid #E3E7EF;padding-bottom:18px}
+.s-tab button{font:inherit;font-size:11px;border:0;background:none;color:#8A94A6;padding:9px 0 4px;cursor:pointer;display:grid;justify-items:center;gap:3px}
+.s-tab button svg{width:22px;height:22px}
+.s-tab button.on{color:#2F5BEA;font-weight:700}
+.sc{background:#fff;border-radius:16px;padding:14px;display:grid;gap:8px;box-shadow:0 1px 2px rgba(22,35,63,.06)}
+.sc h4{font-size:15.5px}
+.sc.blue{background:linear-gradient(140deg,#2F5BEA,#4A76FF);color:#fff}
+.sc.blue .sub{color:#DCE5FF}
+.sc.green{background:linear-gradient(140deg,#0FA77A,#18C08E);color:#fff}
+.sc.green .sub{color:#D7F7EC}
+.sc.warn{background:#FFF6E5;border:1px solid #F4D28C}
+.sc.bad{background:#FFF0F0;border:1px solid #F5B5B5}
+.sub{font-size:13px;color:#5B6680;margin:0}
+.big{font:700 34px/1.05 var(--mono);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.big small{font:500 15px var(--font);opacity:.85;letter-spacing:0}
+.kp{display:grid;gap:8px}
+.kp > div{background:#fff;border-radius:14px;padding:10px 12px;display:grid;gap:1px;box-shadow:0 1px 2px rgba(22,35,63,.06)}
+.kp small{font-size:11.5px;color:#5B6680}
+.kp strong{font:600 19px var(--mono);font-variant-numeric:tabular-nums}
+.bar{height:10px;border-radius:5px;background:rgba(22,35,63,.10);overflow:hidden}
+.sc.blue .bar,.sc.green .bar{background:rgba(255,255,255,.28)}
+.bar i{display:block;height:100%;border-radius:5px;background:#2F5BEA;transition:width .5s ease}
+.sc.blue .bar i,.sc.green .bar i{background:#fff}
+.bar.ok i{background:#12B886}
+.pb{font:inherit;font-size:16px;font-weight:700;border:0;border-radius:14px;background:#2F5BEA;color:#fff;min-height:52px;cursor:pointer;padding:0 16px;width:100%}
+.pb.green{background:#12B886}
+.pb.dark{background:#16233F}
+.pb:disabled{background:#D5DAE3;color:#8A94A6;cursor:not-allowed}
+.pb2{font:inherit;font-size:15px;font-weight:600;border:1.5px solid #D5DAE3;border-radius:14px;background:#fff;color:#16233F;min-height:48px;cursor:pointer;padding:0 14px;width:100%}
+.pb:focus-visible,.pb2:focus-visible,.row:focus-visible{outline:3px solid rgba(47,91,234,.45);outline-offset:2px}
+.list{display:grid;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 2px rgba(22,35,63,.06)}
+.row{font:inherit;text-align:left;border:0;border-top:1px solid #EEF1F6;background:none;color:#16233F;padding:11px 14px;display:flex;gap:12px;align-items:center;cursor:pointer;width:100%}
+.list > .row:first-child{border-top:0}
+.row .th{width:46px;height:46px;border-radius:12px;flex:none;background-size:cover;background-position:center}
+.row .meta{display:grid;gap:2px;min-width:0;flex:1}
+.row .meta b{font-size:14.5px}
+.row .meta small{color:#5B6680;font-size:12.5px;font-variant-numeric:tabular-nums}
+.row .chev{color:#A3ABBA;font-size:18px}
+.row .rank{font:600 12px var(--mono);color:#2F5BEA;width:16px}
+.hbar{display:flex;align-items:center;gap:6px;font-size:11.5px;color:#5B6680}
+.hbar i{display:block;height:6px;border-radius:3px;background:#2F5BEA}
+.hbar i.c{background:#9DB3FF}
+.fld{display:grid;gap:5px;font-size:12.5px;color:#5B6680;font-weight:600}
+.fld input,.fld select{font:inherit;font-size:16px;color:#16233F;background:#fff;border:1.5px solid #DDE2EB;border-radius:12px;height:48px;padding:0 12px;width:100%}
+.fld input:focus,.fld select:focus{outline:none;border-color:#2F5BEA}
+.chk{display:flex;gap:10px;align-items:center;font-size:14px}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:3px 9px;border-radius:99px;background:#EDF0F6;color:#4B5671;width:max-content}
+.chip.open{background:#E3EAFF;color:#2F5BEA}
+.chip.ok{background:#DDF7EE;color:#0B8A63}
+.chip.bad{background:#FFE5E5;color:#C92A2A}
+.sc.blue .chip,.sc.green .chip{background:rgba(255,255,255,.22);color:#fff}
+.fun{display:grid;gap:6px}
+.fun div{display:grid;grid-template-columns:62px minmax(0,1fr) 44px;gap:8px;align-items:center;font-size:12.5px;color:#5B6680}
+.fun div i{display:block;height:14px;border-radius:4px;background:#2F5BEA}
+.fun div b{font-family:var(--mono);color:#16233F;text-align:right}
+.feed{display:grid;gap:8px}
+.feed div{display:flex;gap:10px;align-items:center;font-size:13px}
+.feed div em{width:30px;height:30px;border-radius:50%;background:#E3EAFF;color:#2F5BEA;display:grid;place-items:center;font-style:normal;font-weight:700;font-size:12px;flex:none}
+.feed div small{margin-left:auto;color:#8A94A6;font-size:11.5px}
+/* customer: mall */
+.m-head{flex:none;height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:#fff;border-bottom:1px solid #EEF1F6}
+.m-head b{font-family:Georgia,"Times New Roman",serif;letter-spacing:.12em;font-size:16px}
+.m-head span{font-size:18px;color:#5B6680}
+.m-body{flex:1;overflow-y:auto;background:#fff;display:flex;flex-direction:column}
+.m-pimg{aspect-ratio:1/1;background-size:cover;background-position:center;flex:none}
+.m-in{padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px}
+.m-name{font-size:18px;font-weight:600}
+.m-price{font:600 19px var(--mono)}
+.m-price s{color:#A3ABBA;font-size:14px;margin-right:6px;font-weight:400}
+.widget{border:1.5px solid #2F5BEA;border-radius:16px;padding:14px;display:grid;gap:8px;background:linear-gradient(180deg,#F3F6FF,#fff)}
+.widget .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.widget .cnt{font:700 22px var(--mono)}
+.widget .cnt small{font:500 13px var(--font);color:#5B6680}
+.w-badge{display:inline-flex;gap:6px;align-items:center;font-size:12px;font-weight:700;color:#2F5BEA}
+.w-badge::before{content:"";width:8px;height:8px;border-radius:50%;background:#2F5BEA;animation:pulse 1.6s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,91,234,.5)}70%{box-shadow:0 0 0 8px rgba(47,91,234,0)}100%{box-shadow:0 0 0 0 rgba(47,91,234,0)}}
+/* messages */
+.msg-head{flex:none;display:grid;justify-items:center;gap:4px;padding:2px 0 10px;border-bottom:1px solid #E6E9EF;background:#F7F7F9}
+.msg-head .av{width:44px;height:44px;border-radius:50%;background:linear-gradient(140deg,#9AA6BE,#6E7A93);color:#fff;display:grid;place-items:center;font-weight:700}
+.msg-head small{font-size:12px;color:#5B6680}
+.msg-body{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:8px;background:#fff}
+.bub{background:#E9E9EB;color:#111;border-radius:18px;padding:10px 13px;font-size:14.5px;max-width:84%;line-height:1.45}
+.bub a{color:#2F5BEA;font-weight:600;text-decoration:none;display:block;margin-top:6px}
+.ts{text-align:center;font-size:11.5px;color:#8A8A8E;margin-top:6px}
+.lockpush{position:absolute;top:58px;left:10px;right:10px;z-index:15;background:#FFFFFF;border-radius:18px;padding:11px 14px;box-shadow:0 0 0 1px #E3E7EF,0 12px 30px rgba(0,0,0,.22);font:inherit;text-align:left;color:#111;cursor:pointer;display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;border:0;animation:drop .35s ease}
+.lockpush .ap{width:34px;height:34px;border-radius:9px;background:#2F5BEA;color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
+.lockpush small{color:#6B6B70;font-size:11.5px}
+.lockpush b{font-size:14px}
+@keyframes drop{from{transform:translateY(-16px);opacity:0}to{transform:none;opacity:1}}
+.toast{position:absolute;bottom:96px;left:16px;right:16px;z-index:16;background:#16233F;color:#fff;border-radius:14px;padding:11px 14px;font-size:13.5px;animation:drop .3s ease}
+.sheet{position:absolute;inset:0;background:rgba(10,16,30,.45);display:flex;flex-direction:column;justify-content:flex-end;z-index:12}
+.sheet .in{background:#fff;border-radius:24px 24px 0 0;padding:14px 16px 30px;display:grid;gap:12px;animation:up .3s ease}
+@keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+.grab{width:42px;height:5px;border-radius:3px;background:#D5DAE3;justify-self:center}
+.step{display:flex;align-items:center;border:1.5px solid #DDE2EB;border-radius:12px;overflow:hidden;width:max-content}
+.step button{font:inherit;font-size:20px;width:46px;height:44px;border:0;background:#F2F4F8;color:#16233F;cursor:pointer}
+.step span{width:52px;text-align:center;font:700 17px var(--mono)}
+.checks{display:grid;gap:7px;font-size:14px}
+.checks div{display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}
+.checks div::before{content:"✓";width:20px;height:20px;border-radius:50%;background:#DDF7EE;color:#0B8A63;font-size:12px;font-weight:700;display:grid;place-items:center}
+.confetti{position:absolute;inset:0;pointer-events:none;z-index:14;overflow:hidden}
+.confetti i{position:absolute;top:-12px;width:8px;height:12px;border-radius:2px;animation:fall 1.8s ease-in forwards}
+@keyframes fall{to{transform:translateY(860px) rotate(540deg);opacity:.2}}
+.order-row{display:flex;justify-content:space-between;font-size:14px;padding:4px 0}
+.order-row.t{font-weight:700;font-size:16px;border-top:1px solid #EEF1F6;padding-top:10px}
+.order-row .neg{color:#E03131;font-family:var(--mono)}
+.foot{flex:none;padding:5px 16px 7px;font:500 10.5px var(--mono);color:#8A94A6;display:flex;justify-content:space-between;background:#fff;border-top:1px solid #EEF1F6}
+/* tech badges */
+.tb{display:none;align-items:center;gap:5px;font:500 10.5px/1.2 var(--mono);padding:3px 7px;border-radius:6px;border:1px solid;width:max-content;max-width:100%;cursor:help;position:relative;background:#fff}
+.tech-on .tb{display:inline-flex}
+.tb::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
+.tb.g{color:#0B8A63;border-color:#9BE3CC}.tb.y{color:#B26B00;border-color:#F4D28C}.tb.w{color:#6B7385;border-color:#C7CCD6}
+.tb[data-tip]:hover::after,.tb[data-tip]:focus::after{content:attr(data-tip);position:absolute;left:0;top:calc(100% + 6px);z-index:30;width:240px;background:#16233F;color:#fff;font:400 12px/1.45 var(--font);padding:9px 11px;border-radius:8px}
+/* market/biz */
+.chart{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+.plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.plan{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:grid;gap:3px}
+.plan.hl{border:2px solid var(--primary)}
+.plan small{font-size:12.5px;color:var(--fg2);font-weight:600}
+.plan strong{font-size:24px;font-variant-numeric:tabular-nums}
+.plan span{color:var(--primary);font-weight:700;font-size:14.5px}
+.plan p{margin:6px 0 0;font-size:13px;color:var(--muted)}
+.ueq{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:16px 0}
+.ueq div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px;display:grid}
+.ueq div.hl{border-color:var(--success);background:color-mix(in srgb,var(--success) 9%,var(--surface))}
+.ueq small{font-size:11.5px;color:var(--fg2)} .ueq b{font-variant-numeric:tabular-nums}
+.ueq i{font-style:normal;color:var(--muted);font-weight:700}
+.kv{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 18px;font-size:15px}
+.kv span:nth-child(even){font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.kv .tot{font-weight:700;border-top:1px solid var(--line);padding-top:8px}
+/* feasibility */
+.gates{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.gate{background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--warning);border-radius:var(--r);padding:16px;display:grid;gap:6px;align-content:start}
+.gate.ok{border-top-color:var(--success)}
+.gate b{font:600 12px var(--mono);color:var(--fg2)}
+.gate h4{font-size:15.5px}
+.gate p{margin:0;font-size:13.5px;color:var(--fg2)}
+.verdict{display:grid;grid-template-columns:auto minmax(0,1fr);gap:24px;align-items:center;background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--warning);border-radius:var(--r);padding:22px 26px;margin-bottom:16px}
+.verdict strong{font-size:26px;white-space:nowrap}
+.verdict p{margin:0;color:var(--fg2)}
+/* roadmap */
+.miles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.mile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;display:grid;gap:8px;align-content:start}
+.mile .when{font:600 13px var(--mono);color:var(--primary)}
+.mile ul{margin:0;padding-left:18px;font-size:14.5px;color:var(--fg2);display:grid;gap:4px}
+.mile .gate2{font-size:13px;font-weight:600;background:var(--soft);border-radius:8px;padding:8px 10px}
+.ns{background:var(--ink);color:var(--surface);border-radius:var(--r);padding:20px 24px;display:grid;gap:4px;margin-top:14px}
+:root[data-theme="dark"] .ns{background:#22305A;color:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ns{background:#22305A;color:#fff}}
+.ns small{opacity:.7;font-size:12px;font-weight:600;letter-spacing:.06em}
+.ns strong{font-size:23px}
+.ns span{opacity:.85;font-size:14.5px}
+.risk{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.risk > div{padding:13px 16px;border-top:1px solid var(--line);font-size:14.5px}
+.risk > div:nth-child(-n+2){border-top:0;background:var(--soft);font-size:12.5px;font-weight:600;color:var(--fg2)}
+.risk > div:nth-child(odd){font-weight:600}
+details.appx{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 18px}
+details.appx summary{cursor:pointer;font-weight:600}
+details.appx ul{font-size:14px;color:var(--fg2);display:grid;gap:4px;padding-left:20px}
+footer{padding-block:40px 60px;color:var(--muted);font-size:13px}
+/* record mode (local video capture only) */
+body.record{background:#0E1424;overflow:hidden}
+body.record > *:not(#rec){display:none!important}
+#rec{display:none}
+body.record #rec{display:grid;grid-template-columns:560px 1fr;width:1280px;height:720px;background:radial-gradient(1200px 700px at 80% 20%,#1E3170 0%,#0E1424 60%);color:#fff;align-items:center}
+#rec .rc{padding:0 40px 0 64px;display:grid;gap:16px}
+#rec .rk{font:600 15px var(--mono);color:#9FB4FF;letter-spacing:.04em}
+#rec .rt{font-size:38px;font-weight:700;line-height:1.25;letter-spacing:-.015em}
+#rec .rs{font-size:19px;color:#C9D3EA;line-height:1.55}
+#rec .rtag{display:inline-flex;gap:8px;font-size:14px;font-weight:600;padding:6px 12px;border-radius:99px;background:rgba(127,160,255,.18);color:#BFD0FF;width:max-content}
+#rec .rlogo{display:flex;gap:10px;align-items:center;font-weight:700;font-size:18px;color:#fff;margin-bottom:10px}
+#rec .rlogo i{width:30px;height:30px;border-radius:9px;background:#4F76F6;display:grid;place-items:center;font-style:normal;font-size:14px}
+#rec .rp{position:relative;height:720px}
+#rec .rp .phone{position:absolute;top:20px;left:120px;transform:scale(.805)}
+#rec .rprog{position:absolute;left:64px;bottom:38px;width:440px;height:4px;background:rgba(255,255,255,.12);border-radius:2px}
+#rec .rprog i{display:block;height:100%;background:#7FA0FF;border-radius:2px}
+@media (max-width:980px){
+  .hero .wrap{grid-template-columns:minmax(0,1fr)}
+  .hero h1{font-size:40px}
+  .gates{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid4{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:720px){
+  .grid3,.grid2,.says,.flow3,.ba,.plans,.miles,.gates,.grid4{grid-template-columns:minmax(0,1fr)}
+  .flow3 > div{border-left:0;border-top:1px solid var(--line)}
+  .flow3 > div:first-child{border-top:0}
+  .hero-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hero h1{font-size:34px}
+  .ch-head h2{font-size:27px}
+  .statement,.verdict{grid-template-columns:minmax(0,1fr)}
+  .risk{grid-template-columns:minmax(0,1fr)}
+  .risk > div:nth-child(2){display:none}
+  .risk > div:nth-child(odd){border-top:1px solid var(--line);padding-bottom:2px}
+  .risk > div:nth-child(even){border-top:0;padding-top:2px;color:var(--fg2)}
+  .nav-links{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<nav class="nav" aria-label="챕터">
+  <div class="wrap">
+    <div class="logo"><i>찜</i>찜 공구</div>
+    <div class="nav-links">
+      <a href="#problem" data-jump>문제</a><a href="#solution" data-jump>해결책</a><a href="#demo" data-jump>데모</a><a href="#why" data-jump>왜 지금</a><a href="#market" data-jump>시장</a><a href="#biz" data-jump>수익 모델</a><a href="#comp" data-jump>경쟁</a><a href="#tech" data-jump>실현 가능성</a><a href="#goal" data-jump>첫 4주</a><a href="#plan" data-jump>실행 계획</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">투자 제안 · 2026년 10월 · 카페24 홈리빙 브랜드용 SaaS</div>
+      <h1 style="margin-top:12px">찜은 잠든 수요입니다.<br><em>찜 공구</em>는 그 수요를<br>확정 주문으로 바꿉니다.</h1>
+      <p class="lead">침구·그릇·패브릭처럼 오래 고민하고, 한 번에 많이 만들어야 하는 홈리빙 상품부터 시작합니다. 자사몰에서 찜하거나 장바구니에 담은 고객에게 목표 수량 공동구매를 엽니다. 고객은 결제 없이 신청만 하고, 목표를 채우면 할인 쿠폰으로 결제합니다. 판매자는 결제가 끝난 수량만큼만 만듭니다.</p>
+      <div class="hero-cta"><a class="btn pri" href="#demo" data-jump>▶ 시연 영상 보기</a><a class="btn ghost" href="#proto" data-jump>프로토타입 직접 눌러 보기</a></div>
+    </div>
+    <img class="hero-img" src="images/hero.png" alt="하트(찜)가 휴대폰 대시보드를 거쳐 배송 박스(확정 주문)로 바뀌는 일러스트" width="1376" height="768">
+    <div class="hero-stats">
+      <div><strong>70.22%</strong><span>담고도 사지 않는 장바구니 비율 (Baymard, 50개 연구)</span></div>
+      <div><strong>3.75조 원</strong><span>카페24 쇼핑몰 분기 거래액 (2026년 2분기)</span></div>
+      <div><strong>약 2.1%</strong><span>판매자 총비용률 [추정] · 와디즈 실질 13~15%</span></div>
+      <div><strong>0원</strong><span>우리가 받는 고객 결제금. 결제는 판매자 자사몰에서 처리</span></div>
+    </div>
+  </div>
+</header>
+
+<main>
+<!-- ========== 01 문제 ========== -->
+<section class="ch" id="problem"><div class="wrap">
+  <div class="ch-head"><span class="ch-no">01 · 문제 · 타깃은 홈리빙</span><h2>홈리빙 브랜드는 '살 사람'의 목록을 이미 갖고 있습니다.<br>그런데 재생산 전에 그 수요를 주문으로 바꿀 방법이 없습니다.</h2><p>첫 고객은 카페24에서 자체 브랜드를 운영하는 소규모 홈리빙 판매자입니다. 침구·패브릭, 그릇·주방용품, 수납·소품을 만드는 브랜드가 여기에 해당합니다.</p></div>
+  <div class="grid3">
+    <div class="card"><div class="who">고객 쪽</div><h3>찜은 쌓이지만 잠든다</h3><p>침구나 그릇은 이사, 신혼, 계절이 바뀌는 때에 맞춰 삽니다. 그때까지 찜과 장바구니에 묵혀 두고, 객단가가 높아 정가로는 망설입니다.</p><div class="num" style="margin-top:14px">70.22<small>% 장바구니 이탈</small></div><span class="src">Baymard Institute, 2025-09-22 갱신 · 전 카테고리 평균</span></div>
+    <div class="card"><div class="who">판매자 쪽</div><h3>재생산 단위가 크고 오래 걸린다</h3><p>원단은 롤 단위로, 도자기는 가마 1회분 단위로 만듭니다. 최소 생산 수량을 채우지 못하면 부피 큰 재고가 창고 자리를 오래 차지합니다. 그래서 할인도 재생산도 망설입니다.</p><div class="num" style="margin-top:14px">300<small>개 · 30~45일</small></div><span class="src">일반 침구 OEM의 최소 주문 수량과 생산 기간 (해외 업계 보도자료, 2026) · 국내 공방 기준은 인터뷰로 검증 예정</span></div>
+    <div class="card"><div class="who">도구 쪽</div><h3>기존 도구는 이 일을 못 한다</h3><p>크라우드펀딩은 새 고객을 찾는 곳이고 비용이 큽니다. 플랫폼 팀구매는 플랫폼이 상품을 고르고 고객도 플랫폼이 가집니다. CRM은 한 명씩 할인을 보낼 뿐 수요를 확정하지 못합니다.</p><div class="num" style="margin-top:14px">13~15<small>% 크라우드펀딩 실질 비용</small></div><span class="src">수수료 + PG + 부가세 (2차 자료)</span></div>
+  </div>
+  <div class="grid2" style="margin-top:14px">
+    <div class="card quote"><img src="images/persona-crm.jpg" alt="노트북으로 차트를 보는 리빙 브랜드 운영 담당자 일러스트" width="1024" height="1024"><div><q>접시 세트는 가마 한 번에 300장을 구워요. 찜 260개 중 몇 명이 진짜 살지 알면 바로 일정을 잡죠.</q><small>박서연 · 7인 홈리빙 브랜드(패브릭·테이블웨어) 운영 담당 · 카페24 (페르소나)</small></div></div>
+    <div class="card quote"><img src="images/persona-shopper.jpg" alt="소파에서 휴대폰으로 찜한 상품을 보는 고객 일러스트" width="1024" height="1024"><div><q>이사 날짜에 맞춰 사려고 찜만 해 뒀어요. 결제 없이 신청만 하는 거면 일단 눌러 볼래요.</q><small>이하은 · 이사를 앞두고 침구·그릇 찜 30개를 쌓아 둔 단골 고객 (페르소나)</small></div></div>
+  </div>
+  <div class="pick">
+    <h3>왜 홈리빙부터 시작하나요</h3>
+    <p>찜 공구가 가장 큰 가치를 내는 카테고리를 다섯 가지 기준으로 비교했습니다. 표시는 공개 자료와 업계 관행에 기댄 가설이고, 파일럿 데이터로 다시 매깁니다.</p>
+    <div class="tblwrap"><table class="gap-table">
+      <thead><tr><th>기준</th><th>왜 중요한가</th><th class="hl">홈리빙</th><th>패션잡화</th><th>뷰티</th></tr></thead>
+      <tbody>
+        <tr><td>찜에서 구매까지 고민 기간</td><td class="why">길수록 찜에 수요가 오래 남아 공구 모수가 커집니다.</td><td class="hl"><span class="y">●</span> <span class="cat">이사·계절 단위</span></td><td><span class="p">◐</span> <span class="cat">시즌 단위</span></td><td><span class="n">–</span> <span class="cat">재구매 소모품</span></td></tr>
+        <tr><td>재생산 최소 수량 부담</td><td class="why">클수록 '결제 확정 후 생산'의 가치가 큽니다.</td><td class="hl"><span class="y">●</span> <span class="cat">원단 롤·가마 단위</span></td><td><span class="p">◐</span> <span class="cat">공장 MOQ</span></td><td><span class="p">◐</span> <span class="cat">OEM MOQ</span></td></tr>
+        <tr><td>객단가</td><td class="why">높을수록 확정 결제액에 붙는 성공 수수료가 커집니다.</td><td class="hl"><span class="y">●</span> <span class="cat">7만 원 가정</span></td><td><span class="p">◐</span> <span class="cat">4만 원 가정</span></td><td><span class="n">–</span> <span class="cat">낮음</span></td></tr>
+        <tr><td>남은 재고 보관 비용</td><td class="why">부피가 클수록 팔리지 않은 재고가 비쌉니다.</td><td class="hl"><span class="y">●</span> <span class="cat">부피 큼</span></td><td><span class="p">◐</span> <span class="cat">중간</span></td><td><span class="n">–</span> <span class="cat">작음</span></td></tr>
+        <tr><td>주문을 묶는 효과</td><td class="why">한 번에 생산·출고하면 개당 원가와 배송비가 내려갑니다.</td><td class="hl"><span class="y">●</span> <span class="cat">합포장·화물</span></td><td><span class="p">◐</span></td><td><span class="p">◐</span></td></tr>
+      </tbody></table></div>
+    <p class="concl">다섯 기준 모두에서 홈리빙이 가장 앞섭니다. 패션잡화와 뷰티는 홈리빙에서 검증한 뒤 넓힐 다음 시장입니다.</p>
+  </div>
+  <div class="statement"><span class="eyebrow">문제 정의</span><p>홈리빙 브랜드에는 찜·장바구니에 쌓인 내 고객의 수요를, 재생산을 결정하기 전에 확정 주문으로 바꿀 도구가 없다.</p></div>
+</div></section>
+
+<!-- ========== 02 해결책 ========== -->
+<section class="ch" id="solution"><div class="wrap">
+  <div class="ch-head"><span class="ch-no">02 · 해결책</span><h2>찜 고객 전용 예약 공동구매.<br>목표를 채우면 열리고, 결제된 만큼만 만듭니다.</h2><p>찜 공구는 카페24 쇼핑몰에 설치하는 앱입니다. 홈리빙 판매자에게 세 가지를 약속합니다.</p></div>
+  <div class="says">
+    <div class="say"><b>01</b><h3>찜을 주문으로</h3><p>이사·계절을 기다리며 쌓아 둔 찜·장바구니 고객이 그대로 공구 참여자가 됩니다. 새 고객을 찾는 광고비가 들지 않습니다.</p></div>
+    <div class="say"><b>02</b><h3>생산 단위를 먼저 채운다</h3><p>목표 수량을 가마 1회분, 원단 1롤 같은 최소 생산 수량에 맞춥니다. 발주 기준은 신청 수가 아니라 <b>결제가 끝난 확정 수량</b>이라 할인을 해도 재고가 남지 않습니다.</p></div>
+    <div class="say"><b>03</b><h3>고객은 신청만 한다</h3><p>고객은 지금 돈을 내지 않습니다. 예상 출고일을 미리 보고 이사·계절 일정에 맞춰 신청합니다. 목표를 채우면 쿠폰으로 자사몰에서 결제하고, 못 채우면 안내만 받습니다.</p></div>
+  </div>
+  <div class="flow3">
+    <div><span class="stp">1</span><span class="who2">판매자</span><h4>공구 개설</h4><p>수요 레이더에서 찜 많은 상품을 고르고 목표 수량, 할인가, 실제 마감일을 정합니다. 문자 수신에 동의한 찜·장바구니 고객에게 초대가 나갑니다.</p></div>
+    <div><span class="stp">2</span><span class="who2">고객</span><h4>결제 없이 참여 신청</h4><p>상품 페이지 위젯에서 진행률을 보고 신청합니다. 마감 시각이 되면 자동으로 판정해 달성 시 회원 전용 할인 쿠폰을 발급합니다.</p></div>
+    <div><span class="stp">3</span><span class="who2">판매자</span><h4>확정 수량으로 발주</h4><p>72시간 결제 기간이 끝나면 결제 완료 수량이 확정됩니다. 판매자는 이 숫자로 원단을 발주하거나 가마 일정을 잡습니다.</p></div>
+  </div>
+  <div class="ba">
+    <div class="card"><span class="tag" style="color:var(--danger)">지금</span><ul><li>찜 수를 대충 보고 감으로 재생산하거나 포기</li><li>SMS를 손으로 보내고 수신동의를 직접 거름</li><li>구글폼 수요조사는 실제 구매로 이어지지 않음</li><li>할인 후 남은 부피 큰 재고가 창고 자리를 차지</li></ul></div>
+    <div class="card after"><span class="tag" style="color:var(--success)">찜 공구 도입 후</span><ul><li>찜·장바구니 수요를 상품별로 한눈에</li><li>수신동의, (광고) 표기, 야간 차단까지 자동</li><li>진행률이 실시간으로 보이는 결제 없는 신청</li><li>결제 완료 수량만큼만 생산·발주</li></ul></div>
+  </div>
+</div></section>
+
+<!-- ========== 03 데모 ========== -->
+<section class="ch" id="demo"><div class="wrap">
+  <div class="ch-head"><span class="ch-no">03 · 제품 데모</span><h2>설치부터 확정 주문까지, 판매자와 고객의 화면을 따라가 보세요.</h2><p>시연 영상은 아래 프로토타입을 그대로 녹화한 것입니다. 데이터는 모두 예시입니다.</p></div>
+  <div class="demo-video">
+    <video id="demoVideo" controls preload="metadata" playsinline poster="media/demo-poster.jpg" aria-label="찜 공구 제품 시연 영상"><source src="media/demo.webm" type="video/webm"></video>
+    <div class="cap"><span>시연 영상 · 판매자 설치 → 공구 개설 → 고객 신청 → 목표 달성 → 결제 → 확정 리포트</span><span id="vidLen"></span></div>
+  </div>
+
+  <div id="proto" style="scroll-margin-top:70px">
+    <div class="proto-bar">
+      <div class="seg" role="radiogroup" aria-label="화면 전환"><button role="radio" data-role="seller" id="r-seller">판매자 앱</button><button role="radio" data-role="cust" id="r-cust">고객 화면</button></div>
+      <button class="gbtn pri" id="autoplay">▶ 자동 시연</button>
+      <label class="switch"><input type="checkbox" id="techToggle"><span class="track"><span class="knob"></span></span>기술 근거 보기</label>
+      <button class="gbtn" id="p-reset">처음부터</button>
+    </div>
+    <div class="stage">
+      <div class="phone-wrap" id="pwrap"><div class="phone" id="phone"><div class="screen" id="screen"></div><div class="island"></div></div></div>
+      <div class="side">
+        <div class="capbox"><span class="k" id="capK">STEP 1 / 16</span><h3 id="capT"></h3><p id="capS"></p></div>
+        <div class="card" style="padding:14px 12px"><div class="eyebrow" style="padding:0 8px 6px">시연 단계 (누르면 이동)</div><div class="steps-list" id="steps"></div></div>
+        <div class="card" style="display:grid;gap:10px"><div class="eyebrow">시뮬레이션</div><div class="sim"><button class="gbtn" data-sim="pledge">다른 고객 신청 +12</button><button class="gbtn" data-sim="judge">마감 시각으로</button><button class="gbtn" data-sim="settle">72시간 후</button></div><p class="small">직접 눌러 보면서 다른 고객의 신청이나 시간 흐름을 대신 일으킬 수 있습니다. '기술 근거 보기'를 켜면 각 화면 요소가 어떤 공식 API로 동작하는지 표시됩니다.</p></div>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<!-- ========== 04 왜 지금 ========== -->
+<section class="ch" id="why"><div class="wrap">
+  <div class="ch-head"><span class="ch-no">04 · 왜 지금인가</span><h2>자사몰은 커지고, 데이터는 열렸고,<br>소비자는 '달성 후 결제'를 이미 배우고 있습니다.</h2></div>
+  <div class="grid4">
+    <div class="card"><h3>자사몰 거래 확대</h3><p>카페24 쇼핑몰 거래액이 2026년 2분기 3.75조 원으로 분기 최대를 기록했습니다. 아임웹 누적 거래액도 6조 원을 넘었습니다.</p></div>
+    <div class="card"><h3>찜 데이터가 열려 있다</h3><p>카페24가 찜·장바구니·쿠폰·주문을 공식 API로 제공하고, 같은 권한 조합으로 승인된 앱도 이미 판매되고 있습니다.</p></div>
+    <div class="card"><h3>소비자 학습 완료</h3><p>카카오 '오늘공구'(2025년 8월~)가 목표 수량 단계별 할인과 달성 후 결제를 대중화하고 있습니다. 다만 상품은 플랫폼이 고릅니다.</p></div>
+    <div class="card"><h3>투명한 마감이 의무가 됐다</h3><p>2025년 2월부터 다크패턴 규제가 시행됐습니다. 실제 마감일과 결제 후 공개 원칙을 지키는 도구가 필요합니다.</p></div>
+  </div>
+</div></section>
+
+<!-- ========== 05 시장 ========== -->
+<section class="ch" id="market"><div class="wrap">
+  <div class="ch-head"><span class="ch-no">05 · 시장</span><h2>카페24 홈리빙 브랜드몰 약 8,100곳에서 시작합니다 [추정]</h2><p>교두보는 카페24의 홈리빙 자체 브랜드몰입니다. 여기서 검증한 뒤 다른 카테고리와 아임웹 등 다른 쇼핑몰 플랫폼으로 넓힙니다. 숫자는 추정이며 계산 근거를 함께 적었습니다.</p></div>
+  <div class="chart"><div id="ch-market"></div><p class="small" style="margin-top:10px">TAM = 국내 활성 자사몰 40만 × 연 구독료 36만 원 · SAM = 카페24 활성몰 30만 × 자체 브랜드 30% × 36만 원 · 교두보 = SAM 대상 9만 몰 × 홈리빙 비중 9% ≈ 8,100몰 × 몰당 연 매출 186만~337만 원(구독 + 성공 수수료, 신청 전환 5~10%, 객단가 7만 원) · SOM = 3년 안에 교두보의 10%인 800몰. 위 두 줄은 구독료만, 아래 두 줄은 성공 수수료까지 넣어 계산 기준이 다릅니다. 홈리빙 비중 9%는 온라인쇼핑 중 생활용품 7.3%(국가데이터처, 2026년 5월)에 가구 약 2%를 더한 가정이고, 가구 비중은 원문을 다시 확인해야 합니다. 활성몰 수와 자체 브랜드 비율도 검증 전 가정입니다.</p></div>
+</div></section>
+
+<!-- ========== 06 수익 모델 ========== -->
+<section class="ch" id="biz"><div class="wrap">
+  <div class="ch-head"><span class="ch-no">06 · 수익 모델</span><h2>낮은 구독료 + 확정 결제액의 1.5%.<br>판매자가 벌 때 우리도 법니다.</h2><p>목표 미달로 공구가 진행되지 않으면 수수료는 0원입니다. 과금은 카페24 스토어 인앱결제로 받습니다.</p></div>
+  <div class="plans">
+    <div class="plan"><small>체험</small><strong>0원</strong><span>성공 수수료 3%</span><p>공구 월 1회</p></div>
+    <div class="plan hl"><small>스타터 · 기본</small><strong>29,000원/월</strong><span>성공 수수료 1.5%</span><p>공구 월 3회, 수요 레이더</p></div>
+    <div class="plan"><small>그로스</small><strong>79,000원/월</strong><span>성공 수수료 1.0%</span><p>공구 무제한, 대기열</p></div>
+  </div>
+  <div class="ueq"><div><small>월 공구</small><b>2회</b></div><i>×</i><div><small>초대</small><b>2,000명</b></div><i>×</i><div><small>신청 전환</small><b>10%</b></div><i>×</i><div><small>결제 전환</small><b>60%</b></div><i>×</i><div><small>객단가 (홈리빙)</small><b>70,000원</b></div><i>=</i><div class="hl"><small>몰당 월 확정 결제액</small><b>1,680만 원</b></div></div>
+  <div class="grid2">
+    <div class="card"><h3 style="margin-bottom:12px">스타터 몰 1곳 · 월 [추정]</h3><div class="kv"><span>우리 매출 (29,000 + 1,680만 × 1.5%)</span><span>281,000원</span><span>카페24 스토어 수수료 (20% 가정)</span><span>−56,200원</span><span>인프라 · CS</span><span>−15,000원</span><span class="tot">공헌이익</span><span class="tot">209,800원 (75%)</span></div><p class="small" style="margin-top:12px">카페24 API는 호출당 과금이 없습니다. 문자비(공구당 약 4만 원)는 판매자 SMS 충전분에서 차감됩니다. 판매자 총비용률은 약 2.1%입니다.</p></div>
+    <div class="chart"><div id="ch-sens"></div><p class="small" style="margin-top:6px">핵심 변수인 신청 전환율이 3%로 떨어져도 공헌이익률은 66%이고, 판매자 비용률은 3.7%로 와디즈의 3분의 1 이하입니다. 객단가 7만 원은 홈리빙 가정치이며 파일럿에서 측정합니다.</p></div>
+  </div>
+</div></section>
+
+<!-- ========== 07 경쟁 ========== -->
+<section class="ch" id="comp"><div class="wrap">
+  <div class="ch-head"><span class="ch-no">07 · 경쟁</span><h2>"내 찜 고객 + 목표 수량 + 결제는 달성 후"를<br>한 번에 하는 국내 서비스는 아직 없습니다.</h2><p>2026-10-06에 국내 서비스 11곳을 조사했습니다. 가장 가까운 두 곳도 핵심 요소 다섯 가지 중 두 가지만 갖추고 있습니다.</p></div>
+  <div class="grid2">
+    <div class="chart"><div id="ch-pos"></div></div>
+    <div class="tblwrap"><table class="gap-table">
+      <thead><tr><th>서비스</th><th>내 찜 고객</th><th>목표 수량</th><th>달성 후 결제</th><th>판매자 주도</th><th>확정 발주</th></tr></thead>
+      <tbody>
+        <tr class="us"><td>찜 공구</td><td class="y">●</td><td class="y">●</td><td class="y">●</td><td class="y">●</td><td class="y">●</td></tr>
+        <tr><td>위시카트 <small class="n">(카페24 앱)</small></td><td class="y">●</td><td class="n">–</td><td class="n">–</td><td class="y">●</td><td class="n">–</td></tr>
+        <tr><td>카카오 오늘공구</td><td class="n">–</td><td class="y">●</td><td class="y">●</td><td class="n">–</td><td class="n">–</td></tr>
+        <tr><td>와디즈</td><td class="n">–</td><td class="y">●</td><td class="n">–</td><td class="p">◐</td><td class="y">●</td></tr>
+        <tr><td>CRM 자동화 앱</td><td class="y">●</td><td class="n">–</td><td class="n">–</td><td class="y">●</td><td class="n">–</td></tr>
+        <tr><td>올웨이즈 · 톡딜</td><td class="n">–</td><td class="p">◐</td><td class="n">–</td><td class="n">–</td><td class="n">–</td></tr>
+        <tr><td>인플루언서 공구 도구</td><td class="n">–</td><td class="n">–</td><td class="n">–</td><td class="p">◐</td><td class="n">–</td></tr>
+      </tbody></table></div>
+  </div>
+  <div class="card" style="margin-top:14px"><h3>가장 직접적인 위협과 대응</h3><p><b>위시카트</b>는 같은 데이터(찜·장바구니)와 같은 채널(SMS + 할인코드)을 씁니다. 목표 수량 기능을 붙이면 겹칠 수 있습니다. 우리의 해자는 다음 세 가지입니다. ① 마감 판정과 확정 수량 대사 엔진 ② 법규를 지키는 발송 처리 ③ 결제 데이터로 학습하는 목표 수량 추천. 카카오가 '오늘공구'를 판매자용으로 여는지는 계속 지켜봅니다.</p></div>
+</div></section>
+
+<!-- ========== 08 실현 가능성 ========== -->
+<section class="ch" id="tech"><div class="wrap">
+  <div class="ch-head"><span class="ch-no">08 · 실현 가능성</span><h2>공식 API만으로 만들 수 있습니다.<br>남은 관문은 네 개이고, 모두 1주 안에 검증할 수 있습니다.</h2></div>
+  <div class="verdict"><strong>조건부 실현 가능</strong><p>찜·장바구니·수신동의·쿠폰·문자·주문 웹훅을 모두 카페24 공식 문서로 확인했고(2026-10-06), 같은 권한 조합으로 스토어에서 판매 중인 앱도 있습니다. <b>결제금을 받지 않는 구조</b>라 PG나 전자금융업 인허가가 필요 없습니다. 현재 불가(🔴) 항목은 없습니다.</p></div>
+  <div class="gates">
+    <div class="gate"><b>관문 1</b><h4>카페24 스토어 심사</h4><p>개인정보 조회 권한을 소명해야 합니다. 같은 권한 조합으로 승인된 선례가 있습니다. 심사는 보통 3~5일, 길면 1주.</p></div>
+    <div class="gate"><b>관문 2</b><h4>찜 데이터 수집</h4><p>상품 단위 조회라 첫 수집에 수 분~수 시간이 걸립니다. 찜 100명 초과분은 회원별 찜 + 로그인 웹훅으로 보완합니다.</p></div>
+    <div class="gate ok"><b>관문 3</b><h4>위젯 회원 검증</h4><p>카페24 SDK의 암호화 회원 ID로 위조 신청을 막습니다. 테스트 몰에서 3일 안에 검증합니다.</p></div>
+    <div class="gate ok"><b>관문 4</b><h4>쿠폰 대량 발급</h4><p>회원 지정 쿠폰을 1,000명 단위로 발급하는 속도와 누락 여부를 2일 안에 검증합니다.</p></div>
+  </div>
+  <div class="chart" style="margin-top:14px"><div id="d-money"></div><p class="small" style="margin-top:8px">실선은 돈, 점선은 데이터입니다. 고객 결제금은 판매자 PG로만 갑니다. 우리는 판매자에게서 구독료와 성공 수수료를 카페24 스토어를 거쳐 받습니다. 개발 공수는 전체 약 38인·주(5명 팀 기준 약 10주) [추정]이고, 첫 4주 MVP는 핵심 경로만 약 12인·주로 만듭니다.</p></div>
+</div></section>
+
+<!-- ========== 09 첫 4주 ========== -->
+<section class="ch" id="goal"><div class="wrap">
+  <div class="ch-head"><span class="ch-no">09 · 첫 4주</span><h2>첫 4주의 목표는 하나입니다.<br>결제가 끝난 수량으로 생산을 결정한 홈리빙 판매자 1곳.</h2><p>투자 판단에서 가장 중요한 질문은 '찜 고객이 결제 없이 신청하고, 목표가 차면 실제로 돈을 내는가'입니다. 첫 4주는 이 질문에 실제 결제 데이터로 답하는 데 씁니다. 스토어 출시 준비나 신청 수만 세는 실험보다 불확실성을 더 많이 줄이고, 공구 1회(모집 5일 + 결제 72시간)가 4주 안에 들어갑니다.</p></div>
+  <div class="tblwrap"><table class="evt">
+    <thead><tr><th>지표</th><th>정의</th><th>성공 기준</th></tr></thead>
+    <tbody>
+      <tr class="one"><td>원씽</td><td>확정 수량으로 원단 발주나 가마 일정을 확정한 판매자</td><td class="k">1곳 이상</td></tr>
+      <tr><td>파일럿 규모</td><td>설치한 홈리빙 몰 · 연 공구</td><td class="k">3몰 · 3건 이상</td></tr>
+      <tr><td>공구 성사율</td><td>목표 달성 ÷ 개설</td><td class="k">60% 이상</td></tr>
+      <tr><td>초대 → 신청</td><td>신청 회원 ÷ 초대 문자를 받은 회원</td><td class="k">5% 이상</td></tr>
+      <tr><td>신청 → 결제</td><td>72시간 안에 결제한 회원 ÷ 신청 회원 (수익 모델 가정 60%의 하한)</td><td class="k">50% 이상</td></tr>
+      <tr><td>정확성 · 개인정보</td><td>쿠폰 발급 누락, 결제 대사 불일치, 우리 DB에 저장된 전화번호</td><td class="k">모두 0건</td></tr>
+    </tbody></table></div>
+  <div class="gates three" style="margin-top:14px">
+    <div class="gate ok"><b>GO</b><h4>모두 충족</h4><p>5주 차에 카페24 스토어 심사를 제출하고, 파일럿을 홈리빙 10몰로 늘립니다.</p></div>
+    <div class="gate"><b>보완 · 2주 추가</b><h4>결제 전환만 50% 미만</h4><p>결제 기간, 할인 폭, 예상 출고일 안내를 바꿔 공구 2건을 더 엽니다.</p></div>
+    <div class="gate bad"><b>재검토</b><h4>3건 모두 신청 2% 미만</h4><p>개발을 멈추고 문자 채널, 할인 폭, 세부 품목 가정을 다시 봅니다.</p></div>
+  </div>
+  <p class="small" style="margin-top:10px">판정 규칙은 결과를 보기 전에 정해 두었고, 28일 차에 이 표로만 판정합니다.</p>
+  <div class="ba">
+    <div class="card after"><span class="tag" style="color:var(--success)">4주 안에 자동으로 만든다</span><ul><li>파일럿 몰 지정 설치와 권한 연결</li><li>수신동의 고객 추출, (광고) 표기·야간 차단 문자</li><li>상품 페이지 위젯, 회원 검증 신청</li><li>마감 판정, 회원 전용 쿠폰 발급</li><li>주문 웹훅과 야간 대사, 확정 리포트 페이지</li></ul></div>
+    <div class="card"><span class="tag" style="color:var(--fg2)">사람이 대신하거나 뒤로 미룬다</span><ul><li>수요 레이더 화면: 운영팀이 상위 20개 상품 목록을 공유</li><li>공구 개설 화면: 운영팀이 판매자와 통화하며 입력</li><li>판매자 앱(PWA)과 푸시, 과금 (파일럿은 무료)</li><li>마감 연장, 대기열, 단계별 할인</li></ul></div>
+  </div>
+  <div class="grid4" style="margin-top:14px">
+    <div class="card wk"><b class="w">1주 차</b><h3>관문 확인</h3><ul><li>회원 검증·쿠폰 1,000명·지정 설치 PoC</li><li>홈리빙 3몰 섭외, 처리 위탁 계약</li></ul><div class="done">위조 ID 100% 거부 · 쿠폰 누락 0</div></div>
+    <div class="card wk"><b class="w">2주 차</b><h3>초대 → 신청</h3><ul><li>대상 추출, 법규를 지키는 문자 발송</li><li>위젯과 신청 API</li></ul><div class="done">테스트몰에서 신청까지 통과</div></div>
+    <div class="card wk"><b class="w">3주 차</b><h3>판정 → 결제, 첫 공구</h3><ul><li>판정·쿠폰·주문 대사·리포트</li><li>17일 차 공구 3건 오픈</li></ul><div class="done">공구 3건 오픈 · 오류 0</div></div>
+    <div class="card wk"><b class="w">4주 차</b><h3>결제 → 결정</h3><ul><li>22일 차 마감, 72시간 결제</li><li>26일 차 확정 리포트, 판매자 인터뷰</li></ul><div class="done">28일 차 Go · 보완 · 재검토</div></div>
+  </div>
+  <p class="small" style="margin-top:12px">개발 인원 4명이 1~3주 차에 약 12인·주 [추정]으로 만들고, 4주 차는 운영과 측정에 씁니다. 스토어 심사 전 설치(지정 몰 설치)는 아직 확인 중이며, 막히면 판매자가 직접 쿠폰을 발급하는 수동 방식으로 같은 실험을 합니다.</p>
+</div></section>
+
+<!-- ========== 09 실행 계획 ========== -->
+<section class="ch" id="plan"><div class="wrap">
+  <div class="ch-head"><span class="ch-no">10 · 실행 계획</span><h2>첫 4주 판정에서 시작해 12개월 안에 300몰.<br>단계마다 숫자로 다음 단계를 결정합니다.</h2></div>
+  <div class="miles">
+    <div class="mile"><span class="when">0~1개월 · 4주 MVP</span><h3>홈리빙 파일럿 3몰</h3><ul><li>1주 차: 기술 관문 PoC, 파일럿 섭외</li><li>2~3주 차: 핵심 경로 개발</li><li>17일 차: 첫 공구 3건 오픈 (무료)</li><li>28일 차: 확정 리포트와 판정</li></ul><div class="gate2">다음 단계 조건: 생산 결정 1곳, 성사율 60%, 결제 전환 50%</div></div>
+    <div class="mile"><span class="when">1~6개월 · 심사와 출시</span><h3>유료 50몰</h3><ul><li>5주 차: 카페24 스토어 심사 제출</li><li>파일럿 홈리빙 10몰로 확대, 나머지 범위 개발</li><li>정식 출시, 스타터 요금제 유료 전환</li><li>대기열, 목표 수량 추천</li></ul><div class="gate2">다음 단계 조건: 유료 전환 40% 이상, 결제 전환 50% 이상</div></div>
+    <div class="mile"><span class="when">6~12개월 · 확장</span><h3>300몰 · 공식 제휴</h3><ul><li>카페24 공식 제휴 협상</li><li>판매자 AI 비서 연동</li><li>패션잡화 등 인접 카테고리, 아임웹 확장 검토</li></ul><div class="gate2">목표: 월 공구 확정 결제액 성장</div></div>
+  </div>
+  <div class="ns"><small>북극성 지표</small><strong>월간 공구 확정 결제액</strong><span>공구로 결제까지 끝난 금액입니다. 판매자 가치와 우리 매출(성공 수수료)이 같은 숫자로 움직입니다.</span></div>
+
+  <h3 style="font-size:20px;margin:40px 0 14px">주요 리스크와 대응</h3>
+  <div class="risk">
+    <div>리스크</div><div>대응</div>
+    <div>카페24가 같은 기능을 기본 제공</div><div>6개월 성과로 공식 제휴를 먼저 추진하고, 대사·리포트·추천으로 깊이를 확보합니다. 다른 플랫폼으로 넓혀 의존도를 낮춥니다.</div>
+    <div>신청은 많은데 결제가 적음</div><div>확정 기준은 결제 완료 수량이고, 미결제 자리는 대기열로 넘깁니다. 판매자에게 예상 결제율을 보여줍니다.</div>
+    <div>수신동의 고객이 적어 도달이 낮음</div><div>상품 페이지 위젯은 동의 없이 노출됩니다. 수신동의를 유도하는 쿠폰을 함께 제공합니다.</div>
+    <div>스토어 심사 지연·반려</div><div>사전 문의와 최소 권한으로 조기 제출하고, 심사 전에는 지정 몰 설치로 파일럿을 진행합니다.</div>
+    <div>고가·부피 상품이라 결제 전환이 가정보다 낮음</div><div>파일럿에서 가격대별 결제율을 따로 측정합니다. 예상 출고일과 배송 방식을 신청 단계에서 미리 보여 줍니다.</div>
+    <div>광고 문자 규제 위반</div><div>수신동의 필터, (광고) 표기, 21시~08시 차단을 시스템에 강제하고 발송 기록을 보관합니다.</div>
+  </div>
+</div></section>
+
+<section class="ch" style="padding-bottom:0"><div class="wrap">
+  <details class="appx"><summary>출처와 [추정] 수치의 가정 (2026-10-06 확인, 2026-10-07 홈리빙 기준으로 수정)</summary>
+    <ul>
+      <li><a href="https://baymard.com/lists/cart-abandonment-rate">Baymard Institute</a> · 장바구니 이탈률 70.22%</li>
+      <li><a href="https://www.ddaily.co.kr/page/view/2026080616403560109">디지털데일리</a> · 카페24 2026년 2분기 거래액 3.75조 원</li>
+      <li><a href="https://byline.network/2025/06/26-455/">바이라인네트워크</a> · 아임웹 누적 거래액 6조 원</li>
+      <li><a href="https://dealsite.co.kr/articles/141056">딜사이트</a> · 카페24 고객사 200만 곳 (휴면 포함)</li>
+      <li><a href="https://byline.network/2025/08/20_92772/">바이라인네트워크</a> · 카카오 오늘공구</li>
+      <li><a href="https://store.cafe24.com/kr/apps/39102">카페24 스토어 · 위시카트</a> · 권한 선례, 경쟁</li>
+      <li><a href="https://mods.go.kr/statDesc.es?act=view&amp;mid=a10501010000&amp;sttr_cd=S009007">국가데이터처 온라인쇼핑동향</a> · 생활용품 거래액 구성비 7.3% (2026년 5월, 언론 보도 재인용)</li>
+      <li><a href="https://www.wboc.com/online_features/press_releases/ruho-living-launches-2026-custom-bedding-hotel-linen-collection-with-a-low-moq-oem-odm/article_2cc415bd-232d-579e-bf28-c3431fa7a25d.html">RUHO Living 보도자료</a> · 일반 침구 OEM 최소 300개, 생산 30~45일</li>
+      <li><a href="https://clobe.ai/blog/crowdfunding-profit-margin-hidden-cost-analysis">클로브</a> · 크라우드펀딩 실질 비용률</li>
+      <li><a href="https://www.newsseoul.co.kr/news/view/1065579616591557">공정위 다크패턴 문답서 보도</a> · 2025-02-14 시행</li>
+      <li><a href="https://apidocs.cafe24.com/docs/guide/intro">카페24 API 문서</a> · <a href="https://developers.cafe24.com/app/front/app/develop/webhook/sample">웹훅</a> · <a href="https://developers.cafe24.com/app/front/app/launch/examine">심사 기준</a></li>
+      <li>가정: 활성 자사몰 40만 · 자체 브랜드 30% · 구독 월 3만 원(TAM) · 홈리빙 비중 9%(생활용품 7.3% + 가구 약 2%, 가구는 미확인) · 교두보 8,100몰 · 3년 점유 10%(800몰) · 초대 2,000명 · 신청 10% · 결제 60% · 객단가 7만 원(홈리빙) · 스토어 수수료 20% · 인프라 월 300만 원(300몰) · SMS 1건 약 19원. 모두 파일럿과 문의로 검증 예정입니다.</li>
+    </ul>
+  </details>
+</div></section>
+</main>
+<footer><div class="wrap">찜 공구 · 투자 제안 · 2026-10-07 수정 (타깃: 홈리빙 · 첫 4주 목표 추가) · 데모 데이터와 페르소나는 예시이며 실존 인물·브랜드가 아닙니다.</div></footer>
+
+<div id="rec"><div class="rc"><div class="rlogo"><i>찜</i>찜 공구 · 제품 시연</div><div class="rk" id="rK"></div><div class="rt" id="rT"></div><div class="rs" id="rS"></div><div class="rtag" id="rG"></div><div class="rprog"><i id="rP"></i></div></div><div class="rp" id="rPhoneHost"></div></div>
+
+<script>
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* ---------- nav ---------- */
+document.addEventListener('click',e=>{const j=e.target.closest('[data-jump]');if(j){e.preventDefault();const t=document.querySelector(j.getAttribute('href'));if(t)t.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}});
+(()=>{const links=[...document.querySelectorAll('.nav-links a')];if(!('IntersectionObserver' in window))return;const io=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting)links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+en.target.id))}),{rootMargin:'-80px 0px -60% 0px'});document.querySelectorAll('section.ch[id]').forEach(s=>io.observe(s))})();
+
+/* ---------- charts ---------- */
+const F='font-family="IBM Plex Sans KR, system-ui, sans-serif"';
+const txt=(x,y,t,o={})=>`<text x="${x}" y="${y}" font-size="${o.fs||12}" font-weight="${o.fw||400}" fill="${o.fill||'var(--fg)'}" text-anchor="${o.a||'start'}">${esc(t)}</text>`;
+const fluid=(w,h,b,l)=>`<svg viewBox="0 0 ${w} ${h}" width="100%" role="img" aria-label="${esc(l)}" ${F} style="display:block">${b}</svg>`;
+(()=>{const W=900,L=160,bw=W-L-170,max=1440,rows=[['TAM','국내 활성 자사몰 · 구독료',1440,1440,'1,440억 원'],['SAM','카페24 자체 브랜드몰 · 구독료',324,324,'324억 원'],['교두보','홈리빙몰 8,100곳',151,273,'151~273억 원'],['SOM','3년 · 홈리빙 800몰',15,27,'15~27억 원']];let s='';
+  rows.forEach((r,i)=>{const y=10+i*66,x2=L+r[3]/max*bw,x1=L+r[2]/max*bw;s+=txt(0,y+20,r[0],{fs:16,fw:700})+txt(0,y+38,r[1],{fs:12.5,fill:'var(--fg2)'})+`<rect x="${L}" y="${y}" width="${bw}" height="40" rx="7" fill="var(--soft)"/>`;
+    s+=i<2?`<rect x="${L}" y="${y}" width="${x2-L}" height="40" rx="7" fill="var(--primary)" opacity="${1-i*.3}"/>`:`<rect x="${L}" y="${y}" width="${Math.max(4,x1-L)}" height="40" rx="3" fill="var(--success)"/><rect x="${x1}" y="${y}" width="${Math.max(4,x2-x1)}" height="40" fill="var(--success)" opacity=".45"/>`;
+    s+=txt(Math.min(x2,L+bw)+12,y+26,r[4],{fs:16,fw:700})});
+  document.getElementById('ch-market').innerHTML=fluid(W,274,s,'TAM 1,440억, SAM 324억, 교두보 홈리빙 151~273억, SOM 15~27억 원')})();
+(()=>{const d=[['3%',104600,68680,'3.7%'],['5%',155000,109000,'2.8%'],['10%',281000,209800,'2.1%'],['15%',407000,310600,'1.9%']];const W=560,H=300,L=52,B=242,T=44,max=450000,cw=(W-L-10)/4,y=v=>B-(v/max)*(B-T);let s='';
+  [0,100000,200000,300000,400000].forEach(v=>{s+=`<line x1="${L}" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/>`+txt(L-8,y(v)+4,(v/10000)+'만',{fs:11,fill:'var(--muted)',a:'end'})});
+  d.forEach((r,i)=>{const cx=L+cw*i+cw/2,bw=30;s+=`<rect x="${cx-bw-2}" y="${y(r[1])}" width="${bw}" height="${B-y(r[1])}" rx="4" fill="var(--primary)"/><rect x="${cx+2}" y="${y(r[2])}" width="${bw}" height="${B-y(r[2])}" rx="4" fill="var(--success)"/>`+txt(cx-bw/2-2,y(r[1])-6,(r[1]/10000).toFixed(1),{fs:10.5,fw:600,a:'middle'})+txt(cx+bw/2+2,y(r[2])-6,(r[2]/10000).toFixed(1),{fs:10.5,fw:600,a:'middle'})+txt(cx,B+18,'신청 '+r[0],{fs:12,fw:i===2?700:500,a:'middle'})+txt(cx,B+35,'판매자 비용 '+r[3],{fs:10.5,fill:'var(--fg2)',a:'middle'})});
+  s+=`<rect x="${L}" y="6" width="11" height="11" rx="2" fill="var(--primary)"/>`+txt(L+16,16,'우리 매출/몰·월 (만 원)',{fs:11.5})+`<rect x="${L+170}" y="6" width="11" height="11" rx="2" fill="var(--success)"/>`+txt(L+186,16,'공헌이익/몰·월',{fs:11.5});
+  document.getElementById('ch-sens').innerHTML=fluid(W,H,s,'신청 전환율별 몰당 월 매출과 공헌이익')})();
+(()=>{const W=560,H=420,P=56;let s=`<rect x="${P}" y="20" width="${W-P-16}" height="${H-P-20}" rx="10" fill="var(--soft)"/>`;
+  const X=v=>P+v*(W-P-16),Y=v=>20+(1-v)*(H-P-20);
+  s+=`<line x1="${X(.5)}" x2="${X(.5)}" y1="20" y2="${H-P}" stroke="var(--line)" stroke-width="1.5"/><line x1="${P}" x2="${W-16}" y1="${Y(.5)}" y2="${Y(.5)}" stroke="var(--line)" stroke-width="1.5"/>`;
+  s+=txt(X(.5),H-P+22,'고객 데이터 · 상품 선택권',{fs:12,fw:600,a:'middle',fill:'var(--fg2)'})+txt(P+4,H-P+40,'← 플랫폼',{fs:11.5,fill:'var(--muted)'})+txt(W-16,H-P+40,'판매자 →',{fs:11.5,fill:'var(--muted)',a:'end'});
+  s+=`<text x="16" y="${Y(.5)}" font-size="12" font-weight="600" fill="var(--fg2)" text-anchor="middle" transform="rotate(-90 16 ${Y(.5)})">수요 확정 방식</text>`+txt(P+8,Y(1)+16,'목표 수량 · 달성 후 결제 ↑',{fs:11,fill:'var(--muted)'})+txt(P+8,Y(0)-8,'개별 리마인드 · 즉시 결제 ↓',{fs:11,fill:'var(--muted)'});
+  const pts=[['찜 공구',.88,.9,1],['위시카트',.82,.22],['CRM 앱',.74,.12],['카카오 오늘공구',.14,.86],['와디즈',.3,.74],['올웨이즈·톡딜',.12,.55],['인플루언서 공구',.56,.3],['프리오더 플랫폼',.24,.42]];
+  pts.forEach(([n,x,y,us])=>{s+=`<circle cx="${X(x)}" cy="${Y(y)}" r="${us?13:8}" fill="${us?'var(--primary)':'var(--surface)'}" stroke="${us?'var(--primary)':'var(--fg2)'}" stroke-width="2"/>`+txt(X(x)+(x>.7?-18:14),Y(y)+(us?-18:4),n,{fs:us?14:12,fw:us?700:500,a:x>.7?'end':'start'})});
+  document.getElementById('ch-pos').innerHTML=fluid(W,H,s,'경쟁 포지셔닝 맵: 가로 고객 데이터 소유, 세로 수요 확정 방식')})();
+(()=>{const W=900,H=330;const defs=`<defs>${['ink','primary'].map(c=>`<marker id="m-${c}" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--${c})"/></marker>`).join('')}</defs>`;
+  const box=(x,y,w,h,t,sub,c)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="12" fill="var(--surface)" stroke="var(--${c})" stroke-width="2"/>`+txt(x+w/2,y+h/2-2,t,{fs:15,fw:700,a:'middle'})+txt(x+w/2,y+h/2+17,sub,{fs:11.5,fill:'var(--fg2)',a:'middle'});
+  let s=defs+box(20,60,180,66,'고객','찜·장바구니 회원','ink')+box(360,60,190,66,'판매자 자사몰','판매자 PG','ink')+box(700,60,180,66,'찜 공구','앱 · 위젯 · 리포트','primary')+box(360,240,520,66,'카페24','찜·장바구니·쿠폰·문자·주문 API · 스토어 결제','success');
+  const money=(d,l,x,y)=>`<path d="${d}" fill="none" stroke="var(--ink)" stroke-width="2.6" marker-end="url(#m-ink)"/>`+txt(x,y,l,{fs:12.5,fw:600});
+  const data=(d,l,x,y)=>`<path d="${d}" fill="none" stroke="var(--primary)" stroke-width="1.7" stroke-dasharray="5 4" marker-end="url(#m-primary)"/>`+txt(x,y,l,{fs:12,fill:'var(--primary)'});
+  s+=money('M200 93 L356 93','₩ 상품 대금 (할인가)',212,84)+money('M455 126 L455 236','₩ 구독료 · 수수료 · SMS 충전',466,186)+money('M790 236 L790 130','₩ 앱 매출 정산',800,186);
+  s+=data('M710 240 C 640 210, 640 150, 715 128','API · 웹훅',612,205)+data('M380 240 C 220 236, 130 190, 110 130','초대·결과 문자',122,250)+data('M110 60 C 220 4, 640 4, 780 56','참여 신청 (위젯)',380,24);
+  document.getElementById('d-money').innerHTML=fluid(W,H,s,'돈과 데이터의 흐름')})();
+</script>
+
+<script>
+/* ================= Prototype v2 ================= */
+(function(){
+const won=n=>Math.round(n).toLocaleString('ko-KR')+'원';
+const P=[{no:101,name:'워싱 린넨 이불 커버 (Q)',price:129000,wish:412,cart:88,reach:236,img:'images/product-bedding.svg'},{no:102,name:'스톤웨어 디너 접시 4P',price:52000,wish:260,cart:63,reach:171,img:'images/product-plates.svg'},{no:103,name:'린넨 암막 커튼 2장',price:89000,wish:288,cart:41,reach:150,tone:'linear-gradient(140deg,#E7DCCB,#C4B194)'},{no:104,name:'원목 수납 트레이',price:39000,wish:97,cart:12,reach:55,tone:'linear-gradient(140deg,#D9C2A3,#A9825A)'}];
+const bg=p=>p.img?`background-image:url('${p.img}')`:`background:${p.tone}`;
+const BRAND='LINEN & CO.';
+function fresh(){return{role:'seller',tech:!!document.getElementById('techToggle')?.checked,s:'S-01',c:'C-01',sync:0,prod:P[1],form:{target:60,deal:39000,cost:28500,limit:2,night:false},camp:null,logged:false,mine:0,paidMine:false,qty:1,sheet:false,push:null,toast:null,msgs:[],confetti:false,feed:[]}}
+let st=fresh();
+const $=id=>document.getElementById(id);
+const T=(c,v,l,tip)=>`<span class="tb ${v}" tabindex="0"${tip?` data-tip="${esc(tip)}"`:''}>${c} ${esc(l)}</span>`;
+const sbar=dark=>`<div class="sbar${dark?' dark':''}"><span>9:41</span><span class="ic"><i style="width:17px;height:10px"></i><i style="width:15px;height:10px;border-radius:5px 5px 2px 2px"></i><i style="width:24px;height:11px;border-radius:3px"></i></span></div>`;
+const top=(t,back,r)=>`<div class="s-top">${back?`<button class="back" data-go="${back}" aria-label="뒤로">‹</button>`:''}<span>${esc(t)}</span>${r?`<span class="r">${r}</span>`:''}</div>`;
+const ic={home:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',radar:'<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>',list:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 9h8M8 13h8M8 17h5"/>',gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/>'};
+const tab=on=>`<nav class="s-tab">${[['S-03','홈','home'],['S-04','수요','radar'],['S-09','공구','list'],['S-13','설정','gear']].map(([id,l,i],k)=>`<button data-go="${id}" class="${k===on?'on':''}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${ic[i]}</svg>${l}</button>`).join('')}</nav>`;
+const bar=(v,t,ok)=>`<div class="bar${ok?' ok':''}" role="progressbar" aria-valuemin="0" aria-valuemax="${t}" aria-valuenow="${v}"><i style="width:${Math.min(100,v/t*100)}%"></i></div>`;
+const chip=c=>!c?'<span class="chip">공구 없음</span>':({open:'<span class="chip open">● 진행 중</span>',reached:'<span class="chip ok">목표 달성 · 결제 중</span>',failed:'<span class="chip bad">진행 안 됨</span>',settled:'<span class="chip ok">확정 완료</span>'}[c.state]);
+const kp=a=>`<div class="kp" style="grid-template-columns:repeat(${a.length},1fr)">${a.map(x=>`<div><small>${x[0]}</small><strong>${x[1]}</strong></div>`).join('')}</div>`;
+const foot=(id,tag)=>`<div class="foot"><span>${id}</span><span>${tag}</span></div>`;
+function invite(){const f=st.form,p=st.prod;return `(광고)[${BRAND}] 찜하신 ${p.name} 공동구매가 열렸어요. ${f.target}개 모이면 ${won(f.deal)}(정가 ${won(p.price)}). 10/9(목) 14:00 마감. 결제는 달성 후에 해요.`}
+function open(){const f=st.form,p=st.prod;st.camp={prod:p,target:+f.target,deal:+f.deal,price:p.price,limit:+f.limit,pledged:0,state:'open',invited:p.reach,paid:0,cancel:0};st.msgs=[{t:'오늘 오전 8:00',b:invite(),link:'C-02'},{t:'',b:'무료수신거부 080-000-0000'}];st.mine=0;st.paidMine=false;st.feed=[]}
+const names=['ha***','ki***','so***','ju***','mi***','ye***','do***','se***'];
+function addPledges(n){const c=st.camp;for(let i=0;i<Math.min(n,3);i++)st.feed.unshift([names[(c.pledged+i)%names.length],1+((c.pledged+i)%2),'방금']);st.feed=st.feed.slice(0,4);const before=c.pledged;c.pledged+=n;if(before<c.target&&c.pledged>=c.target){st.push={m:`${c.prod.name} 공구 목표 달성! (${c.pledged}/${c.target})`,go:'S-09'}}}
+/* ---------- seller ---------- */
+const S={
+ 'S-01':()=>sbar()+top('찜 공구 설치')+`<div class="s-body">
+   <div class="sc blue" style="padding:18px"><span class="chip">카페24 앱</span><div style="font-size:21px;font-weight:700;line-height:1.3">찜만 쌓인 수요를<br>확정 주문으로</div><p class="sub">쇼핑몰과 연결하면 찜·장바구니 고객에게 목표 수량 공동구매를 열 수 있어요.</p></div>
+   <div class="sc"><h4>연결하면 이런 권한을 써요</h4><div class="checks"><div>상품 · 찜 · 장바구니 수 집계</div><div>문자 수신 동의 고객 확인</div><div>할인 쿠폰 발급 · 결제 집계</div><div>쇼핑몰 문자로 초대 · 결과 발송</div></div>${T('I-01','y','카페24 OAuth · 스토어 심사','개발은 즉시 가능, 공개 판매는 카페24 스토어 심사(3~5일, 길면 1주) 필요. 같은 권한 조합으로 승인된 앱 선례 있음.')}</div>
+   <p class="sub" style="text-align:center">개인정보 처리 위탁 안내 · 이용약관</p><div style="flex:1"></div>
+   <button class="pb" data-act="oauth">카페24에서 권한 동의하기</button></div>`+foot('S-01 설치','Ⓓ 프로모션 설계'),
+ 'S-E2':()=>{const v=st.sync,done=v>=100,n=Math.round(500*v/100);return sbar()+top('첫 수집 중')+`<div class="s-body">
+   <div class="sc ${done?'green':'blue'}" style="padding:18px"><span class="chip">${done?'완료':'수집 중'}</span><div class="big">${n}<small> / 500 상품</small></div>${bar(v,100)}<p class="sub">${done?'수요 레이더가 준비됐어요. 앞으로는 매일 새벽 자동 갱신돼요.':'찜이 많은 상품부터 채우고 있어요. 약 8분 걸리고, 앱을 닫아도 계속돼요.'}</p></div>
+   <div class="sc"><h4>미리 알아 두세요</h4><div class="checks"><div>설치 전에 쌓인 찜도 모두 보여요</div><div>장바구니는 쇼핑몰 보관 기간 안의 것만 보여요</div><div>고객 개인정보는 공구를 여는 상품에서만 조회해요</div></div>${T('I-02','y','찜 수 · 상품 단위 조회','상품마다 호출해야 해서 즉시 표시는 불가. 몰별 초당 2회 회복 한도. 찜 100명 초과분은 회원별 찜 + 로그인 웹훅으로 보완.')}</div>
+   <div style="flex:1"></div><button class="pb${done?'':' dark'}" data-go="S-04">${done?'수요 레이더 보기':'기다리지 않고 둘러보기'}</button></div>`+foot('S-E2 첫 수집','Ⓐ 담기·보관')},
+ 'S-03':()=>{const c=st.camp;return sbar()+top('홈',null,'브랜드 스튜디오')+`<div class="s-body">
+   ${kp([['이번 달 확정 매출',c&&c.state==='settled'?won(c.paid*c.deal):'0원'],['진행 중 공구',c&&c.state!=='settled'&&c.state!=='failed'?'1':'0']])}
+   ${c?`<button class="sc blue row" data-go="S-09" style="display:grid;color:#fff"><span style="display:flex;justify-content:space-between">${chip(c)}<span class="sub">D-2</span></span><b style="font-size:16px">${esc(c.prod.name)} 공구</b><span class="big" style="font-size:26px">${c.pledged}<small> / ${c.target}</small></span>${bar(c.pledged,c.target)}</button>`:`<div class="sc"><h4>아직 연 공구가 없어요</h4><p class="sub">찜이 많은 상품부터 시작해 보세요.</p><button class="pb2" data-go="S-04">수요 레이더 보기</button></div>`}
+   <div class="sc"><h4>찜이 많은 상품</h4><div class="list" style="box-shadow:none">${P.slice(0,2).map(p=>`<button class="row" data-act="pick" data-no="${p.no}"><span class="th" style="${bg(p)}"></span><span class="meta"><b>${p.name}</b><small>찜 ${p.wish} · 장바구니 ${p.cart}</small></span><span class="chev">›</span></button>`).join('')}</div></div></div>`+tab(0)},
+ 'S-04':()=>{const mx=Math.max(...P.map(p=>p.wish));return sbar()+top('수요 레이더',null,'최근 30일')+`<div class="s-body">
+   <div class="sc"><p class="sub">상품별 찜·장바구니 수예요. 문자를 받을 수 있는 인원은 상품을 고르면 그 상품만 계산해요.</p><div style="display:flex;gap:6px;flex-wrap:wrap">${T('I-02','y','찜 수 · 매일 갱신')}${T('I-03','g','장바구니 · 웹훅 90084')}</div></div>
+   <div class="list">${[...P].sort((a,b)=>b.wish-a.wish).map((p,i)=>`<button class="row" data-act="pick" data-no="${p.no}"><span class="rank">${i+1}</span><span class="th" style="${bg(p)}"></span><span class="meta"><b>${p.name}</b><span class="hbar"><i style="width:${p.wish/mx*110}px"></i>찜 ${p.wish}</span><span class="hbar"><i class="c" style="width:${p.cart/mx*110}px"></i>장바구니 ${p.cart}</span></span><span class="chev">›</span></button>`).join('')}</div>
+   <p class="sub" style="text-align:center;font-size:12px">마지막 갱신 오늘 03:00</p></div>`+tab(1)},
+ 'S-05':()=>{const p=st.prod,lo=Math.round(p.reach*.25),hi=Math.round(p.reach*.4);return sbar()+top('상품 수요','S-04')+`<div class="s-body">
+   <div class="sc" style="grid-template-columns:72px 1fr;align-items:center"><span style="width:72px;height:72px;border-radius:14px;${bg(p)};background-size:cover"></span><div><b style="font-size:16px">${p.name}</b><p class="sub">정가 ${won(p.price)} · 품절 34일째</p></div></div>
+   ${kp([['찜',p.wish],['장바구니',p.cart],['문자 도달',p.reach]])}
+   <div class="sc"><h4>최근 8주 찜 추이</h4><svg viewBox="0 0 300 70" width="100%" height="70" role="img" aria-label="최근 8주 찜 수가 꾸준히 늘어난 추이"><defs><linearGradient id="ga" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#2F5BEA" stop-opacity=".25"/><stop offset="1" stop-color="#2F5BEA" stop-opacity="0"/></linearGradient></defs><path d="M5 58 L45 54 L85 49 L125 44 L165 36 L205 30 L245 22 L290 12 L290 70 L5 70Z" fill="url(#ga)"/><polyline fill="none" stroke="#2F5BEA" stroke-width="2.5" points="5,58 45,54 85,49 125,44 165,36 205,30 245,22 290,12"/><circle cx="290" cy="12" r="4.5" fill="#2F5BEA"/></svg>${T('I-14','g','회원별 찜 · 찜한 날짜')}</div>
+   <div class="sc" style="background:#EEF3FF"><h4 style="color:#2F5BEA">추천 목표 ${lo}~${hi}개</h4><p class="sub">문자 도달 ${p.reach}명 × 예상 신청 25~40% [추정]. 처음엔 낮게 잡아 성사율을 높이세요.</p>${T('I-04','g','수신동의 sms=T · 이 상품만 대조')}</div>
+   <button class="pb" data-act="start">이 상품으로 공구 열기</button></div>`+foot('S-05 상품 수요','Ⓐ 담기·보관 · Ⓓ 프로모션')},
+ 'S-06':()=>{const f=st.form,p=st.prod,low=+f.deal<+f.cost,disc=Math.round((1-f.deal/p.price)*100);return sbar()+top('공구 개설','S-05','1 / 2')+`<div class="s-body">
+   <div class="sc" style="grid-template-columns:48px 1fr;align-items:center"><span style="width:48px;height:48px;border-radius:12px;${bg(p)};background-size:cover"></span><div><b>${p.name}</b><p class="sub">정가 ${won(p.price)}</p></div></div>
+   <label class="fld">목표 수량<input id="f-target" type="number" min="1" value="${f.target}" inputmode="numeric"></label>
+   <label class="fld">공구 할인가 · ${disc}% 할인<input id="f-deal" type="number" step="500" value="${f.deal}" inputmode="numeric"></label>
+   <label class="fld">원가 (고객에게 보이지 않아요)<input id="f-cost" type="number" step="500" value="${f.cost}" inputmode="numeric"></label>
+   <div class="sc ${low?'bad':''}" style="${low?'':'background:#EAFBF4'}">${low?'<h4 style="color:#C92A2A">할인가가 원가보다 낮아요</h4><p class="sub">팔수록 손해예요.</p>':`<p class="sub" style="color:#0B8A63;font-weight:600">개당 마진 ${won(f.deal-f.cost)} · 목표 달성 시 ${won((f.deal-f.cost)*f.target)}</p>`}</div>
+   <div class="fld">마감과 결제<div class="sc" style="gap:4px"><span style="font-size:14px">마감 <b>10월 9일 (목) 14:00</b> · 실제 마감</span><span style="font-size:14px">결제 기간 <b>달성 후 72시간</b></span><span style="font-size:14px">예상 출고 <b>11월 6일</b> · 1인 최대 <b>${f.limit}개</b></span></div></div>
+   <button class="pb" data-go="S-08">다음 · 초대 대상 확인</button></div>`+foot('S-06 공구 개설','Ⓓ 프로모션 설계')},
+ 'S-08':()=>{const p=st.prod,f=st.form;return sbar()+top('초대 대상','S-06','2 / 2')+`<div class="s-body">
+   ${kp([['찜 + 장바구니',p.wish+p.cart],['문자 발송 대상',p.reach]])}
+   <p class="sub" style="font-size:12.5px">수신 미동의 고객은 자동으로 빠져요. 중복은 한 명으로 셉니다.</p>
+   <div class="sc"><h4>초대 문자 미리보기</h4><div class="bub" style="max-width:100%">${esc(invite())}<br>무료수신거부 080-000-0000</div>${T('I-06','g','카페24 SMS · 수신거부자 자동 제외')}</div>
+   <div class="sc" style="gap:4px"><span class="sub">✓ (광고) 표기와 수신거부 문구는 지울 수 없어요</span><span class="sub">✓ 밤 9시~오전 8시에는 자동 예약 발송</span><span class="sub">예상 문자비 약 ${won(p.reach*57)} · 쇼핑몰 SMS 충전분에서 차감</span></div>
+   ${T('I-07','g','쿠폰 생성 POST /coupons')}
+   <div style="flex:1"></div><button class="pb" data-act="open">공구 열기 · 초대 ${p.reach}명</button></div>`+foot('S-08 초대 발송','Ⓓ 프로모션 설계')},
+ 'S-09':()=>{const c=st.camp;if(!c)return S['S-03']();const ok=c.pledged>=c.target;return sbar()+top(`${c.prod.name} 공구`,'S-03')+`<div class="s-body">
+   <div class="sc ${ok?'green':'blue'}" style="padding:18px"><div style="display:flex;justify-content:space-between;align-items:center">${chip(c)}<span class="sub">마감 10/9 14:00</span></div><div class="big">${c.pledged}<small> / ${c.target}개 신청</small></div>${bar(c.pledged,c.target)}<p class="sub">${ok?'목표를 채웠어요. 마감 시각에 쿠폰이 자동 발급돼요.':`목표까지 ${c.target-c.pledged}개 남았어요.`}</p></div>
+   <div class="sc"><h4>초대 → 신청 → 결제</h4><div class="fun"><div>초대<i style="width:100%"></i><b>${c.invited}</b></div><div>신청<i style="width:${Math.max(3,c.pledged/c.invited*100)}%"></i><b>${c.pledged}</b></div><div>결제<i style="width:${c.state==='settled'?c.paid/c.invited*100:0}%;background:#12B886"></i><b>${c.state==='settled'?c.paid:'–'}</b></div></div></div>
+   <div class="sc"><h4>실시간 신청</h4>${st.feed.length?`<div class="feed">${st.feed.map(f=>`<div><em>${f[0][0].toUpperCase()}</em>${f[0]}님 · ${f[1]}개<small>${f[2]}</small></div>`).join('')}</div>`:'<p class="sub">아직 신청이 없어요. 고객 화면에서 신청해 보세요.</p>'}</div>
+   ${c.state!=='open'?`<button class="pb" data-go="${c.state==='settled'?'S-11':'S-10'}">${c.state==='settled'?'확정 리포트 보기':'마감 결과 보기'}</button>`:''}</div>`+tab(2)},
+ 'S-10':()=>{const c=st.camp;if(!c||c.state==='open')return S['S-09']();if(c.state==='failed')return sbar()+top('마감 결과','S-03')+`<div class="s-body"><div class="sc bad" style="padding:18px"><h4 style="font-size:19px;color:#C92A2A">목표 미달 ${c.pledged} / ${c.target}</h4><p class="sub">참여자에게 '진행 안 됨' 문자를 보냈어요. 결제된 금액은 없어요.</p></div><p class="sub">재고를 만들지 않았으니 손실도 없어요. 목표를 낮춰 다시 열 수 있어요.</p><button class="pb" data-act="reset">새 공구 준비</button></div>`;
+   return sbar()+top('마감 결과','S-03')+`<div class="s-body"><div class="sc green" style="padding:18px"><span class="chip">10월 9일 14:00 마감</span><div class="big">${c.pledged}<small> / ${c.target} 목표 달성</small></div><p class="sub">할인 쿠폰을 ${c.pledged}명에게 발급했어요.</p></div>
+   <div class="list"><div class="row" style="cursor:default"><span class="th" style="background:#DDF7EE;display:grid;place-items:center;color:#0B8A63;font-weight:700">✓</span><span class="meta"><b>회원 전용 쿠폰 발급 완료</b><small>이 상품 한정 · 1회용 · 72시간 유효</small>${T('I-07','g','POST /coupons/{no}/issues')}</span></div><div class="row" style="cursor:default"><span class="th" style="background:#DDF7EE;display:grid;place-items:center;color:#0B8A63;font-weight:700">✓</span><span class="meta"><b>결과 문자 발송 완료</b><small>달성 안내와 결제 기한</small></span></div></div>
+   <div class="sc"><h4>결제 진행</h4><p class="sub">결제 기간 10월 12일 14:00까지 · ${st.paidMine?'방금 1건 결제됨':'진행 중'}</p>${T('I-09','g','주문 웹훅 90023/90025')}</div></div>`},
+ 'S-11':()=>{const c=st.camp;if(!c||c.state!=='settled')return S['S-10']();const unpaid=c.pledged-c.paid-c.cancel;return sbar()+top('확정 리포트','S-03')+`<div class="s-body">
+   <div class="sc green" style="padding:18px"><span class="chip">결제 완료 기준</span><span class="sub">확정 수량</span><div class="big" style="font-size:44px">${c.paid}<small> 개</small></div><p class="sub">이 숫자만큼 발주하면 재고가 남지 않아요.</p></div>
+   ${kp([['결제 완료',c.paid],['미결제',unpaid],['취소',c.cancel]])}
+   <div class="sc"><div style="display:flex;justify-content:space-between;align-items:baseline"><h4>확정 매출</h4><b style="font:700 20px var(--mono)">${won(c.paid*c.deal)}</b></div><p class="sub">초대 ${c.invited}명 → 신청 ${c.pledged}명 → 결제 ${c.paid}명 · 성공 수수료 ${won(c.paid*c.deal*.015)}</p></div>
+   <label class="fld">발주 메모<input placeholder="공방 가마 1회분 · ${Math.ceil(c.paid*1.05)}개 (여유 5%)"></label>
+   <button class="pb dark" data-act="copy">공방에 보낼 리포트 링크 복사</button></div>`+foot('S-11 확정 리포트','Ⓓ 프로모션 설계')},
+ 'S-13':()=>sbar()+top('설정')+`<div class="s-body"><div class="list"><div class="row" style="cursor:default"><span class="meta"><b>요금제 · 스타터</b><small>월 29,000원 + 확정 결제액 1.5%</small>${T('I-10','y','카페24 인앱결제','PG 신청 필요, 스토어 수수료율 확인 중. 파일럿은 무료.')}</span></div><div class="row" style="cursor:default"><span class="meta"><b>카페24 연결 · 정상</b><small>상품 페이지 위젯 설치됨</small></span></div><div class="row" style="cursor:default"><span class="meta"><b>재입고 신청자 엑셀 업로드</b><small>카페24 관리자에서 내려받은 파일</small>${T('I-05','w','재입고 신청자 API 미확인','공식 문서에서 찾지 못함. 엑셀 업로드로 대체.')}</span></div></div></div>`+tab(3)
+};
+/* ---------- customer ---------- */
+const C={
+ 'C-01':()=>{const c=st.camp;const head=`<div class="msg-head"><span class="av">L</span><b style="font-size:13px">${BRAND}</b><small>문자 메시지</small></div>`;
+   if(!c)return sbar()+head+`<div class="msg-body"><div class="sc" style="margin-top:20px"><h4>아직 받은 초대가 없어요</h4><p class="sub">판매자 앱에서 공구를 열면 초대 문자가 와요.</p><button class="pb" data-act="quick">데모 공구로 바로 시작</button></div></div>`;
+   return sbar()+head+`<div class="msg-body">${st.msgs.map(m=>`${m.t?`<div class="ts">${m.t}</div>`:''}<div class="bub">${esc(m.b)}${m.link?`<a href="#" data-go="${m.link}">${m.link==='C-02'?`brand.example/p/${c.prod.no} ›`:'결제하러 가기 ›'}</a>`:''}</div>`).join('')}${T('I-06','g','카페24 SMS · (광고) 표기')}</div>`+foot('C-01 초대 문자','Ⓐ 담기·보관 · Ⓔ 이탈 회수')},
+ 'C-02':()=>{const c=st.camp;if(!c)return C['C-01']();const ok=c.pledged>=c.target;return sbar()+`<div class="m-head"><span>☰</span><b>${BRAND}</b><span>⌕</span></div><div class="m-body"><div class="m-pimg" style="${bg(c.prod)}"></div><div class="m-in">
+   <div><div class="m-name">${esc(c.prod.name)}</div><div class="m-price"><s>${won(c.price)}</s>${won(c.deal)} <span style="font:600 13px var(--font);color:#E03131">공구가</span></div></div>
+   <div class="widget"><div class="top"><span class="w-badge">${c.state==='open'?'공동구매 진행 중':'공동구매 마감'}</span><span class="sub">10/9 14:00 마감</span></div><div class="cnt">${c.pledged}<small> / ${c.target}개 모였어요</small></div>${bar(c.pledged,c.target,ok)}<p class="sub">${ok?'목표 달성! 마감 후 쿠폰을 드려요.':`${c.target-c.pledged}개 더 모이면 ${won(c.deal)}`} · 지금은 결제하지 않아요</p>${T('I-08','g','스크립트태그 위젯')}</div>
+   ${st.mine?`<button class="pb2" data-go="C-06">신청 완료 (${st.mine}개) · 내 공구 보기</button>`:`<button class="pb" data-act="apply" ${c.state==='open'?'':'disabled'}>참여 신청하기 · 결제 없음</button>`}
+   <button class="pb2" data-act="full">정가로 바로 구매</button></div></div>`+foot('C-02 상품 페이지','Ⓔ 망설임·이탈 회수')},
+ 'C-03':()=>sbar()+`<div class="m-head"><span>‹</span><b>${BRAND}</b><span></span></div><div class="m-body"><div class="m-in" style="margin-top:80px;text-align:center"><div style="font-size:21px;font-weight:700">회원만 참여할 수 있어요</div><p class="sub">로그인하면 신청 화면으로 바로 돌아와요.</p><button class="pb dark" data-act="login">카카오로 3초 로그인</button><button class="pb2" data-act="login">아이디로 로그인</button></div></div>`+foot('C-03 로그인','Ⓔ 망설임·이탈 회수'),
+ 'C-05':()=>sbar()+`<div class="m-head"><span>‹</span><b>${BRAND}</b><span></span></div><div class="m-body"><div class="m-in" style="margin-top:60px;text-align:center;align-items:center"><div style="width:76px;height:76px;border-radius:50%;background:#12B886;color:#fff;display:grid;place-items:center;font-size:36px">✓</div><div style="font-size:23px;font-weight:700">신청했어요</div><p class="sub">10월 9일 14:00 마감 후 결과를 문자로 알려 드려요.<br>마감 전까지 언제든 취소할 수 있어요.</p><button class="pb" data-go="C-02">진행률 보기</button></div></div>`+foot('C-05 신청 완료','Ⓔ 망설임·이탈 회수'),
+ 'C-06':()=>{const c=st.camp;return sbar()+`<div class="m-head"><span>‹</span><b>내 공구</b><span></span></div><div class="m-body"><div class="m-in">${c&&st.mine?`<div class="sc" style="box-shadow:0 0 0 1px #E3E7EF"><div style="display:flex;gap:12px;align-items:center"><span style="width:56px;height:56px;border-radius:12px;${bg(c.prod)};background-size:cover;flex:none"></span><div style="flex:1"><b>${esc(c.prod.name)}</b><p class="sub">신청 ${st.mine}개 · ${c.pledged}/${c.target}</p></div>${st.paidMine?'<span class="chip ok">결제 완료</span>':chip(c)}</div>${bar(c.pledged,c.target,c.pledged>=c.target)}</div>${c.state==='reached'&&!st.paidMine?'<button class="pb green" data-go="C-07">쿠폰 받았어요 · 결제하러 가기</button>':''}${st.paidMine?'<p class="sub">예상 출고 11월 6일 · 출고되면 알려 드려요.</p>':''}`:'<p class="sub">신청한 공구가 없어요.</p>'}</div></div>`+foot('C-06 내 공구','Ⓔ 망설임·이탈 회수')},
+ 'C-07':()=>{const c=st.camp;return sbar()+`<div class="m-head"><span>‹</span><b>${BRAND}</b><span></span></div><div class="m-body"><div class="m-pimg" style="${bg(c.prod)};aspect-ratio:16/10"></div><div class="m-in">
+   <div class="sc green" style="padding:16px"><span class="chip">목표 달성</span><div style="font-size:20px;font-weight:700">${esc(c.prod.name)} 공동구매가<br>${c.pledged}개로 마감됐어요</div></div>
+   <div class="sc" style="box-shadow:0 0 0 1.5px #2F5BEA;background:#F3F6FF"><div style="display:flex;justify-content:space-between;align-items:center"><b style="color:#2F5BEA">공구 할인 쿠폰</b><b style="font:700 20px var(--mono);color:#2F5BEA">−${won(c.price-c.deal)}</b></div><p class="sub">이 상품 전용 · 10월 12일 (일) 14:00까지</p>${T('I-07','g','회원 지정 · 1회용 쿠폰')}</div>
+   <button class="pb" data-go="C-08">결제하러 가기</button></div></div>`+foot('C-07 달성 안내','Ⓔ 이탈 회수 · Ⓓ 프로모션')},
+ 'C-08':()=>{const c=st.camp,q=st.mine||1;return sbar()+`<div class="m-head"><span>‹</span><b>주문서</b><span></span></div><div class="m-body"><div class="m-in">
+   <div class="sc" style="box-shadow:0 0 0 1px #E3E7EF;grid-template-columns:56px 1fr;align-items:center"><span style="width:56px;height:56px;border-radius:12px;${bg(c.prod)};background-size:cover"></span><div><b>${esc(c.prod.name)}</b><p class="sub">수량 ${q}개</p></div></div>
+   <div><div class="order-row"><span>상품 금액</span><span class="mono">${won(c.price*q)}</span></div><div class="order-row"><span>공구 쿠폰 (자동 적용)</span><span class="neg">−${won((c.price-c.deal)*q)}</span></div><div class="order-row"><span>배송비</span><span class="mono">0원</span></div><div class="order-row t"><span>결제 금액</span><span class="mono">${won(c.deal*q)}</span></div></div>
+   <div class="sc" style="box-shadow:0 0 0 1px #E3E7EF"><b style="font-size:14px">결제 수단</b><div style="display:flex;gap:8px"><span class="chip open">카드</span><span class="chip">간편결제</span><span class="chip">계좌이체</span></div><p class="sub">결제는 ${BRAND} 쇼핑몰에서 처리돼요.</p>${T('I-09','g','주문 웹훅 → 판매자 확정 수량')}</div>
+   <button class="pb" data-act="pay">${won(c.deal*q)} 결제하기</button></div></div>`+foot('C-08 결제','Ⓔ 망설임·이탈 회수')}
+};
+function sheet(){const c=st.camp;return `<div class="sheet" data-act="closeSheet"><div class="in" data-stop="1"><div class="grab"></div><div style="display:flex;gap:12px;align-items:center"><span style="width:52px;height:52px;border-radius:12px;${bg(c.prod)};background-size:cover;flex:none"></span><div><b style="font-size:17px">참여 신청</b><p class="sub">${esc(c.prod.name)} · 공구가 ${won(c.deal)}</p></div></div>
+   <div style="display:flex;justify-content:space-between;align-items:center"><span class="sub">수량 (1인 최대 ${c.limit}개)</span><div class="step"><button data-act="qty" data-d="-1" aria-label="수량 줄이기">−</button><span>${st.qty}</span><button data-act="qty" data-d="1" aria-label="수량 늘리기">+</button></div></div>
+   <div class="checks" style="background:#F6F8FB;border-radius:14px;padding:12px"><div><b>지금은 결제하지 않아요</b></div><div>${c.target}개가 모이면 쿠폰을 드려요. 72시간 안에 결제</div><div>못 모이면 '진행 안 됨' 안내만 가요</div><div>예상 출고 11월 6일</div></div>
+   ${T('I-08','g','암호화 회원 ID 서버 검증')}<button class="pb" data-act="submit">${st.qty}개 신청하기</button></div></div>`}
+const confetti=()=>`<div class="confetti">${Array.from({length:36},(_,i)=>`<i style="left:${(i*37)%100}%;background:${['#2F5BEA','#12B886','#F5B342','#FF6B6B'][i%4]};animation-delay:${(i%9)*.06}s"></i>`).join('')}</div>`;
+/* ---------- render ---------- */
+let host=$('screen'); let toastT=null;
+function render(){
+  const seller=st.role==='seller', id=seller?st.s:st.c, fn=(seller?S:C)[id]||(seller?S['S-03']:C['C-01']);
+  host.className='screen'+(st.tech?' tech-on':'');
+  host.innerHTML=fn()+(st.sheet&&!seller?sheet():'')+(st.push&&seller?`<button class="lockpush" data-act="push"><span class="ap">찜</span><span><small>찜 공구 · 지금</small><br><b>${esc(st.push.m)}</b></span></button>`:'')+(st.toast?`<div class="toast" role="status">${esc(st.toast)}</div>`:'')+(st.confetti?confetti():'');
+  ['seller','cust'].forEach(r=>{const b=$('r-'+r);if(b)b.setAttribute('aria-checked',st.role===r)});
+  const c=st.camp;document.querySelectorAll('[data-sim]').forEach(b=>{const k=b.dataset.sim;b.disabled=!(c&&((k==='settle'&&c.state==='reached')||(k!=='settle'&&c.state==='open')))});
+  bind(); if(st.toast){const t=st.toast;clearTimeout(toastT);toastT=setTimeout(()=>{if(st.toast===t){st.toast=null;render()}},2600)}
+  if(st.confetti)setTimeout(()=>{st.confetti=false},1900);
+}
+function bind(){[['f-target','target'],['f-deal','deal'],['f-cost','cost']].forEach(([i,k])=>{const e=$(i);if(e)e.addEventListener('change',()=>{st.form[k]=Math.max(0,+e.value||0);render()})})}
+function go(id){if(st.role==='seller')st.s=id;else st.c=id;st.sheet=false;render();const b=host.querySelector('.s-body,.m-body,.msg-body');if(b)b.scrollTop=0}
+let syncT=null;function startSync(){clearInterval(syncT);syncT=setInterval(()=>{st.sync=Math.min(100,st.sync+4);if(st.sync>=100){clearInterval(syncT);st.push={m:'찜·장바구니 첫 수집 완료 · 상품 500개',go:'S-04'}}if(st.role==='seller'&&st.s==='S-E2')render()},260)}
+function judge(){const c=st.camp;if(!c||c.state!=='open')return;if(c.pledged>=c.target){c.state='reached';if(st.mine)st.msgs.push({t:'10월 9일 오후 2:01',b:`[${BRAND}] ${c.prod.name} 공동구매 목표 달성! 쿠폰이 발급됐어요. 10/12(일) 14:00까지 결제해 주세요.`,link:'C-07'});st.push={m:`목표 달성 · 쿠폰 ${c.pledged}명 발급 완료`,go:'S-10'}}else{c.state='failed';if(st.mine)st.msgs.push({t:'10월 9일 오후 2:01',b:`[${BRAND}] ${c.prod.name} 공동구매가 목표에 못 미쳐 진행되지 않아요. 결제된 금액은 없어요.`});st.push={m:`목표 미달 (${c.pledged}/${c.target})`,go:'S-10'}}}
+function settle(){const c=st.camp;if(!c||c.state!=='reached')return;const others=c.pledged-st.mine;c.paid=(st.paidMine?st.mine:0)+Math.round(others*.72);c.cancel=Math.round(others*.03);c.state='settled';st.push={m:`확정 리포트 준비 완료 · 결제 ${c.paid}개`,go:'S-11'}}
+document.addEventListener('click',e=>{
+  const sim=e.target.closest('[data-sim]');if(sim){const k=sim.dataset.sim;stopAuto();if(k==='pledge'&&st.camp){addPledges(12);st.toast='다른 고객 12명이 신청했어요'}if(k==='judge')judge();if(k==='settle')settle();render();return}
+  const rb=e.target.closest('[data-role]');if(rb){stopAuto();st.role=rb.dataset.role;st.sheet=false;render();return}
+  if(!host.contains(e.target))return;
+  const g=e.target.closest('[data-go]');if(g){e.preventDefault();stopAuto();go(g.dataset.go);return}
+  const a=e.target.closest('[data-act]');if(!a)return;if(a.dataset.act==='closeSheet'&&e.target.closest('[data-stop]'))return;stopAuto();const c=st.camp;
+  switch(a.dataset.act){
+   case 'oauth':st.sync=0;go('S-E2');startSync();break;
+   case 'pick':st.prod=P.find(p=>p.no==a.dataset.no);go('S-05');break;
+   case 'start':{const p=st.prod;st.form.target=Math.round(p.reach*.35/5)*5;st.form.deal=Math.round(p.price*.75/500)*500;st.form.cost=Math.round(p.price*.55/500)*500;go('S-06');break}
+   case 'open':open();st.toast=`쿠폰 생성 완료 · 초대 문자 ${st.prod.reach}건 발송 시작`;go('S-09');break;
+   case 'quick':st.prod=P[1];st.form={target:60,deal:39000,cost:28500,limit:2};open();addPledges(41);render();break;
+   case 'apply':if(!st.logged)go('C-03');else{st.qty=1;st.sheet=true;render()}break;
+   case 'login':st.logged=true;st.qty=1;st.c='C-02';st.sheet=true;render();break;
+   case 'closeSheet':st.sheet=false;render();break;
+   case 'qty':st.qty=Math.max(1,Math.min(c.limit,st.qty+(+a.dataset.d)));render();break;
+   case 'submit':{const b=c.pledged;st.mine=st.qty;c.pledged+=st.qty;st.feed.unshift(['me***',st.qty,'방금']);st.push={m:b<c.target&&c.pledged>=c.target?`목표 달성! (${c.pledged}/${c.target})`:`새 신청 ${st.qty}개 · ${c.pledged}/${c.target}`,go:'S-09'};go('C-05');break}
+   case 'pay':st.paidMine=true;st.toast='결제 완료 · 판매자 확정 수량에 반영돼요';st.push={m:`결제 1건 · ${c.prod.name}`,go:'S-10'};go('C-06');break;
+   case 'push':{const p=st.push;st.push=null;go(p.go);break}
+   case 'full':st.toast='정가 구매는 쇼핑몰의 기존 주문 흐름 그대로예요';render();break;
+   case 'copy':{const t='https://app.example/r/'+(c?c.prod.no:'');const ok=()=>{st.toast='리포트 링크를 복사했어요';render()},no=()=>{st.toast='링크: '+t;render()};try{navigator.clipboard.writeText(t).then(ok,no)}catch(err){no()}break}
+   case 'reset':st=fresh();render();break;
+  }
+});
+$('techToggle').addEventListener('change',e=>{st.tech=e.target.checked;render()});
+$('p-reset').addEventListener('click',()=>{stopAuto();clearInterval(syncT);st=fresh();setStep(0,true)});
+/* ---------- guided demo steps ---------- */
+const STEPS=[
+ ['판매자','카페24에서 설치하고 권한에 동의합니다','판매자는 카페24 앱스토어에서 찜 공구를 설치합니다. 어떤 데이터를 왜 쓰는지 먼저 보여줍니다.','Ⓓ 프로모션 설계',()=>{st=fresh();st.s='S-01'}],
+ ['판매자','설치 전 쌓인 찜까지 한 번에 모읍니다','공식 API로 상품별 찜·장바구니 수를 수집합니다. 상품 500개 기준 약 8분 걸리고, 찜이 많은 상품부터 채웁니다.','Ⓐ 담기·보관',()=>{st=fresh();st.s='S-E2';st.sync=100}],
+ ['판매자','어떤 상품에 수요가 잠들어 있는지 봅니다','수요 레이더가 찜·장바구니 순위를 보여줍니다. 품절된 스톤웨어 디너 접시 세트에 찜이 260개 쌓여 있습니다.','Ⓐ 담기·보관',()=>{st=fresh();st.s='S-04'}],
+ ['판매자','문자로 닿을 수 있는 고객과 추천 목표를 확인합니다','이 상품의 찜·장바구니 고객 중 문자 수신에 동의한 171명이 공구 모수입니다. 성사율을 높이도록 목표 수량을 추천합니다.','Ⓐ 담기·보관 · Ⓓ 프로모션',()=>{st=fresh();st.s='S-05';st.prod=P[1]}],
+ ['판매자','목표 60개, 할인가 39,000원으로 공구를 엽니다','원가와 마진을 바로 계산해 손해 보는 할인을 막습니다. 마감은 실제 시각이고 결제 기간은 72시간입니다.','Ⓓ 프로모션 설계',()=>{st=fresh();st.s='S-06';st.prod=P[1];st.form={target:60,deal:39000,cost:28500,limit:2}}],
+ ['판매자','수신동의 고객에게만 초대가 나갑니다','(광고) 표기, 수신거부 문구, 야간 차단이 자동입니다. 문자는 쇼핑몰 SMS로 나가고 할인 쿠폰은 미리 만들어 둡니다.','Ⓓ 프로모션 설계',()=>{st=fresh();st.s='S-08';st.prod=P[1];st.form={target:60,deal:39000,cost:28500,limit:2}}],
+ ['고객','찜해 둔 상품의 공구 초대를 받습니다','고객은 이사를 앞두고 찜해 둔 접시 세트의 공동구매 소식을 문자로 받습니다. 결제는 달성 후라는 점이 분명히 적혀 있습니다.','Ⓐ 담기·보관 · Ⓔ 이탈 회수',()=>{base();st.role='cust';st.c='C-01'}],
+ ['고객','상품 페이지에서 진행률을 확인합니다','쇼핑몰 상품 페이지에 위젯이 붙어 있어 지금 몇 개가 모였는지 실시간으로 보입니다. 기존 구매 버튼은 그대로입니다.','Ⓔ 망설임·이탈 회수',()=>{base();addPledges(41);st.role='cust';st.c='C-02';st.logged=true}],
+ ['고객','결제 없이 참여 신청합니다','수량을 고르고 조건을 확인한 뒤 신청합니다. 지금은 돈을 내지 않으니 망설일 이유가 줄어듭니다.','Ⓔ 망설임·이탈 회수',()=>{base();addPledges(41);st.role='cust';st.c='C-02';st.logged=true;st.sheet=true;st.qty=1}],
+ ['고객','신청 완료. 결과는 문자로 받습니다','마감 전까지는 언제든 취소할 수 있습니다. 이 순간 판매자 화면의 진행률이 올라갑니다.','Ⓔ 망설임·이탈 회수',()=>{base();addPledges(41);st.mine=1;st.camp.pledged+=1;st.feed.unshift(['me***',1,'방금']);st.role='cust';st.c='C-05';st.logged=true}],
+ ['판매자','목표 달성 알림이 옵니다','신청이 목표를 넘으면 판매자에게 푸시가 옵니다. 진행률과 초대 → 신청 퍼널을 실시간으로 봅니다.','Ⓓ 프로모션 설계',()=>{base();addPledges(41);st.mine=1;st.camp.pledged+=1;addPledges(20);st.s='S-09';st.push={m:`스톤웨어 디너 접시 4P 공구 목표 달성! (${st.camp.pledged}/60)`,go:'S-09'};st.confetti=true}],
+ ['판매자','마감 시각에 자동 판정, 쿠폰이 발급됩니다','실제 마감 시각이 지나면 판정하고, 참여자 전원에게 이 상품 전용 1회용 쿠폰을 발급합니다.','Ⓓ 프로모션 설계',()=>{reachedBase();st.s='S-10'}],
+ ['고객','달성 소식과 쿠폰을 받습니다','고객은 결과 문자를 받고 쿠폰이 적용된 상품으로 이동합니다. 결제 기한은 72시간입니다.','Ⓔ 이탈 회수 · Ⓓ 프로모션',()=>{reachedBase();st.role='cust';st.c='C-07'}],
+ ['고객','쇼핑몰 주문서에서 할인가로 결제합니다','쿠폰이 자동 적용됩니다. 결제는 판매자 쇼핑몰 PG에서 처리되고, 찜 공구는 결제금을 받지 않습니다.','Ⓔ 망설임·이탈 회수',()=>{reachedBase();st.role='cust';st.c='C-08'}],
+ ['고객','결제 완료. 출고를 기다립니다','고객의 결제는 주문 웹훅으로 판매자 확정 수량에 바로 반영됩니다.','Ⓔ 망설임·이탈 회수',()=>{reachedBase();st.paidMine=true;st.role='cust';st.c='C-06'}],
+ ['판매자','결제된 수량만큼만 발주합니다','72시간이 지나면 확정 수량이 나옵니다. 판매자는 이 숫자로 가마 일정을 잡고, 재고 위험 없이 할인을 마칩니다.','Ⓓ 프로모션 설계',()=>{reachedBase();st.paidMine=true;settle();st.push=null;st.s='S-11'}]
+];
+function base(){st=fresh();st.prod=P[1];st.form={target:60,deal:39000,cost:28500,limit:2};open()}
+function reachedBase(){base();addPledges(41);st.mine=1;st.camp.pledged+=1;addPledges(20);st.push=null;judge();st.push=null;st.logged=true}
+let cur=0,auto=null;
+function setStep(i,noTech){cur=i;const s=STEPS[i];const tech=st.tech;s[4]();st.tech=noTech?st.tech:tech;st.toast=null;if(i!==10)st.confetti=false;render();
+  $('capK').textContent=`STEP ${i+1} / ${STEPS.length} · ${s[0]}`;$('capT').textContent=s[1];$('capS').textContent=s[2];
+  document.querySelectorAll('#steps button').forEach((b,k)=>b.classList.toggle('on',k===i));
+  const rk=$('rK');if(rk){rk.textContent=`STEP ${String(i+1).padStart(2,'0')} · ${s[0]}`;$('rT').textContent=s[1];$('rS').textContent=s[2];$('rG').textContent='해결하는 페인포인트 · '+s[3];$('rP').style.width=((i+1)/STEPS.length*100)+'%'}}
+$('steps').innerHTML=STEPS.map((s,i)=>`<button data-step="${i}"><span>${String(i+1).padStart(2,'0')}</span>${esc(s[0])} · ${esc(s[1])}</button>`).join('');
+$('steps').addEventListener('click',e=>{const b=e.target.closest('[data-step]');if(b){stopAuto();setStep(+b.dataset.step)}});
+function stopAuto(){if(auto){clearInterval(auto);auto=null;$('autoplay').textContent='▶ 자동 시연'}}
+$('autoplay').addEventListener('click',()=>{if(auto){stopAuto();return}$('autoplay').textContent='■ 멈춤';setStep(cur>=STEPS.length-1?0:cur);auto=setInterval(()=>{if(cur>=STEPS.length-1){stopAuto();return}setStep(cur+1)},4200)});
+/* ---------- fit & record ---------- */
+function fit(){const w=$('pwrap'),ph=$('phone');if(document.body.classList.contains('record'))return;const avail=Math.min(w.parentElement.clientWidth,window.innerWidth-40);const sc=Math.max(.6,Math.min(1,avail/390,(window.innerHeight-90)/844));ph.style.transform=`scale(${sc})`;w.style.width=Math.round(390*sc)+'px';w.style.height=Math.round(844*sc)+'px'}
+window.addEventListener('resize',fit);
+if(/[?&]record\b/.test(location.search)){document.body.classList.add('record');$('rPhoneHost').appendChild($('phone'));}
+window.DEMO={n:STEPS.length,go:i=>setStep(i,true),steps:STEPS.map(s=>s.slice(0,4))};
+setStep(0,true);fit();
+const v=$('demoVideo');v.addEventListener('loadedmetadata',()=>{if(isFinite(v.duration))$('vidLen').textContent=`${Math.floor(v.duration/60)}분 ${Math.round(v.duration%60)}초`});
+v.addEventListener('error',()=>{$('vidLen').textContent='영상을 불러오지 못했어요. 아래 자동 시연으로 같은 흐름을 볼 수 있어요.'},true);
+})();
+</script>
+
+</body></html>
