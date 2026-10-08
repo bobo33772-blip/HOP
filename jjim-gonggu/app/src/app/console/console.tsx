@@ -19,11 +19,11 @@ export interface Detail {
   messages: { id: string; kind: string; recipients: number; content: string; status: "scheduled" | "sending" | "sent" | "failed"; sendAfter: string; sentAt: string | null; error: string | null }[];
   issues: { id: number; at: string; kind: string; detail: unknown }[];
 }
-export interface RadarRow { productNo: number; name: string; price: number; soldOut: boolean; wishlist: number; cart: number }
+export interface RadarRow { productNo: number; name: string; price: number; soldOut: boolean; alert: number; wishlist: number; cart: number }
 export interface Run { status: "running" | "done" | "failed"; total: number; done: number; finishedAt: string | null; startedAt: string }
 export interface Preview {
   errors: string[]; warnings: string[]; message: string; sendAt: string; marginPerUnit: number | null;
-  audience: { wishlist: number; cart: number; unique: number; reachable: number; consentChecked: boolean };
+  audience: { alert: number; wishlist: number; cart: number; unique: number; reachable: number; consentChecked: boolean };
 }
 
 export const won = (n: number) => `${Math.round(n).toLocaleString("ko-KR")}원`;
@@ -244,22 +244,22 @@ export function NewTab({ mall, say, onOpened }: { mall: string; say: (t: string)
   return (
     <>
       <div className="card">
-        <div className="row"><h2 className="step-title"><span className="n">1</span>상품 고르기 <span className="small">{radar.privacy ? "찜·장바구니" : "장바구니"} 많은 순 상위 20개</span></h2>
-          <button className="ghost" onClick={collect} disabled={running}>{running ? `수집 중 ${radar.current!.done}/${radar.current!.total}` : radar.run ? "다시 수집" : "찜 데이터 모으기"}</button></div>
-        <p className="muted">{a.role === "admin" ? "판매자와 통화하며 함께 고르세요. 이 목록은 숫자만 있어 판매자에게 그대로 보여 줘도 괜찮아요." : "찜·장바구니에 많이 담긴 상품부터 보여 드려요. 재생산을 고민 중인 상품을 골라 보세요."}{radar.run && ` · ${kst(radar.run.finishedAt ?? radar.run.startedAt)} 기준`}</p>
+        <div className="row"><h2 className="step-title"><span className="n">1</span>상품 고르기 <span className="small">{radar.privacy ? "알림 신청·찜·장바구니" : "알림 신청·장바구니"} 많은 순 상위 20개</span></h2>
+          <button className="ghost" onClick={collect} disabled={running}>{running ? `수집 중 ${radar.current!.done}/${radar.current!.total}` : radar.run ? "다시 수집" : "관심 데이터 모으기"}</button></div>
+        <p className="muted">{a.role === "admin" ? "판매자와 통화하며 함께 고르세요. 이 목록은 숫자만 있어 판매자에게 그대로 보여 줘도 괜찮아요." : "공구 알림 신청과 장바구니가 많은 상품부터 보여 드려요. 재생산을 고민 중인 상품을 골라 보세요."}{radar.run && ` · ${kst(radar.run.finishedAt ?? radar.run.startedAt)} 기준`}</p>
         {!radar.run ? <p className="muted">{running ? "상품마다 하나씩 확인하는 중이에요. 상품이 많으면 몇 분에서 몇 시간 걸려요." : "아직 모은 데이터가 없어요. 위 버튼으로 시작하세요."}</p> : (
           <div className="tw"><table>
-            <thead><tr><th>#</th><th>상품</th><th>정가</th>{radar.privacy && <th>찜</th>}<th>장바구니</th><th /></tr></thead>
+            <thead><tr><th>#</th><th>상품</th><th>정가</th><th>알림 신청</th>{radar.privacy && <th>찜</th>}<th>장바구니</th><th /></tr></thead>
             <tbody>{radar.rows.map((p, i) => (
               <tr key={p.productNo}>
                 <td className="mono">{i + 1}</td><td>{p.name}{p.soldOut && <> <span className="chip">품절</span></>}</td>
-                <td className="mono">{won(p.price)}</td>{radar.privacy && <td className="mono">{p.wishlist}</td>}<td className="mono">{p.cart}</td>
+                <td className="mono">{won(p.price)}</td><td className="mono">{p.alert}</td>{radar.privacy && <td className="mono">{p.wishlist}</td>}<td className="mono">{p.cart}</td>
                 <td><button className={pick?.productNo === p.productNo ? "btn" : "ghost"} style={pick?.productNo === p.productNo ? { minHeight: 40 } : undefined} onClick={() => setPick(p)}>{pick?.productNo === p.productNo ? "선택됨" : "선택"}</button></td>
               </tr>
             ))}</tbody>
           </table></div>
         )}
-        {!radar.privacy && <p className="small">지금은 장바구니에 담은 고객에게 공구를 열어요. 찜한 고객은 카페24 개인정보 권한 승인 후 함께 초대돼요.</p>}
+        {!radar.privacy && <p className="small">상품 페이지 위젯에서 &lsquo;공구 열리면 알림 받기&rsquo;를 신청한 고객과 장바구니에 담은 고객에게 공구를 열어요. 알림 신청은 공구를 열면 초대와 함께 비워져요.</p>}
       </div>
       {pick && <CampaignForm key={pick.productNo} mall={mall} p={pick} say={say} onOpened={onOpened} />}
     </>
@@ -308,6 +308,7 @@ export function CampaignForm({ mall, p, say, onOpened }: { mall: string; p: Rada
       {pv && (
         <>
           <div className="kpi many">
+            <div><small>알림 신청</small><strong>{pv.audience.alert}</strong></div>
             {pv.audience.consentChecked && <div><small>찜</small><strong>{pv.audience.wishlist}</strong></div>}
             <div><small>장바구니</small><strong>{pv.audience.cart}</strong></div>
             <div><small>중복 제외</small><strong>{pv.audience.unique}</strong></div>

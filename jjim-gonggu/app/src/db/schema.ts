@@ -51,6 +51,15 @@ export const demandSnapshots = pgTable("demand_snapshots", {
   collectedAt: timestamp("collected_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index("demand_mall_idx").on(t.mallId, t.collectedAt)]);
 
+// '공구 열리면 알림 받기' 신청 (카페24 찜 대신 쓰는 우리 위젯의 찜). 로그인 회원 ID만 저장한다.
+// 그 상품에 공구가 열리면 초대 대상에 넣고 지운다. 열리지 않으면 보관 기간(retention.ts) 뒤 지운다.
+export const productAlerts = pgTable("product_alerts", {
+  mallId: text("mall_id").notNull(),
+  productNo: integer("product_no").notNull(),
+  memberId: text("member_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+}, (t) => [primaryKey({ columns: [t.mallId, t.productNo, t.memberId] })]);
+
 // 공구. state: open → reached | failed, reached → settled (결제 기간 종료).
 export const campaigns = pgTable("campaigns", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -83,7 +92,7 @@ export const campaigns = pgTable("campaigns", {
 export const invitations = pgTable("invitations", {
   campaignId: uuid("campaign_id").notNull().references(() => campaigns.id),
   memberId: text("member_id").notNull(),
-  source: text("source").notNull(), // wishlist | cart | both
+  source: text("source").notNull(), // alert | wishlist | cart | both
 }, (t) => [primaryKey({ columns: [t.campaignId, t.memberId] })]);
 
 // state: pledged | cancelled | coupon_issued | paid | expired | not_reached
