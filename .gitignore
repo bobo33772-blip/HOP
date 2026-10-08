@@ -12,7 +12,9 @@ node_modules/
 coverage/
 *.tsbuildinfo
 
-# 개인 도구 설정
-.claude/
+# 개인 도구 설정 (단, 팀 공용 세션 시작 훅과 그 등록 파일은 커밋)
+.claude/*
+!.claude/settings.json
+!.claude/hooks/
 .DS_Store
 Thumbs.db
