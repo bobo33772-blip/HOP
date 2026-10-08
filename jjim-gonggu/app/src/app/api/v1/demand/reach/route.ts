@@ -5,6 +5,7 @@ import { getDb, schema } from "@/db";
 import { requireSeller } from "@/lib/auth";
 import { getCtx } from "@/lib/server";
 import { computeReach } from "@/lib/radar";
+import { alertMembers } from "@/lib/engine/alerts";
 
 export async function GET(req: NextRequest) {
   const s = await requireSeller();
@@ -12,8 +13,8 @@ export async function GET(req: NextRequest) {
   const productNo = Number(req.nextUrl.searchParams.get("product_no"));
   if (!Number.isInteger(productNo) || productNo <= 0) return NextResponse.json({ error: "bad_product_no" }, { status: 400 });
 
-  const reach = await computeReach(await (await getCtx()).shop(s.mallId), productNo);
   const db = await getDb();
+  const reach = await computeReach(await (await getCtx()).shop(s.mallId), productNo, await alertMembers({ db }, s.mallId, productNo));
   await db.insert(schema.auditLogs).values({ mallId: s.mallId, actor: `seller:${s.userId ?? "unknown"}`, action: "privacy.reach_computed", detail: { productNo, interested: reach.interested } });
   return NextResponse.json(reach);
 }

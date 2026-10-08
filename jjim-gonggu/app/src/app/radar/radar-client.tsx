@@ -5,15 +5,17 @@
 import { useCallback, useEffect, useState } from "react";
 import AppBar from "../components/app-bar";
 
-type Sort = "total" | "wishlist" | "cart";
-interface Row { productNo: number; name: string; price: number; wishlist: number; cart: number }
+type Sort = "total" | "alert" | "wishlist" | "cart";
+interface Row { productNo: number; name: string; price: number; alert: number; wishlist: number; cart: number }
 interface Run { id: number; status: "running" | "done" | "failed"; total: number; done: number; startedAt: string; finishedAt: string | null }
 interface Radar { run: Run | null; current: Run | null; rows: Row[] }
 interface Reach { productNo: number; interested: number; reachable: number; wishlistCapped: boolean }
 
 const won = (n: number) => `${n.toLocaleString("ko-KR")}원`;
 const when = (s: string) => new Date(s).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
-const SORTS: [Sort, string][] = [["total", "전체"], ["wishlist", "찜"], ["cart", "장바구니"]];
+const SORTS: [Sort, string][] = [["total", "전체"], ["alert", "알림 신청"], ["wishlist", "찜"], ["cart", "장바구니"]];
+/** 찜 수는 카페24 개인정보 권한이 있을 때만 모인다. 없으면 찜 숫자·정렬을 숨긴다 */
+const counts = (r: Row, wish: boolean) => `알림 신청 ${r.alert}${wish ? ` · 찜 ${r.wishlist}` : ""} · 장바구니 ${r.cart}`;
 
 export default function RadarClient() {
   const [sort, setSort] = useState<Sort>("total");
@@ -56,14 +58,14 @@ export default function RadarClient() {
         <h1>수요 레이더</h1>
         {cur?.status === "running" ? (
           <div className="card" aria-live="polite">
-            <strong>찜 데이터를 처음으로 모으고 있어요</strong>
+            <strong>관심 데이터를 처음으로 모으고 있어요</strong>
             <p className="muted">상품마다 하나씩 확인해서 상품이 많으면 몇 분에서 몇 시간 걸릴 수 있어요. 이 화면을 닫아도 수집은 계속돼요.</p>
             <Progress done={cur.done} total={cur.total} />
           </div>
         ) : (
           <div className="card">
-            <strong>{cur?.status === "failed" ? "수집이 중간에 멈췄어요" : "어떤 상품에 찜이 몰렸는지 확인해 볼까요?"}</strong>
-            <p className="muted">상품별 찜·장바구니 수를 모아 공구를 열 만한 상품을 찾아 드려요. 고객 개인정보는 이 단계에서 보지 않아요.</p>
+            <strong>{cur?.status === "failed" ? "수집이 중간에 멈췄어요" : "어떤 상품에 관심이 몰렸는지 확인해 볼까요?"}</strong>
+            <p className="muted">상품별 장바구니 수를 모으고, 위젯의 공구 알림 신청 수와 합쳐 공구를 열 만한 상품을 찾아 드려요. 고객 개인정보는 이 단계에서 보지 않아요.</p>
             <button className="btn" onClick={collect}>{cur?.status === "failed" ? "다시 수집하기" : "수집 시작"}</button>
           </div>
         )}
@@ -72,7 +74,8 @@ export default function RadarClient() {
     );
   }
 
-  const max = Math.max(1, ...data.rows.map((r) => r.wishlist + r.cart));
+  const wish = data.rows.some((r) => r.wishlist > 0);
+  const max = Math.max(1, ...data.rows.map((r) => r.alert + r.wishlist + r.cart));
   return (
     <><AppBar current="radar" /><main>
       <h1>수요 레이더</h1>
@@ -82,7 +85,7 @@ export default function RadarClient() {
       </p>
       <div className="toolbar">
         <div className="seg" role="radiogroup" aria-label="정렬">
-          {SORTS.map(([k, label]) => (
+          {SORTS.filter(([k]) => wish || k !== "wishlist").map(([k, label]) => (
             <button key={k} role="radio" aria-checked={sort === k} onClick={() => setSort(k)}>{label}</button>
           ))}
         </div>
@@ -90,7 +93,7 @@ export default function RadarClient() {
       </div>
 
       {data.rows.length === 0 ? (
-        <div className="card"><p className="muted">아직 찜이나 장바구니에 담긴 상품이 없어요.</p></div>
+        <div className="card"><p className="muted">아직 공구 알림을 신청했거나 장바구니에 담긴 상품이 없어요.</p></div>
       ) : (
         <ol className="list">
           {data.rows.map((r, i) => (
@@ -99,9 +102,9 @@ export default function RadarClient() {
                 <span className="rank">{i + 1}</span>
                 <span className="meta">
                   <b>{r.name}</b>
-                  <small>{won(r.price)} · 찜 {r.wishlist} · 장바구니 {r.cart}</small>
+                  <small>{won(r.price)} · {counts(r, wish)}</small>
                   <span className="bars" aria-hidden="true">
-                    <i style={{ width: `${(r.wishlist / max) * 100}%` }} />
+                    <i style={{ width: `${((r.alert + r.wishlist) / max) * 100}%` }} />
                     <i className="c" style={{ width: `${(r.cart / max) * 100}%` }} />
                   </span>
                 </span>
@@ -111,9 +114,9 @@ export default function RadarClient() {
           ))}
         </ol>
       )}
-      <p className="legend"><i /> 찜 <i className="c" /> 장바구니 · 장바구니는 쇼핑몰 보관 기간이 지나면 사라져 최근 관심만 반영돼요.</p>
+      <p className="legend"><i /> {wish ? "알림 신청·찜" : "알림 신청"} <i className="c" /> 장바구니 · 알림 신청은 지금 숫자예요. 장바구니는 쇼핑몰 보관 기간이 지나면 사라져 최근 관심만 반영돼요.</p>
       {error && <p className="err">{error}</p>}
-      {picked && <ReachSheet row={picked} onClose={() => setPicked(null)} />}
+      {picked && <ReachSheet row={picked} wish={wish} onClose={() => setPicked(null)} />}
     </main></>
   );
 }
@@ -128,7 +131,7 @@ function Progress({ done, total }: { done: number; total: number }) {
   );
 }
 
-function ReachSheet({ row, onClose }: { row: Row; onClose: () => void }) {
+function ReachSheet({ row, wish, onClose }: { row: Row; wish: boolean; onClose: () => void }) {
   const [reach, setReach] = useState<Reach | null>(null);
   const [failed, setFailed] = useState(false);
   useEffect(() => {
@@ -145,7 +148,7 @@ function ReachSheet({ row, onClose }: { row: Row; onClose: () => void }) {
       <div className="in" onClick={(e) => e.stopPropagation()}>
         <div className="grab" />
         <h2>{row.name}</h2>
-        <p className="muted">찜 {row.wishlist} · 장바구니 {row.cart}</p>
+        <p className="muted">{counts(row, wish)}</p>
         {failed ? (
           <p className="err">대상 고객 수를 확인하지 못했어요.</p>
         ) : !reach ? (

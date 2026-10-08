@@ -1,11 +1,11 @@
-// GET /api/v1/demand?sort=total|wishlist|cart — 수요 레이더 (마지막 완료 수집 + 진행 중 수집 상태)
+// GET /api/v1/demand?sort=total|alert|wishlist|cart — 수요 레이더 (마지막 완료 수집 + 진행 중 수집 상태)
 
 import { NextResponse, type NextRequest } from "next/server";
 import { getDb } from "@/db";
 import { requireSeller } from "@/lib/auth";
 import { getRadar, latestRun, type RadarSort } from "@/lib/radar";
 
-const SORTS: RadarSort[] = ["total", "wishlist", "cart"];
+const SORTS: RadarSort[] = ["total", "alert", "wishlist", "cart"];
 
 export async function GET(req: NextRequest) {
   const s = await requireSeller();

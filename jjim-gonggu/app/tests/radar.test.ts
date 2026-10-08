@@ -24,7 +24,7 @@ describe("수요 레이더", () => {
     const r = await getRadar(db, "m");
     expect(r.run).toMatchObject({ status: "done", total: 6, done: 6 });
     expect(r.rows.map((x) => x.productNo)).toEqual([101, 102, 103, 104, 106, 105]);
-    expect(r.rows[0]).toEqual({ productNo: 101, name: "워싱 린넨 이불 커버 (Q)", price: 129000, soldOut: true, wishlist: 180, cart: 31 });
+    expect(r.rows[0]).toEqual({ productNo: 101, name: "워싱 린넨 이불 커버 (Q)", price: 129000, soldOut: true, alert: 0, wishlist: 180, cart: 31 });
 
     const byCart = await getRadar(db, "m", "cart");
     expect(byCart.rows[0].productNo).toBe(102);

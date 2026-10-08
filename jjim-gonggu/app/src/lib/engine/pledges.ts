@@ -9,7 +9,7 @@ import { getCampaign, publicView } from "./campaigns";
 
 type Pledge = typeof schema.pledges.$inferSelect;
 
-async function memberOf(ctx: Ctx, mallId: string, token: unknown): Promise<string> {
+export async function memberOf(ctx: Ctx, mallId: string, token: unknown): Promise<string> {
   if (typeof token !== "string" || token.length < 8 || token.length > 2048) throw new UserError("login_required", "로그인한 회원만 참여할 수 있어요.", 401);
   const id = await (await ctx.shop(mallId)).verifyMember(token);
   if (!id) throw new UserError("member_unverified", "본인 확인에 실패했어요. 다시 로그인해 주세요.", 401);
