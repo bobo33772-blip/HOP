@@ -1,0 +1,331 @@
+<title>찜꽁 화면 배정안</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one 1120px column. 요약 → 레인 5장(카드) → 공용 파일 규칙 → 결정 18개의 레인 배정 → 순서. 같은 팀 문서(GitHub 안내서·작업카드)와 같은 서체·색 체계. */
+:root{
+  --bg:#F3F5F4; --surface:#FFFFFF; --soft:#E7ECEA; --line:#D3DBD8;
+  --fg:#17201C; --fg2:#43504B; --muted:#5E6B66;
+  --l1:#1B7347; --l2:#8F5400; --l3:#2F5BEA; --l4:#6A4FC0; --l5:#0B7F78;
+  --warn:#B23A0A; --ok:#0E9F72;
+  --sans:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:12px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1412; --surface:#161F1B; --soft:#1E2925; --line:#2B3833;
+  --fg:#E5ECE8; --fg2:#AEBCB6; --muted:#8A9893;
+  --l1:#43C584; --l2:#F0B54D; --l3:#86A2F8; --l4:#B79BF2; --l5:#3CC7BE;
+  --warn:#FB8E5E; --ok:#2FD3A0;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1412; --surface:#161F1B; --soft:#1E2925; --line:#2B3833;
+  --fg:#E5ECE8; --fg2:#AEBCB6; --muted:#8A9893;
+  --l1:#43C584; --l2:#F0B54D; --l3:#86A2F8; --l4:#B79BF2; --l5:#3CC7BE;
+  --warn:#FB8E5E; --ok:#2FD3A0;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15.5px;line-height:1.7;word-break:keep-all;overflow-wrap:anywhere}
+h1,h2,h3{margin:0;line-height:1.3;text-wrap:balance}
+p,ul,ol{margin:0}
+a{color:var(--l3);text-underline-offset:3px}
+code{font-family:var(--mono);font-size:.88em;background:var(--soft);padding:1px 5px;border-radius:5px}
+.page{max-width:1120px;margin:0 auto;padding-inline:16px;padding-block:32px 72px;display:grid;gap:52px}
+.page>*{min-width:0}
+.eyebrow{font-size:12.5px;font-weight:600;letter-spacing:.06em;color:var(--muted)}
+.top{display:grid;gap:14px}
+.top h1{font-size:clamp(28px,5vw,40px);letter-spacing:-.025em}
+.lead{font-size:18px;max-width:46em}
+.lead b{color:var(--l1)}
+.asof{font-size:13px;color:var(--muted)}
+.nav{display:flex;flex-wrap:wrap;gap:8px}
+.nav a{font-size:13.5px;font-weight:600;color:var(--fg2);text-decoration:none;border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:4px 12px}
+.nav a:hover{border-color:var(--fg2);color:var(--fg)}
+section{display:grid;gap:18px;scroll-margin-top:16px}
+.sec-h{display:grid;gap:6px}
+.sec-h h2{font-size:clamp(22px,3.4vw,27px);letter-spacing:-.015em}
+.sec-h p{color:var(--fg2);max-width:50em}
+
+/* 요약 표 */
+.ovw{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.ov{background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--c);border-radius:var(--r);padding:12px 14px;display:grid;gap:4px;align-content:start;min-width:0}
+.ov .n{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--c)}
+.ov b{font-size:15.5px}
+.ov span{font-size:13px;color:var(--fg2)}
+.ov .cnt{font-family:var(--mono);font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* 레인 카드 */
+.lane{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:grid;grid-template-columns:6px minmax(0,1fr)}
+.lane .bar{background:var(--c)}
+.lane .in{padding:18px 20px;display:grid;gap:14px;min-width:0}
+.lane-h{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline}
+.lane-h .n{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--c)}
+.lane-h h3{font-size:20px}
+.lane-h .who{font-size:13px;color:var(--fg2);border:1px dashed var(--line);border-radius:99px;padding:2px 10px}
+.lane-h .who b{color:var(--c)}
+.lane p.why{color:var(--fg2);font-size:14.5px;max-width:60em}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px 20px}
+.blk{display:grid;gap:6px;min-width:0}
+.blk h4{margin:0;font-size:12.5px;font-weight:700;letter-spacing:.04em;color:var(--muted)}
+.files{display:flex;flex-wrap:wrap;gap:5px}
+.files code{font-size:12px;padding:2px 7px;border:1px solid var(--line);background:var(--surface)}
+.files code.own{border-color:var(--c);color:var(--c);background:color-mix(in srgb,var(--c) 8%,transparent)}
+.scr{list-style:none;padding:0;display:grid;gap:3px;font-size:13.5px}
+.scr li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;align-items:baseline}
+.scr .k{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.scr .pid{font-family:var(--mono);font-size:10.5px;padding:0 5px;border-radius:4px;border:1px solid var(--line);color:var(--fg2);margin-left:4px}
+.first{padding-left:18px;display:grid;gap:4px;font-size:14px}
+.first li::marker{color:var(--c);font-weight:700}
+.first .q{font-family:var(--mono);font-size:11px;color:var(--muted);margin-left:4px}
+.care{background:color-mix(in srgb,var(--warn) 9%,transparent);border-radius:9px;padding:9px 12px;font-size:13.5px;color:var(--fg2)}
+.care b{color:var(--warn)}
+.gate{background:var(--soft);border-radius:9px;padding:9px 12px;font-size:13.5px;color:var(--fg2)}
+
+/* 규칙 */
+.rules{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.rule{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:grid;gap:6px;align-content:start;min-width:0}
+.rule b{font-size:15.5px}
+.rule span{font-size:14px;color:var(--fg2)}
+.pair{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-family:var(--mono);font-size:13px}
+.pair i{font-style:normal;padding:2px 9px;border-radius:99px;background:var(--soft);font-weight:600}
+
+/* 결정 표 */
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:640px}
+th{text-align:left;font-size:12.5px;font-weight:600;color:var(--fg2);background:var(--soft);padding:9px 12px;white-space:nowrap}
+td{padding:9px 12px;border-top:1px solid var(--line);vertical-align:top}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
+.lt{display:inline-block;font-family:var(--mono);font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:99px;color:var(--surface);background:var(--c);white-space:nowrap}
+
+/* 순서 */
+.steps{list-style:none;padding:0;display:grid;gap:10px;counter-reset:s}
+.step{counter-increment:s;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px 14px 60px;position:relative;display:grid;gap:6px;min-width:0}
+.step::before{content:counter(s);position:absolute;left:16px;top:13px;width:30px;height:30px;border-radius:50%;background:var(--fg);color:var(--surface);font:700 14px/30px var(--mono);text-align:center}
+.step b{font-size:16px}
+.step p,.step ul{font-size:14.5px;color:var(--fg2)}
+.step ul{padding-left:18px;display:grid;gap:3px}
+.when{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-left:8px}
+footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:18px;display:grid;gap:6px}
+.links{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px}
+
+@media (max-width:900px){.ovw{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:720px){.grid2,.rules{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:480px){.ovw{grid-template-columns:minmax(0,1fr)}.step{padding-left:16px;padding-top:52px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+
+<div class="page">
+  <header class="top">
+    <div class="eyebrow">HOP 저장소 · 찜꽁 팀 5명 · 2026-10-12 작성</div>
+    <h1>찜꽁 화면 배정안</h1>
+    <p class="lead">화면이 아니라 <b>파일 소유권</b>으로 나눴어요. 한 사람이 자기 파일만 고치면 두 PR이 같은 줄을 건드릴 일이 거의 없어서 충돌이 안 나요. 판매자와 운영자 화면은 같은 console 부품을 쓰므로 부품 파일 기준으로 한 사람이 둘 다 맡아요.</p>
+    <p class="asof">근거: 작업카드의 화면별 코드 위치(51개 화면) · GitHub 안내서의 console 9칸 분리(PR #3) · 팀이 정할 것 18개. 담당은 2026-10-12에 정했고, 각자 작업카드에서 자기 레인 화면에 "내가 맡기"를 눌러요.</p>
+    <nav class="nav" aria-label="이 페이지의 부분">
+      <a href="#lanes">레인 5개</a>
+      <a href="#shared">공용 파일 규칙</a>
+      <a href="#decisions">정할 것 18개의 담당</a>
+      <a href="#order">진행 순서</a>
+    </nav>
+  </header>
+
+  <section aria-label="한눈에 보기">
+    <div class="ovw">
+      <div class="ov" style="--c:var(--l1)"><span class="n">레인 1</span><b>공구 개설</b><span>상품 고르기 → 조건 → 미리보기</span><span class="cnt">화면 6 · 파일 3</span></div>
+      <div class="ov" style="--c:var(--l2)"><span class="n">레인 2</span><b>공구 상세 · 리포트</b><span>진행 숫자 · 확정 · 공장 링크</span><span class="cnt">화면 7 · 파일 3</span></div>
+      <div class="ov" style="--c:var(--l3)"><span class="n">레인 3</span><b>홈 · 목록 · 설정</b><span>판매자 앱 틀 + 운영자 목록</span><span class="cnt">화면 9 · 파일 5</span></div>
+      <div class="ov" style="--c:var(--l4)"><span class="n">레인 4</span><b>수요 레이더 · 판정표 · 설치</b><span>수집 · 4주 판정 · 카페24 진입</span><span class="cnt">화면 10 · 파일 6</span></div>
+      <div class="ov" style="--c:var(--l5)"><span class="n">레인 5</span><b>고객 위젯 · 문자</b><span>widget.js 한 파일 · PR #4 머지 후</span><span class="cnt">화면 15 + 공개 4</span></div>
+    </div>
+  </section>
+
+  <!-- ===== 레인 ===== -->
+  <section id="lanes">
+    <div class="sec-h"><h2>레인 5개</h2><p>"내 파일"은 이 레인만 고치는 파일이에요. "같이 쓰는 파일"은 다른 레인도 고칠 수 있으니 고치기 전에 작업카드 메모로 알리고, 가능하면 작은 PR로 먼저 올려요.</p></div>
+
+    <article class="lane" style="--c:var(--l1)"><div class="bar"></div><div class="in">
+      <div class="lane-h"><span class="n">레인 1</span><h3>공구 개설</h3><span class="who">담당 <b>김혜수</b> · tkr020683</span></div>
+      <p class="why">판매자 "새 공구" 탭과 운영자 "새 공구" 탭은 같은 두 부품(radar-picker, campaign-form)을 써요. 한 사람이 맡아야 판매자 쪽 고친 게 운영자 쪽을 깨뜨리지 않아요.</p>
+      <div class="grid2">
+        <div class="blk"><h4>내 파일</h4><div class="files"><code class="own">console/radar-picker.tsx</code><code class="own">console/campaign-form.tsx</code><code class="own">lib/core/campaign.ts</code><code>api/admin/malls/[mall]/campaigns/*</code><code>api/seller/campaigns (생성)</code></div></div>
+        <div class="blk"><h4>화면 6개</h4><ul class="scr">
+          <li><span class="k">new-pick</span><span>새 공구 ① 상품 고르기<span class="pid">S-04</span><span class="pid">S-05</span></span></li>
+          <li><span class="k">new-terms</span><span>새 공구 ② 조건 정하기<span class="pid">S-06</span><span class="pid">S-07</span></span></li>
+          <li><span class="k">new-preview</span><span>미리보기와 공구 열기<span class="pid">S-08</span></span></li>
+          <li><span class="k">admin-new-*</span><span>운영자 새 공구 ①·②·미리보기 (같은 부품)</span></li>
+        </ul></div>
+        <div class="blk"><h4>첫 PR 후보</h4><ol class="first">
+          <li>결제 기간 24시간 옵션 넣기 또는 기획서에서 빼기<span class="q">정할 것 1</span></li>
+          <li>미리보기에 예상 문자비 표시<span class="q">정할 것 8</span></li>
+          <li>찜 회원 100명 한계 때 "일부만 확인됐어요" 안내<span class="q">정할 것 14</span></li>
+          <li>S-07 업종 추천 카드 기본값 (F16)</li>
+        </ol></div>
+        <div class="blk"><h4>같이 쓰는 파일</h4><div class="care"><b>lib/radar.ts</b>는 레인 4(수요 레이더)와 같이 써요. 상품 표의 정렬·수집 로직을 바꾸려면 레인 4에 먼저 말해요. <code>engine/campaigns.ts</code>는 공용.</div></div>
+      </div>
+    </div></article>
+
+    <article class="lane" style="--c:var(--l2)"><div class="bar"></div><div class="in">
+      <div class="lane-h"><span class="n">레인 2</span><h3>공구 상세 · 리포트</h3><span class="who">담당 <b>강민서</b> · GitHub ID 확인 예정</span></div>
+      <p class="why">공구 하나의 숫자(초대 → 신청 → 쿠폰 → 결제)와 확정 결과를 보여 주는 곳이에요. 판매자·운영자 상세는 campaign-detail 한 부품이고, 공장에 보내는 리포트 링크도 같은 계산(report.ts)을 써요.</p>
+      <div class="grid2">
+        <div class="blk"><h4>내 파일</h4><div class="files"><code class="own">console/campaign-detail.tsx</code><code class="own">app/r/[token]/page.tsx</code><code class="own">lib/engine/report.ts</code><code>api/*/campaigns/[id]/decision</code><code>api/admin/campaigns/[id]/judge · reconcile</code></div></div>
+        <div class="blk"><h4>화면 7개</h4><ul class="scr">
+          <li><span class="k">campaign-detail</span><span>공구 상세 · 진행 중<span class="pid">S-09</span><span class="pid">S-10</span></span></li>
+          <li><span class="k">campaign-detail-settled</span><span>확정 + 생산 결정 기록<span class="pid">S-11</span></span></li>
+          <li><span class="k">admin-detail / -messages / -settled</span><span>운영자 상세 3상태 (판정·대사 버튼, 문자 다시 보내기, 확인할 일)</span></li>
+          <li><span class="k">report-progress / -settled</span><span>리포트 공유 페이지 2상태</span></li>
+        </ul></div>
+        <div class="blk"><h4>첫 PR 후보</h4><ol class="first">
+          <li>S-09 진행 막대 · D-day를 상세에도 표시</li>
+          <li>미달 때 판매자 동작 ("그래도 진행" 또는 안내만)<span class="q">정할 것 5</span></li>
+          <li>S-11 결제 완료 · 미결제 · 확정 매출을 판매자 상세에 넣을지<span class="q">정할 것 17</span></li>
+          <li>쿠폰 유효기간 정책(결제 기간과 같게 vs +24시간)<span class="q">정할 것 3</span></li>
+        </ol></div>
+        <div class="blk"><h4>같이 쓰는 파일</h4><div class="care"><b>engine/judge.ts · engine/messages.ts</b>는 레인 5(문자)와 같이 써요. 문자 표의 상태 표시만 고치면 괜찮고, 문자 내용·발송 시점을 바꾸는 건 레인 5 몫이에요.</div></div>
+      </div>
+    </div></article>
+
+    <article class="lane" style="--c:var(--l3)"><div class="bar"></div><div class="in">
+      <div class="lane-h"><span class="n">레인 3</span><h3>홈 · 목록 · 설정</h3><span class="who">담당 <b>하유정</b> · aksla2013</span></div>
+      <p class="why">판매자 앱의 틀(첫 화면, 홈, 상단바, 탭)과 목록·설정 부품이에요. 운영자 목록과 쇼핑몰 정보 카드도 같은 부품이라 함께 맡아요. 화면 수는 많지만 하나하나는 작아요.</p>
+      <div class="grid2">
+        <div class="blk"><h4>내 파일</h4><div class="files"><code class="own">app/page.tsx</code><code class="own">components/app-bar.tsx</code><code class="own">console/campaign-list.tsx</code><code class="own">console/profile-card.tsx</code><code class="own">campaigns/seller-console.tsx</code><code>admin/admin-client.tsx (탭·목록)</code><code>api/seller/profile</code></div></div>
+        <div class="blk"><h4>화면 9개</h4><ul class="scr">
+          <li><span class="k">seller-landing</span><span>로그인 전 첫 화면<span class="pid">S-E3</span></span></li>
+          <li><span class="k">seller-home-start / seller-home</span><span>홈 2상태<span class="pid">S-02</span><span class="pid">S-03</span></span></li>
+          <li><span class="k">campaign-list / -empty</span><span>내 공구 목록 · 빈 상태<span class="pid">S-12</span><span class="pid">S-E1</span></span></li>
+          <li><span class="k">shop-settings</span><span>쇼핑몰 설정<span class="pid">S-13</span></span></li>
+          <li><span class="k">admin-list / -empty / admin-profile</span><span>운영자 목록 · 빈 상태 · 쇼핑몰 정보 카드</span></li>
+        </ul></div>
+        <div class="blk"><h4>첫 PR 후보</h4><ol class="first">
+          <li>S-12 "진행 중 / 완료" 탭과 D-day</li>
+          <li>S-E3 "카페24 연결이 끊겼어요 · 다시 연결" 화면<span class="q">정할 것 6</span></li>
+          <li>S-01 설치 시작(권한 설명) 화면을 만들지, 홈 접힘 목록으로 둘지</li>
+          <li>홈 칩 "모집 중"과 목록 칩 "진행 중" 이름 통일</li>
+        </ol></div>
+        <div class="blk"><h4>같이 쓰는 파일</h4><div class="care"><b>admin/admin-client.tsx</b>는 레인 4(4주 판정표 탭)와 같이 써요. 탭 구조를 바꾸면 레인 4에 먼저 말해요. <code>console/provider.tsx</code>는 공용.</div></div>
+      </div>
+    </div></article>
+
+    <article class="lane" style="--c:var(--l4)"><div class="bar"></div><div class="in">
+      <div class="lane-h"><span class="n">레인 4</span><h3>수요 레이더 · 판정표 · 설치</h3><span class="who">담당 <b>김보성</b> · bobo33772 · 저장소 관리자</span></div>
+      <p class="why">화면보다 서버 쪽 일이 많은 레인이에요. 수요 수집(radar), 4주 판정표(score-tab), 카페24 앱 실행·권한 동의·설치 경로, 정기 작업(scheduler)과 개인정보 파기(retention)를 맡아요.</p>
+      <div class="grid2">
+        <div class="blk"><h4>내 파일</h4><div class="files"><code class="own">app/radar/*</code><code class="own">lib/radar.ts</code><code class="own">api/v1/demand/*</code><code class="own">console/score-tab.tsx</code><code class="own">api/admin/scorecard</code><code class="own">api/cafe24/launch · callback · install</code><code>api/admin/login</code><code>engine/scheduler.ts</code><code>engine/retention.ts</code></div></div>
+        <div class="blk"><h4>화면 10개</h4><ul class="scr">
+          <li><span class="k">radar-intro / -collecting / -result</span><span>수요 레이더 3상태<span class="pid">S-04</span><span class="pid">S-E2</span></span></li>
+          <li><span class="k">radar-reach-sheet</span><span>상품 도달 시트<span class="pid">S-05</span></span></li>
+          <li><span class="k">admin-score</span><span>4주 판정표</span></li>
+          <li><span class="k">admin-login</span><span>운영자 로그인</span></li>
+          <li><span class="k">app-launch / oauth-callback / install-direct / install-errors</span><span>카페24 진입 자동 분기 · 설치 링크 · 오류 응답<span class="pid">S-01</span></span></li>
+        </ul></div>
+        <div class="blk"><h4>첫 PR 후보</h4><ol class="first">
+          <li>설치 직후 자동 첫 수집 · 매일 새벽 갱신<span class="q">정할 것 7</span></li>
+          <li>판정표 "보완" 규칙과 개인정보 0건 줄<span class="q">정할 것 10 · 11</span></li>
+          <li>S-05 추천 목표 수량 · 8주 추이<span class="q">정할 것 8</span></li>
+          <li>운영자 접근 기록 범위 · 탈퇴 웹훅 즉시 파기<span class="q">정할 것 12 · 13</span></li>
+        </ol></div>
+        <div class="blk"><h4>같이 쓰는 파일</h4><div class="care"><b>lib/radar.ts</b>는 레인 1(상품 고르기 표)이 읽어요. 반환 모양을 바꾸면 레인 1에 먼저 말해요. 판정표 계산은 <code>engine/report.ts</code>(레인 2)에 있어서 판정 규칙을 고칠 땐 레인 2와 같이 봐요.</div></div>
+      </div>
+    </div></article>
+
+    <article class="lane" style="--c:var(--l5)"><div class="bar"></div><div class="in">
+      <div class="lane-h"><span class="n">레인 5</span><h3>고객 위젯 · 문자</h3><span class="who">담당 <b>이규현</b> · hybrid633</span></div>
+      <p class="why">고객 화면 12개가 전부 <code>public/widget.js</code> 한 파일이라 두 사람이 나눌 수 없어요. 이 파일을 만들었고 PR #4로 크게 고친 이규현(hybrid633)이 그대로 맡는 게 가장 안전해요. 고객 문자 3종과 데모 쇼핑몰도 같은 흐름이라 함께 맡아요.</p>
+      <div class="grid2">
+        <div class="blk"><h4>내 파일</h4><div class="files"><code class="own">public/widget.js</code><code class="own">api/public/*</code><code class="own">engine/alerts.ts</code><code class="own">engine/pledges.ts</code><code class="own">core/messaging.ts</code><code>engine/judge.ts (문자 부분)</code><code>app/demo/*</code><code>lib/demo.ts</code><code>app/privacy · terms</code></div></div>
+        <div class="blk"><h4>화면 15개 + 공개 4개</h4><ul class="scr">
+          <li><span class="k">widget-alert / -alert-done</span><span>공구 없음 · 알림 신청 (PR #4)</span></li>
+          <li><span class="k">widget-open / -login / -form / -pledged / -error</span><span>모집 중 흐름<span class="pid">C-02</span><span class="pid">C-03</span><span class="pid">C-04</span><span class="pid">C-05</span><span class="pid">C-E1</span></span></li>
+          <li><span class="k">widget-reached-* / -failed / -settled</span><span>달성 3상태 · 미달 · 종료<span class="pid">C-07</span><span class="pid">C-09</span></span></li>
+          <li><span class="k">sms-invite / sms-result-*</span><span>초대 · 결과 문자<span class="pid">C-01</span><span class="pid">C-07</span><span class="pid">C-09</span></span></li>
+          <li><span class="k">demo-guide / demo-shop / privacy / terms</span><span>데모 안내 · 데모 상품 페이지 · 약관 2종</span></li>
+        </ul></div>
+        <div class="blk"><h4>첫 PR 후보</h4><ol class="first">
+          <li>PR #4 머지 전: 결제 마감 전 알림 문자 (widget.js 안 건드림)<span class="q">정할 것 2</span></li>
+          <li>C-04 고지 문구: 결제 기간 시간과 할인액을 위젯에 표시<span class="q">정할 것 9</span></li>
+          <li>C-06 고객 "내 공구" 페이지를 만들지, 위젯 기준으로 기획서를 고칠지<span class="q">정할 것 4</span></li>
+          <li>가입 직후 계정 신청의 검토 표시<span class="q">정할 것 18</span></li>
+        </ol></div>
+        <div class="blk"><h4>시작 조건</h4><div class="gate"><b>widget.js 작업은 PR #4가 머지된 뒤</b> 시작해요. 그 전에는 문자(engine) 쪽 일을 먼저 해요. PR #4 리뷰는 레인 3 담당 하유정이 맡아요(아래 순서 1번).</div></div>
+      </div>
+    </div></article>
+  </section>
+
+  <!-- ===== 공용 ===== -->
+  <section id="shared">
+    <div class="sec-h"><h2>공용 파일 규칙</h2><p>어느 레인에도 속하지 않는 파일이에요. 여기를 고치는 PR이 충돌의 대부분을 만들어요.</p></div>
+    <div class="rules">
+      <div class="rule"><b>공용 파일 목록</b><span><code>console/provider.tsx</code> · <code>console/types.ts</code> · <code>console/format.ts</code> · <code>db/schema.ts</code> + <code>drizzle/</code> · <code>engine/campaigns.ts</code> · <code>lib/core/*</code> · <code>globals.css</code> · <code>lib/console-actions.ts</code></span></div>
+      <div class="rule"><b>작게, 먼저, 따로</b><span>공용 파일만 바꾸는 작은 PR을 먼저 올려 머지한 뒤, 그 위에서 내 화면 PR을 이어요. 화면 PR 안에 공용 파일 변경을 섞지 않아요.</span></div>
+      <div class="rule"><b>알리고 체크하기</b><span>고치기 전에 작업카드 메모에 "types.ts에 X 필드 추가 예정"처럼 적고, PR 신청서의 "같이 쓰는 파일" 체크박스를 체크해요.</span></div>
+      <div class="rule"><b>DB 구조(schema · drizzle)</b><span>한 번에 한 PR만. 정본에 합친 뒤에 운영 DB에 반영해요. 같은 주에 두 레인이 schema를 고쳐야 하면 한 PR로 합쳐요.</span></div>
+      <div class="rule"><b>리뷰 짝</b><span>내 PR은 다음 번호 레인이 봐요. 서로의 경계 파일을 아는 사람이 리뷰하게 돼요.</span><span class="pair"><i>1→2</i><i>2→3</i><i>3→4</i><i>4→5</i><i>5→1</i></span></div>
+      <div class="rule"><b>매일 pull</b><span>작업 시작 전 <code>git switch main && git pull</code> 뒤 브랜치를 만들고, 오래 가는 브랜치는 이틀에 한 번 <code>git merge origin/main</code>으로 정본을 받아요.</span></div>
+    </div>
+  </section>
+
+  <!-- ===== 결정 ===== -->
+  <section id="decisions">
+    <div class="sec-h"><h2>팀이 정할 것 18개의 담당</h2><p>작업카드 "팀이 정할 것"을 레인에 붙였어요. 담당 레인이 안을 내고, 첫 회의에서 한 번에 정해요. 결정이 나야 첫 PR을 시작할 수 있는 항목에는 ●를 붙였어요.</p></div>
+    <div class="tblwrap"><table>
+      <thead><tr><th>#</th><th>정할 것</th><th>담당</th><th>첫 PR에 필요</th></tr></thead>
+      <tbody>
+        <tr><td class="num">1</td><td>결제 기간 24시간 옵션: 구현에 넣을지, 기획서에서 뺄지</td><td><span class="lt" style="--c:var(--l1)">레인 1</span></td><td>●</td></tr>
+        <tr><td class="num">2</td><td>결제 마감 전 알림 문자: 4주 안에 만들지, Go 이후로 미룰지</td><td><span class="lt" style="--c:var(--l5)">레인 5</span></td><td>●</td></tr>
+        <tr><td class="num">3</td><td>쿠폰 유효기간: 결제 기간과 같게 vs +24시간 열고 늦은 결제 제외</td><td><span class="lt" style="--c:var(--l2)">레인 2</span></td><td>●</td></tr>
+        <tr><td class="num">4</td><td>고객 "내 공구" 페이지(C-06 · C-E2): 만들지, 위젯 기준으로 기획서 수정</td><td><span class="lt" style="--c:var(--l5)">레인 5</span></td><td></td></tr>
+        <tr><td class="num">5</td><td>미달 시 "그래도 진행": 넣을지, 기획서에서 뺄지</td><td><span class="lt" style="--c:var(--l2)">레인 2</span></td><td>●</td></tr>
+        <tr><td class="num">6</td><td>판매자용 오류 안내(S-E3): "다시 연결" 화면과 판매자 알림</td><td><span class="lt" style="--c:var(--l3)">레인 3</span></td><td>●</td></tr>
+        <tr><td class="num">7</td><td>수요 레이더 자동 수집 vs 수동 버튼</td><td><span class="lt" style="--c:var(--l4)">레인 4</span></td><td>●</td></tr>
+        <tr><td class="num">8</td><td>S-05 추천 목표 수량 · 8주 추이, S-08 예상 문자비</td><td><span class="lt" style="--c:var(--l4)">레인 4</span> <span class="lt" style="--c:var(--l1)">레인 1</span></td><td></td></tr>
+        <tr><td class="num">9</td><td>위젯 신청 고지(C-04): 결제 기간 시간과 할인액 표시</td><td><span class="lt" style="--c:var(--l5)">레인 5</span></td><td>●</td></tr>
+        <tr><td class="num">10</td><td>4주 판정표 "보완" 규칙</td><td><span class="lt" style="--c:var(--l4)">레인 4</span></td><td></td></tr>
+        <tr><td class="num">11</td><td>판정표에 "개인정보 0건" 줄을 넣을지</td><td><span class="lt" style="--c:var(--l4)">레인 4</span></td><td></td></tr>
+        <tr><td class="num">12</td><td>운영자 접근 기록 범위</td><td><span class="lt" style="--c:var(--l4)">레인 4</span></td><td></td></tr>
+        <tr><td class="num">13</td><td>탈퇴 웹훅 즉시 파기를 파일럿 전에 만들지</td><td><span class="lt" style="--c:var(--l4)">레인 4</span></td><td></td></tr>
+        <tr><td class="num">14</td><td>찜 회원 100명 한계: 안내 문구와 기획서 "미해결" 표기</td><td><span class="lt" style="--c:var(--l1)">레인 1</span></td><td></td></tr>
+        <tr><td class="num">15</td><td>요금 숫자 불일치(기획서 v1.2 vs billing.ts)</td><td>관리자 · 전체 회의</td><td></td></tr>
+        <tr><td class="num">16</td><td>스토어 심사 시점(5주 차 vs 앞당김)</td><td>관리자 · 전체 회의</td><td></td></tr>
+        <tr><td class="num">17</td><td>판매자 공구 상세에 결제 완료 · 미결제 · 확정 매출을 넣을지</td><td><span class="lt" style="--c:var(--l2)">레인 2</span></td><td></td></tr>
+        <tr><td class="num">18</td><td>가입 직후 계정 신청의 검토 표시(어뷰징 규칙)</td><td><span class="lt" style="--c:var(--l5)">레인 5</span></td><td></td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- ===== 순서 ===== -->
+  <section id="order">
+    <div class="sec-h"><h2>진행 순서</h2><p>레인 5(위젯)만 PR #4 뒤에 시작하고, 나머지 넷은 바로 시작할 수 있어요.</p></div>
+    <ol class="steps">
+      <li class="step"><b>이번 주 · 문 열기<span class="when">김보성 · 하유정</span></b>
+        <ul>
+          <li>김보성(관리자): 팀원 4명 초대 수락 확인 → 보호 규칙 protect-main 켜기 (GitHub 안내서 4번)</li>
+          <li>하유정(레인 3): PR #4(알림 받기)를 Files changed에서 읽고 Approve → 이규현이 머지</li>
+          <li>모두: 작업카드에서 자기 레인 화면에 "내가 맡기" → 상태 "할 일"</li>
+        </ul></li>
+      <li class="step"><b>첫 회의 · 정할 것 결정<span class="when">1시간</span></b>
+        <p>위 표에서 ● 붙은 7개(1·2·3·5·6·7·9)를 먼저 정하고, 15·16은 관리자가 안을 가져와요. 나머지는 담당 레인이 제안하면 댓글로 정해요. 결정은 작업카드 "팀이 정할 것" 메모에 남겨요.</p></li>
+      <li class="step"><b>1~2주 차 · 레인별 첫 PR<span class="when">레인 1~4 바로 · 레인 5는 문자부터</span></b>
+        <ul>
+          <li>각 레인 "첫 PR 후보" 1번부터. 한 PR에 화면 하나, 브랜치 이름은 <code>feat/S-12-list-tabs</code>처럼</li>
+          <li>공용 파일이 필요하면 그 변경만 따로 먼저 올려요 (공용 파일 규칙)</li>
+          <li>레인 5: PR #4 머지 전에는 결제 마감 전 알림 문자(engine), 머지 후 widget.js 작업 시작</li>
+        </ul></li>
+      <li class="step"><b>3~4주 차 · 파일럿 준비</b>
+        <ul>
+          <li>레인 4: 판정표 규칙 확정, 접근 기록·파기 마무리</li>
+          <li>레인 2 + 레인 5: 마감 → 결과 문자 → 쿠폰 → 결제 → 확정까지 데모 모드에서 끝까지 한 번 돌려 보기</li>
+          <li>기획서 "고칠 문장" 반영은 각 레인이 자기 화면 머지할 때 같이</li>
+        </ul></li>
+    </ol>
+  </section>
+
+  <footer>
+    <div class="links">
+      <a href="https://claude.ai/artifact/Sddu5GmfiTmEoRMVpYceSL">GitHub 안내서</a>
+      <a href="https://claude.ai/artifact/UquFsh4VaNN8doNU4QT8Zo">작업카드</a>
+      <a href="https://github.com/bobo33772-blip/HOP/pulls">PR 목록</a>
+    </div>
+    <p>화면 수와 코드 위치는 2026-10-12 작업카드(PR #4 브랜치 @ec46ada) 기준이에요. 레인 2 담당 강민서의 GitHub ID는 확인되는 대로 채워요.</p>
+  </footer>
+</div>
