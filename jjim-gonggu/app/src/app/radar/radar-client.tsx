@@ -51,7 +51,7 @@ export default function RadarClient() {
   if (!data) return <><AppBar current="radar" /><main><h1>수요 레이더</h1><p className="muted">{error ?? "불러오는 중…"}</p></main></>;
 
   // 아직 완료된 수집이 없음: 첫 수집 화면(S-E2) 또는 시작 버튼
-  if (!data.run) {
+  if (!data.run && data.rows.length === 0) {
     const cur = data.current;
     return (
       <><AppBar current="radar" /><main>
@@ -80,7 +80,7 @@ export default function RadarClient() {
     <><AppBar current="radar" /><main>
       <h1>수요 레이더</h1>
       <p className="muted">
-        {when(data.run.finishedAt ?? data.run.startedAt)} 기준 · 상품 {data.run.total}개 확인
+        {data.run ? `${when(data.run.finishedAt ?? data.run.startedAt)} 기준 · 상품 ${data.run.total}개 확인` : "아직 수집 전이에요. 위젯의 공구 알림 신청만 보여요"}
         {running ? ` · 새로 수집 중 ${data.current!.done}/${data.current!.total}` : ""}
       </p>
       <div className="toolbar">

@@ -29,7 +29,7 @@ export function NewTab({ mall, say, onOpened }: { mall: string; say: (t: string)
         <div className="row"><h2 className="step-title"><span className="n">1</span>상품 고르기 <span className="small">{radar.privacy ? "알림 신청·찜·장바구니" : "알림 신청·장바구니"} 많은 순 상위 20개</span></h2>
           <button className="ghost" onClick={collect} disabled={running}>{running ? `수집 중 ${radar.current!.done}/${radar.current!.total}` : radar.run ? "다시 수집" : "관심 데이터 모으기"}</button></div>
         <p className="muted">{a.role === "admin" ? "판매자와 통화하며 함께 고르세요. 이 목록은 숫자만 있어 판매자에게 그대로 보여 줘도 괜찮아요." : "공구 알림 신청과 장바구니가 많은 상품부터 보여 드려요. 재생산을 고민 중인 상품을 골라 보세요."}{radar.run && ` · ${kst(radar.run.finishedAt ?? radar.run.startedAt)} 기준`}</p>
-        {!radar.run ? <p className="muted">{running ? "상품마다 하나씩 확인하는 중이에요. 상품이 많으면 몇 분에서 몇 시간 걸려요." : "아직 모은 데이터가 없어요. 위 버튼으로 시작하세요."}</p> : (
+        {!radar.run && radar.rows.length === 0 ? <p className="muted">{running ? "상품마다 하나씩 확인하는 중이에요. 상품이 많으면 몇 분에서 몇 시간 걸려요." : "아직 모은 데이터가 없어요. 위 버튼으로 시작하세요."}</p> : (
           <div className="tw"><table>
             <thead><tr><th>#</th><th>상품</th><th>정가</th><th>알림 신청</th>{radar.privacy && <th>찜</th>}<th>장바구니</th><th /></tr></thead>
             <tbody>{radar.rows.map((p, i) => (

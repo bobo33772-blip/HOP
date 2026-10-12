@@ -2,6 +2,7 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { getDb } from "@/db";
+import { getCtx } from "@/lib/server";
 import { requireSeller } from "@/lib/auth";
 import { getRadar, latestRun, type RadarSort } from "@/lib/radar";
 
@@ -13,6 +14,7 @@ export async function GET(req: NextRequest) {
   const q = req.nextUrl.searchParams.get("sort") as RadarSort | null;
   const sort = q && SORTS.includes(q) ? q : "total";
   const db = await getDb();
-  const [radar, current] = await Promise.all([getRadar(db, s.mallId, sort), latestRun(db, s.mallId)]);
+  const shop = await (await getCtx()).shop(s.mallId);
+  const [radar, current] = await Promise.all([getRadar(db, s.mallId, sort, 50, shop), latestRun(db, s.mallId)]);
   return NextResponse.json({ ...radar, current });
 }

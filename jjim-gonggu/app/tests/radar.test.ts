@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { createTestDb } from "@/db";
+import { eq } from "drizzle-orm";
+import { createTestDb, schema } from "@/db";
 import { MockCafe24, seedDemoMall, DEMO_MALL } from "@/lib/cafe24/mock";
 import type { ShopApi } from "@/lib/cafe24/api";
 import { systemClock } from "@/lib/time";
@@ -29,6 +30,30 @@ describe("수요 레이더", () => {
     const byCart = await getRadar(db, "m", "cart");
     expect(byCart.rows[0].productNo).toBe(102);
     expect(byCart.rows[1].productNo).toBe(101);
+  });
+
+  it("알림 신청만 있는 상품은 수집 전에도, 수집 결과에 없어도 상품 정보를 채워 보여 주고, 몰에 없는 상품 번호는 뺀다", async () => {
+    const db = await createTestDb();
+    const api = demoApi();
+    const at = new Date();
+    await db.insert(schema.productAlerts).values([
+      { mallId: "m", productNo: 103, memberId: "a1", createdAt: at },
+      { mallId: "m", productNo: 103, memberId: "a2", createdAt: at },
+      { mallId: "m", productNo: 999, memberId: "a3", createdAt: at }, // 몰에 없는 상품
+    ]);
+    const before = await getRadar(db, "m", "total", 50, api);
+    expect(before.run).toBeNull();
+    expect(before.rows).toHaveLength(1);
+    expect(before.rows[0]).toMatchObject({ productNo: 103, alert: 2, wishlist: 0, cart: 0 });
+    expect(before.rows[0].name.length).toBeGreaterThan(0);
+    expect(before.rows[0].price).toBeGreaterThan(0);
+
+    const { run } = await startCollection(db, "m");
+    await runCollection(db, api, "m", run.id);
+    await db.delete(schema.demandSnapshots).where(eq(schema.demandSnapshots.productNo, 103)); // 수집 뒤 추가된 상품처럼
+    const after = await getRadar(db, "m", "alert", 50, api);
+    expect(after.rows[0]).toMatchObject({ productNo: 103, alert: 2 });
+    expect(after.rows.map((r) => r.productNo)).not.toContain(999);
   });
 
   it("시간 제한(서버리스)으로 멈추면 진행 중으로 남고, 정기 작업이 이어서 끝낸다", async () => {

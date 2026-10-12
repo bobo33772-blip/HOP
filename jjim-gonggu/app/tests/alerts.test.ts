@@ -63,6 +63,18 @@ describe("공구 개설과 알림 신청", () => {
     expect(env.world.smsLog[0].memberIds).toContain("m2");
   });
 
+  it("개인정보 권한이 있는 몰: 수신 동의가 없어 초대에서 빠진 알림 신청은 지우지 않는다", async () => {
+    const env = await setup(); // privacy=true, 짝수 회원만 수신 동의
+    await requestAlert(env.ctx, MALL, PRODUCT, tok(env, "m1"));
+    await requestAlert(env.ctx, MALL, PRODUCT, tok(env, "m2"));
+    const { campaign } = await openCampaign(env.ctx, "op", MALL, baseInput(env.clock));
+    const inv = await env.db.select().from(schema.invitations).where(eq(schema.invitations.campaignId, campaign.id));
+    expect(inv.find((i) => i.memberId === "m2")?.source).toBe("alert");
+    expect(inv.find((i) => i.memberId === "m1")).toBeUndefined();
+    const left = await env.db.select().from(schema.productAlerts);
+    expect(left.map((a) => a.memberId)).toEqual(["m1"]);
+  });
+
   it("장바구니 고객이 없어도 알림 신청만으로 공구를 열 수 있다", async () => {
     const env = await noPrivacy();
     await requestAlert(env.ctx, MALL, 103, tok(env, "m4"));

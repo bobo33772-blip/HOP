@@ -140,8 +140,12 @@ export async function openCampaign(ctx: Ctx, actor: string, mallId: string, inpu
       for (let i = 0; i < pv.aud.members.length; i += 500) {
         await tx.insert(schema.invitations).values(pv.aud.members.slice(i, i + 500).map((m) => ({ campaignId: c.id, memberId: m.memberId, source: m.source })));
       }
-      // 알림 신청은 이번 초대로 이뤄졌으니 지운다 (공구가 끝난 뒤 다시 원하면 위젯에서 새로 신청)
-      await tx.delete(schema.productAlerts).where(and(eq(schema.productAlerts.mallId, mallId), eq(schema.productAlerts.productNo, pv.product.productNo)));
+      // 초대된 회원의 알림 신청은 이번 초대로 이뤄졌으니 지운다 (공구가 끝난 뒤 다시 원하면 위젯에서 새로 신청).
+      // 수신 동의가 없어 초대에서 빠진 회원의 신청은 남겨 둔다 — 위젯에서 자기 상태를 보고 취소할 수 있고, 보관 기간 뒤 파기된다
+      for (let i = 0; i < pv.aud.members.length; i += 500) {
+        await tx.delete(schema.productAlerts).where(and(eq(schema.productAlerts.mallId, mallId), eq(schema.productAlerts.productNo, pv.product.productNo),
+          inArray(schema.productAlerts.memberId, pv.aud.members.slice(i, i + 500).map((m) => m.memberId))));
+      }
       await tx.insert(schema.messages).values({ campaignId: c.id, kind: "invite_ad", recipients: pv.aud.members.map((m) => m.memberId), content: pv.message, sendAfter: sendAt });
       await tx.insert(schema.auditLogs).values({ at: now, actor, action: "campaign.open", target: c.id, mallId, detail: { ...input, couponNo, invited: pv.aud.members.length } });
       return c;

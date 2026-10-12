@@ -44,7 +44,8 @@ export async function saveMallProfile(ctx: Ctx, actor: string, mallId: string, b
 /** 찜 많은 상위 20개 상품 (마지막 완료 수집) + 진행 중 수집 상태 */
 export async function radarState(ctx: Ctx, mallId: string) {
   await getMall(ctx, mallId);
-  const [radar, current, api] = await Promise.all([getRadar(ctx.db, mallId, "total", 20), latestRun(ctx.db, mallId), ctx.shop(mallId)]);
+  const api = await ctx.shop(mallId);
+  const [radar, current] = await Promise.all([getRadar(ctx.db, mallId, "total", 20, api), latestRun(ctx.db, mallId)]);
   return { ...radar, current, privacy: api.privacy };
 }
 
