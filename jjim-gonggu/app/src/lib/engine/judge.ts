@@ -98,7 +98,6 @@ async function queueReminder(ctx: Ctx, c: Campaign, to: string[], brand: string)
   if (!c.payUntil) return;
   const sendAfter = nextAllowedSendTime(new Date(c.payUntil.getTime() - REMINDER_BEFORE_MS));
   if (sendAfter >= c.payUntil) return;
-  const content = `[${brand}] ${c.productName} 공동구매 결제 기한이 ${fmtKst(c.payUntil)}까지예요. 넣어 드린 쿠폰으로 기한 안에 결제해야 공구가로 확정돼요.
-${ctx.productUrl(c.mallId, c.productNo)}`;
+  const content = `[${brand}] ${c.productName} 공동구매 결제 기한이 ${fmtKst(c.payUntil)}까지예요. 넣어 드린 쿠폰으로 기한 안에 결제해야 공구가로 확정돼요.\n${ctx.productUrl(c.mallId, c.productNo)}`;
   await ctx.db.insert(schema.messages).values({ campaignId: c.id, kind: "pay_reminder", recipients: to, content, sendAfter });
 }
