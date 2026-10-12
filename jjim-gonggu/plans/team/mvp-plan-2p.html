@@ -1,0 +1,550 @@
+<title>찜꽁 MVP 기획서</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one 1080px reading column. 목차 → 한 장 요약 → 용어 → 흐름 그림 → 구조 그림 → 구현 정도 → 2인 분담 → 4주 일정 → 성공 기준 → 결정 7개 → 리스크. 큰 그림은 각자 figure 안에서 가로 스크롤. */
+:root{
+  --bg:#F6F4F1; --surface:#FFFFFF; --soft:#EEEAE4; --line:#DCD6CD;
+  --fg:#1F1B17; --fg2:#524A41; --muted:#7A7066;
+  --brand:#E0325A;   /* 찜꽁 분홍 · 고객·공구 */
+  --seller:#2F5BEA;  /* 판매자 */
+  --sys:#6A4FC0;     /* 찜꽁 서버·자동 */
+  --cafe:#B87400;    /* 카페24 */
+  --ok:#0E8A62; --warn:#B23A0A; --todo:#8A8178;
+  --sans:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:12px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#17130F; --surface:#211C17; --soft:#2B251F; --line:#3B342C;
+  --fg:#F0EAE2; --fg2:#BDB3A7; --muted:#8F857A;
+  --brand:#FF6B8A; --seller:#86A2F8; --sys:#B79BF2; --cafe:#F0B54D;
+  --ok:#3CCB9A; --warn:#FB8E5E; --todo:#9A9087;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17130F; --surface:#211C17; --soft:#2B251F; --line:#3B342C;
+  --fg:#F0EAE2; --fg2:#BDB3A7; --muted:#8F857A;
+  --brand:#FF6B8A; --seller:#86A2F8; --sys:#B79BF2; --cafe:#F0B54D;
+  --ok:#3CCB9A; --warn:#FB8E5E; --todo:#9A9087;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15.5px;line-height:1.7;word-break:keep-all;overflow-wrap:anywhere}
+h1,h2,h3,h4{margin:0;line-height:1.3;text-wrap:balance}
+p,ul,ol,figure,dl,dd{margin:0}
+a{color:var(--seller);text-underline-offset:3px}
+code{font-family:var(--mono);font-size:.88em;background:var(--soft);padding:1px 5px;border-radius:5px}
+img{max-width:100%;display:block}
+.page{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:32px 72px;display:grid;gap:56px}
+.page>*{min-width:0}
+.eyebrow{font-size:12.5px;font-weight:600;letter-spacing:.06em;color:var(--muted)}
+
+/* header */
+.top{display:grid;gap:16px}
+.top h1{font-size:clamp(30px,5vw,44px);letter-spacing:-.025em}
+.lead{font-size:18.5px;max-width:44em}
+.lead b{color:var(--brand)}
+.hero{border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#EEF1FA}
+.meta{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted)}
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--bg);border-bottom:1px solid var(--line);padding-block:10px;display:flex;flex-wrap:wrap;gap:8px}
+.nav a{font-size:13.5px;font-weight:600;color:var(--fg2);text-decoration:none;border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:4px 12px}
+.nav a:hover{border-color:var(--fg2);color:var(--fg)}
+section{display:grid;gap:20px;scroll-margin-top:64px}
+.sec-h{display:grid;gap:6px}
+.sec-h .eyebrow{color:var(--brand)}
+.sec-h h2{font-size:clamp(23px,3.4vw,29px);letter-spacing:-.015em}
+.sec-h p{color:var(--fg2);max-width:48em}
+.note{font-size:14px;color:var(--fg2);max-width:52em}
+
+/* one-thing */
+.one{background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--brand);border-radius:0 var(--r) var(--r) 0;padding:20px 24px;display:grid;gap:10px}
+.one .big{font-size:clamp(20px,3vw,26px);font-weight:700;line-height:1.35}
+.one p{color:var(--fg2);max-width:50em}
+.facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.fact{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:grid;gap:4px;align-content:start;min-width:0}
+.fact b{font-size:26px;font-family:var(--mono);font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}
+.fact span{font-size:14px;font-weight:600}
+.fact small{font-size:12.5px;color:var(--fg2)}
+
+/* glossary */
+.gloss{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.term{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:grid;gap:4px;align-content:start;min-width:0}
+.term dt{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.term .ko{font-weight:700;font-size:16px}
+.term .en{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.term .like{font-size:14.5px}
+.term .like::before{content:"쉽게 ";font-size:12px;font-weight:700;color:var(--brand);margin-right:2px}
+.term .real{font-size:14px;color:var(--fg2)}
+.term .real::before{content:"정확히 ";font-size:12px;font-weight:700;color:var(--muted);margin-right:2px}
+
+/* figures */
+figure{display:grid;gap:10px}
+.frame{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow-x:auto;padding:14px}
+.frame svg{display:block;width:100%;height:auto}
+.frame.wide svg{min-width:860px}
+figcaption{font-size:14px;color:var(--fg2);max-width:56em}
+.swipe{display:none;font-size:12.5px;color:var(--muted)}
+svg text{font-family:var(--sans)}
+.tt{font-size:14px;font-weight:700;fill:var(--fg)}
+.ts{font-size:12.5px;fill:var(--fg2)}
+.tx{font-size:11.5px;fill:var(--muted)}
+.tm{font-family:var(--mono);font-size:11.5px;fill:var(--fg2)}
+.tl{font-size:12.5px;font-weight:700}
+.lane-l{font-size:12.5px;font-weight:700}
+.box{fill:var(--surface);stroke:var(--fg2);stroke-width:1.4}
+.box-seller{stroke:var(--seller)} .box-cust{stroke:var(--brand)} .box-sys{stroke:var(--sys)} .box-cafe{stroke:var(--cafe);stroke-dasharray:5 4}
+.fill-seller{fill:color-mix(in srgb,var(--seller) 10%,var(--surface))}
+.fill-cust{fill:color-mix(in srgb,var(--brand) 10%,var(--surface))}
+.fill-sys{fill:color-mix(in srgb,var(--sys) 10%,var(--surface))}
+.fill-cafe{fill:color-mix(in srgb,var(--cafe) 10%,var(--surface))}
+.laneband{fill:var(--soft);opacity:.55}
+.ln{stroke:var(--fg2);stroke-width:1.6;fill:none}
+.ln-money{stroke:var(--ok);stroke-width:2.4;fill:none}
+.ln-dash{stroke:var(--fg2);stroke-width:1.4;fill:none;stroke-dasharray:4 4}
+.mk{fill:var(--fg2)} .mk-money{fill:var(--ok)}
+.t-seller{fill:var(--seller)} .t-cust{fill:var(--brand)} .t-sys{fill:var(--sys)} .t-cafe{fill:var(--cafe)} .t-ok{fill:var(--ok)} .t-warn{fill:var(--warn)}
+.bar-bg{fill:var(--soft)} .bar-done{fill:var(--ok)} .bar-part{fill:var(--cafe)} .bar-todo{fill:var(--todo)}
+.wk{fill:var(--soft);stroke:var(--line)}
+.gbar{rx:5}
+.g-code{fill:var(--sys)} .g-ops{fill:var(--cafe)} .g-both{fill:var(--brand)}
+.today{stroke:var(--brand);stroke-width:2;stroke-dasharray:3 3}
+
+/* shots */
+.shots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.shot{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:grid;grid-template-rows:auto 1fr;min-width:0}
+.shot img{width:100%;height:220px;object-fit:cover;object-position:top}
+.shot div{padding:10px 14px;font-size:13.5px;color:var(--fg2)}
+.shot b{display:block;color:var(--fg);font-size:14.5px}
+
+/* status table */
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:700px}
+th{text-align:left;font-size:12.5px;font-weight:600;color:var(--fg2);background:var(--soft);padding:9px 12px;white-space:nowrap}
+td{padding:9px 12px;border-top:1px solid var(--line);vertical-align:top}
+td.id{font-family:var(--mono);font-size:12px;color:var(--muted);white-space:nowrap}
+.chip{display:inline-block;font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:99px;white-space:nowrap}
+.c-done{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
+.c-part{background:color-mix(in srgb,var(--cafe) 18%,transparent);color:var(--cafe)}
+.c-todo{background:color-mix(in srgb,var(--todo) 18%,transparent);color:var(--todo)}
+.c-risk{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn)}
+.sum3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.sum3 .fact b{font-size:22px}
+.meter{height:10px;border-radius:5px;background:var(--soft);overflow:hidden;display:flex}
+.meter i{display:block;height:100%}
+
+/* split */
+.split{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.person{background:var(--surface);border:1px solid var(--line);border-top:5px solid var(--c);border-radius:var(--r);padding:18px 20px;display:grid;gap:12px;min-width:0}
+.person h3{font-size:19px;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline}
+.person h3 small{font-family:var(--mono);font-size:12px;color:var(--muted);font-weight:500}
+.person .role{font-size:14px;color:var(--c);font-weight:700}
+.person ul{padding-left:18px;display:grid;gap:5px;font-size:14.5px}
+.person .files{display:flex;flex-wrap:wrap;gap:5px}
+.person .files code{font-size:11.5px;border:1px solid var(--line);background:var(--surface)}
+.rules{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.rule{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:grid;gap:4px;align-content:start;min-width:0}
+.rule b{font-size:15px}
+.rule span{font-size:13.5px;color:var(--fg2)}
+
+/* weeks */
+.weeks{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.week{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:grid;gap:8px;align-content:start;min-width:0}
+.week .n{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--brand)}
+.week h3{font-size:16px}
+.week ul{padding-left:18px;display:grid;gap:4px;font-size:13.5px;color:var(--fg2)}
+.week .done{border-top:1px dashed var(--line);padding-top:8px;font-size:13px}
+.week .done b{color:var(--ok)}
+
+/* decisions */
+.decs{display:grid;gap:10px}
+.dec{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:grid;grid-template-columns:34px minmax(0,1fr);gap:4px 12px;min-width:0}
+.dec .n{grid-row:span 3;width:30px;height:30px;border-radius:50%;background:var(--fg);color:var(--surface);font:700 13px/30px var(--mono);text-align:center}
+.dec b{font-size:15.5px}
+.dec p{font-size:14px;color:var(--fg2)}
+.dec .pick{font-size:14px}
+.dec .pick::before{content:"제안 ";font-size:12px;font-weight:700;color:var(--brand)}
+.risks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:18px;display:grid;gap:8px}
+.links{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px}
+
+@media (max-width:900px){.facts{grid-template-columns:repeat(2,minmax(0,1fr))}.weeks{grid-template-columns:repeat(2,minmax(0,1fr))}.swipe{display:block}}
+@media (max-width:720px){.split,.rules,.risks,.sum3,.shots{grid-template-columns:minmax(0,1fr)}.shot img{height:200px}}
+@media (max-width:480px){.facts,.weeks,.gloss{grid-template-columns:minmax(0,1fr)}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+
+<div class="page">
+  <header class="top">
+    <div class="eyebrow">찜꽁 · MVP 기획서 v2 · 2인 체제 · 2026-10-12</div>
+    <h1>찜꽁 MVP 기획서</h1>
+    <p class="lead">쇼핑몰에서 <b>찜하거나 장바구니에 담아 둔 고객</b>을 모아, 목표 수량이 차면 할인가로 여는 <b>결제 없는 예약 공동구매</b>예요. 고객은 신청만 하고, 목표가 차면 쿠폰으로 결제하고, 판매자는 결제된 만큼만 만들어요. 이 문서는 이규현·김보성 두 명이 4주 안에 무엇을 끝내야 하는지와 지금 어디까지 만들어졌는지를 한 장에 담았어요.</p>
+    <div class="hero"><img src="images/hero.png" alt="찜(하트)이 모여 휴대폰 화면의 진행률이 차고, 그만큼 상품 상자가 되어 나가는 그림" width="1376" height="768"></div>
+    <div class="meta"><span>기준: 기획서 v1.1(10/7) · 로드맵(10/8) · 저장소 main ea319a0 · 작업카드(10/12)</span><span>팀: 이규현(hybrid633) · 김보성(bobo33772-blip)</span></div>
+  </header>
+
+  <nav class="nav" aria-label="이 문서의 부분">
+    <a href="#goal">1. 핵심 목표</a>
+    <a href="#words">2. 용어</a>
+    <a href="#flow">3. 흐름</a>
+    <a href="#arch">4. 구조</a>
+    <a href="#status">5. 구현 정도</a>
+    <a href="#team">6. 2인 분담</a>
+    <a href="#weeks">7. 4주 일정</a>
+    <a href="#success">8. 성공 기준</a>
+    <a href="#decisions">9. 정할 것</a>
+    <a href="#risks">10. 리스크</a>
+  </nav>
+
+  <!-- ===== 1 ===== -->
+  <section id="goal">
+    <div class="sec-h"><span class="eyebrow">1 · 핵심 목표</span><h2>4주 동안 딱 하나만 증명해요</h2><p>기능을 많이 만드는 게 목표가 아니에요. "이 방식이 실제로 돈과 생산으로 이어지는가"를 한 번 끝까지 보는 게 목표예요.</p></div>
+    <div class="one">
+      <div class="big">결제가 끝난 수량을 보고 생산(발주)을 결정한 홈리빙 판매자 1곳</div>
+      <p>찜한 고객이 결제 없이 신청하고 → 목표가 차서 실제로 돈을 내고 → 판매자가 그 숫자로 원단을 발주하거나 가마 일정을 잡는 일이 <b>한 번 끝까지</b> 일어나야 해요. 이걸 팀에서는 "원씽"이라고 불러요. 이 숫자가 나와야 투자자에게 보여 줄 첫 실측값이 생기고, 카페24 앱스토어 심사도 의미가 있어요.</p>
+    </div>
+    <div class="facts">
+      <div class="fact"><b>3몰 · 3건</b><span>파일럿 규모</span><small>설치한 홈리빙 몰 3곳에서 공구 3건 이상</small></div>
+      <div class="fact"><b>5일 + 72h</b><span>공구 1회 길이</span><small>모집 5일, 달성 후 결제 기간 72시간</small></div>
+      <div class="fact"><b>0원</b><span>우리가 받는 결제</span><small>결제는 판매자 쇼핑몰에서 쿠폰으로. 우리는 돈을 만지지 않아요</small></div>
+      <div class="fact"><b>0건</b><span>저장하는 개인정보</span><small>전화번호·이름·주소 없음. 회원 ID만 써요</small></div>
+    </div>
+    <p class="note">왜 이 목표인가: "스토어 출시 준비"나 "신청 수요만 확인"은 돈이 실제로 움직이는지 검증하지 못해요. 신청은 구속력이 없어서 신청 수만 보면 틀릴 수 있어요. 결제가 끝난 수량으로 판매자가 생산을 결정하는 것까지 봐야 가장 큰 불확실성이 줄어요.</p>
+  </section>
+
+  <!-- ===== 2 ===== -->
+  <section id="words">
+    <div class="sec-h"><span class="eyebrow">2 · 용어</span><h2>이 문서에서 쓰는 말 12개</h2><p>위에 "쉽게"는 비유, 아래 "정확히"는 코드와 기획서에서 쓰는 뜻이에요.</p></div>
+    <dl class="gloss">
+      <div class="term"><dt><span class="ko">찜 · 장바구니 고객</span><span class="en">wishlist · cart</span></dt><dd class="like">"살까 말까" 하며 상품을 담아 두고 떠난 손님</dd><dd class="real">카페24 API로 상품별 찜·장바구니 회원 목록을 받아요. 지금은 찜 조회 권한이 없어 장바구니 고객과 "알림 신청" 고객으로 동작해요.</dd></div>
+      <div class="term"><dt><span class="ko">공구</span><span class="en">campaign</span></dt><dd class="like">"30개 모이면 39,000원에 드릴게요"라는 약속 한 건</dd><dd class="real">상품 1개 + 목표 수량 + 공구가 + 마감 시각 + 결제 기간(48·72h) + 1인 한도 + 예상 출고일. 상태는 모집 중 → 달성/미달 → 확정.</dd></div>
+      <div class="term"><dt><span class="ko">수요 레이더</span><span class="en">radar</span></dt><dd class="like">어떤 상품에 손님 관심이 몰려 있는지 보는 레이더 화면</dd><dd class="real">상품별 찜·장바구니·알림 신청 수를 모아 상위 20~50개를 보여 줘요. 수집은 판매자가 버튼을 눌러 시작해요.</dd></div>
+      <div class="term"><dt><span class="ko">초대 문자</span><span class="en">invite_ad</span></dt><dd class="like">"공구 열렸어요, 신청해 보세요" 광고 문자</dd><dd class="real">수신동의자에게만, 맨 앞 (광고) 표기, 끝에 무료수신거부 번호, 밤 9시~아침 8시 발송 금지. 시스템이 강제해요.</dd></div>
+      <div class="term"><dt><span class="ko">신청</span><span class="en">pledge</span></dt><dd class="like">"저 2개 살게요" 손들기. 돈은 안 내요</dd><dd class="real">상품 페이지 위젯에서 로그인 회원만, 1인 한도 안에서. 마감 전까지 취소 가능. 신청 자체에는 구속력이 없어요.</dd></div>
+      <div class="term"><dt><span class="ko">마감 판정</span><span class="en">judge</span></dt><dd class="like">마감 시각에 "모였나 안 모였나" 심판 보기</dd><dd class="real">실제 마감 시각이 지나야 한 번만 판정. 신청 수량 ≥ 목표면 달성(reached), 아니면 미달(failed).</dd></div>
+      <div class="term"><dt><span class="ko">쿠폰</span><span class="en">coupon</span></dt><dd class="like">달성하면 신청한 사람에게만 주는 할인 티켓</dd><dd class="real">공구를 열 때 미리 만들어 두고, 달성 시 신청자에게 100명씩 발급. 그 회원만, 그 상품만, 1회만 쓸 수 있어요.</dd></div>
+      <div class="term"><dt><span class="ko">결제 기간</span><span class="en">pay window</span></dt><dd class="like">쿠폰 받고 결제할 수 있는 시간. 48 또는 72시간</dd><dd class="real">판정 시각부터 payWindowHours. 쿠폰 자체는 24시간 더 열려 있지만 기한 뒤 결제는 확정 수량에서 빠져요.</dd></div>
+      <div class="term"><dt><span class="ko">확정 수량</span><span class="en">settled qty</span></dt><dd class="like">진짜로 돈 낸 개수. 판매자가 이 숫자로 만들어요</dd><dd class="real">결제 기간 안에 공구 쿠폰으로 결제된 수량만. 입금 전·취소·기한 뒤 결제는 제외. 원씽의 숫자예요.</dd></div>
+      <div class="term"><dt><span class="ko">대사</span><span class="en">reconcile</span></dt><dd class="like">우리 장부와 카페24 주문 내역을 맞춰 보는 일</dd><dd class="real">쿠폰을 쓴 주문을 카페24에서 다시 읽어 웹훅 유실·취소를 바로잡아요. 결제 기간 중 매시, 매일 03시 전체.</dd></div>
+      <div class="term"><dt><span class="ko">위젯</span><span class="en">widget.js</span></dt><dd class="like">쇼핑몰 상품 페이지에 끼워 넣는 작은 "공구 진행 중" 상자</dd><dd class="real">스크립트 한 줄로 설치. 진행률·신청·취소·결과를 보여 줘요. 고객은 앱 설치 없이 쇼핑몰 안에서만 움직여요.</dd></div>
+      <div class="term"><dt><span class="ko">데모 모드</span><span class="en">CAFE24_MOCK=1</span></dt><dd class="like">가짜 쇼핑몰로 공구 한 번을 끝까지 눌러 보는 연습 모드</dd><dd class="real">모의 쇼핑몰(LINEN &amp; CO.)과 메모리 DB. 시간 넘기기 막대로 마감·결제·확정까지 몇 분 안에 봐요. 실제 문자·결제는 없어요.</dd></div>
+    </dl>
+  </section>
+
+  <!-- ===== 3 ===== -->
+  <section id="flow">
+    <div class="sec-h"><span class="eyebrow">3 · 흐름</span><h2>공구 한 건이 흘러가는 길</h2><p>판매자가 열고, 고객이 신청하고, 시스템이 판정하고, 달성하면 결제가 일어나요. 돈은 고객에서 판매자 쇼핑몰로 바로 가요.</p></div>
+    <figure>
+      <p class="swipe" aria-hidden="true">그림이 옆으로 길어요. 옆으로 밀어서 보세요 →</p>
+      <div class="frame wide">
+        <svg viewBox="0 0 980 400" role="img" aria-label="판매자 레인: 공구 열기와 확정 수량으로 발주. 찜꽁 레인: 초대 문자, 마감 판정, 쿠폰 발급, 결제 집계. 고객 레인: 신청, 쿠폰으로 결제. 판정에서 미달이면 안내 문자로 끝남.">
+          <defs>
+            <marker id="a1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk" d="M0 0 L10 5 L0 10 z"/></marker>
+            <marker id="a1m" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk-money" d="M0 0 L10 5 L0 10 z"/></marker>
+          </defs>
+          <!-- lanes -->
+          <rect class="laneband" x="90" y="20" width="880" height="100" rx="6"/>
+          <rect class="laneband" x="90" y="140" width="880" height="120" rx="6"/>
+          <rect class="laneband" x="90" y="280" width="880" height="100" rx="6"/>
+          <text class="lane-l t-seller" x="14" y="74">판매자</text>
+          <text class="lane-l t-sys" x="14" y="204">찜꽁</text>
+          <text class="lane-l t-cust" x="14" y="334">고객</text>
+          <!-- seller: open -->
+          <rect class="box box-seller fill-seller" x="110" y="40" width="130" height="60" rx="8"/>
+          <text class="tt" x="175" y="64" text-anchor="middle">① 공구 열기</text>
+          <text class="tx" x="175" y="84" text-anchor="middle">목표 30개 · 39,000원 · 5일</text>
+          <!-- sys: invite -->
+          <line class="ln" x1="175" y1="100" x2="175" y2="162" marker-end="url(#a1)"/>
+          <rect class="box box-sys fill-sys" x="110" y="166" width="130" height="60" rx="8"/>
+          <text class="tt" x="175" y="190" text-anchor="middle">② 초대 문자</text>
+          <text class="tx" x="175" y="210" text-anchor="middle">수신동의자만 · (광고)</text>
+          <!-- cust: pledge -->
+          <line class="ln" x1="240" y1="196" x2="300" y2="196"/>
+          <line class="ln" x1="300" y1="196" x2="300" y2="304" marker-end="url(#a1)"/>
+          <rect class="box box-cust fill-cust" x="250" y="308" width="130" height="60" rx="8"/>
+          <text class="tt" x="315" y="332" text-anchor="middle">③ 신청</text>
+          <text class="tx" x="315" y="352" text-anchor="middle">위젯에서 · 결제 없음</text>
+          <!-- sys: judge -->
+          <line class="ln" x1="380" y1="338" x2="455" y2="338"/>
+          <line class="ln" x1="455" y1="338" x2="455" y2="230" marker-end="url(#a1)"/>
+          <rect class="box box-sys fill-sys" x="395" y="166" width="130" height="60" rx="8"/>
+          <text class="tt" x="460" y="190" text-anchor="middle">④ 마감 판정</text>
+          <text class="tx" x="460" y="210" text-anchor="middle">마감 시각에 자동 · 1회</text>
+          <!-- branch failed -->
+          <line class="ln-dash" x1="460" y1="166" x2="460" y2="130"/>
+          <line class="ln-dash" x1="460" y1="130" x2="560" y2="130" marker-end="url(#a1)"/>
+          <text class="tx t-warn" x="470" y="124">미달</text>
+          <rect class="box" x="565" y="112" width="110" height="36" rx="8"/>
+          <text class="ts" x="620" y="135" text-anchor="middle">안내 문자 · 끝</text>
+          <!-- sys: coupon -->
+          <line class="ln" x1="525" y1="196" x2="590" y2="196" marker-end="url(#a1)"/>
+          <text class="tx t-ok" x="540" y="188">달성</text>
+          <rect class="box box-sys fill-sys" x="595" y="166" width="130" height="60" rx="8"/>
+          <text class="tt" x="660" y="190" text-anchor="middle">⑤ 쿠폰 발급</text>
+          <text class="tx" x="660" y="210" text-anchor="middle">신청자에게만 · 결과 문자</text>
+          <!-- cust: pay -->
+          <line class="ln" x1="660" y1="226" x2="660" y2="304" marker-end="url(#a1)"/>
+          <rect class="box box-cust fill-cust" x="595" y="308" width="130" height="60" rx="8"/>
+          <text class="tt" x="660" y="332" text-anchor="middle">⑥ 쿠폰으로 결제</text>
+          <text class="tx" x="660" y="352" text-anchor="middle">쇼핑몰에서 · 72시간 안</text>
+          <!-- money arrow to seller -->
+          <path class="ln-money" d="M725 338 L 770 338 L 770 70 L 800 70" marker-end="url(#a1m)"/>
+          <text class="tx t-ok" x="776" y="200" transform="rotate(-90 776 200)" text-anchor="middle">돈은 판매자 쇼핑몰로</text>
+          <!-- sys: settle -->
+          <line class="ln" x1="725" y1="196" x2="780" y2="196" marker-end="url(#a1)"/>
+          <rect class="box box-sys fill-sys" x="785" y="166" width="130" height="60" rx="8"/>
+          <text class="tt" x="850" y="190" text-anchor="middle">⑦ 결제 집계</text>
+          <text class="tx" x="850" y="210" text-anchor="middle">주문 대사 → 확정 수량</text>
+          <!-- seller: decide -->
+          <line class="ln" x1="850" y1="166" x2="850" y2="104" marker-end="url(#a1)"/>
+          <rect class="box box-seller fill-seller" x="805" y="40" width="130" height="60" rx="8"/>
+          <text class="tt" x="870" y="64" text-anchor="middle">⑧ 발주 결정</text>
+          <text class="tx" x="870" y="84" text-anchor="middle">확정 수량 = 원씽</text>
+        </svg>
+      </div>
+      <figcaption>①~③이 "모집", ④~⑦이 "판정과 결제", ⑧이 원씽이에요. 미달이면 ④에서 안내 문자로 끝나고 돈은 한 푼도 오가지 않아요. 초록 굵은 선이 돈의 흐름이고, 찜꽁 서버는 그 선 위에 없어요.</figcaption>
+    </figure>
+    <div class="shots">
+      <div class="shot"><img src="images/widget.png" alt="상품 페이지 위젯: 27/30개 모였어요, 39,000원, 신청 완료 2개, 신청 취소 버튼" width="765" height="1264"><div><b>③ 고객이 보는 위젯</b>상품 페이지 안에서 진행률을 보고 결제 없이 신청해요.</div></div>
+      <div class="shot"><img src="images/home.png" alt="판매자 홈: 모집 중인 공구 1, 모집된 수량 15, 내 공구 카드, 새 공구 열기 버튼" width="1280" height="800"><div><b>① 판매자 홈</b>카페24 관리자에서 앱을 실행하면 열려요. 숫자 3개와 내 공구.</div></div>
+      <div class="shot"><img src="images/report.png" alt="확정 리포트 페이지" width="1280" height="800"><div><b>⑧ 확정 리포트</b>공방·공장에 링크로 보내는 읽기 전용 페이지. 확정 수량과 생산 결정 기록.</div></div>
+    </div>
+  </section>
+
+  <!-- ===== 4 ===== -->
+  <section id="arch">
+    <div class="sec-h"><span class="eyebrow">4 · 구조</span><h2>무엇이 어디서 돌아가나</h2><p>Next.js 앱 하나가 화면·엔진·DB를 다 가져요. 카페24는 상품·고객·쿠폰·문자·주문의 원본이고, 우리는 거기에 물어보고 시키기만 해요.</p></div>
+    <figure>
+      <p class="swipe" aria-hidden="true">그림이 옆으로 길어요. 옆으로 밀어서 보세요 →</p>
+      <div class="frame wide">
+        <svg viewBox="0 0 980 360" role="img" aria-label="왼쪽 화면 4개(판매자 앱, 운영자 화면, 고객 위젯, 리포트 링크)가 가운데 찜꽁 서버(공구 엔진, 정기 작업, Postgres)와 통신하고, 서버는 오른쪽 카페24에 상품·장바구니 조회, 쿠폰 생성·발급, 문자 발송, 주문 조회를 요청하며 카페24는 웹훅을 보냄. 고객의 돈은 카페24 결제로만 감.">
+          <defs><marker id="a2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk" d="M0 0 L10 5 L0 10 z"/></marker>
+          <marker id="a2m" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk-money" d="M0 0 L10 5 L0 10 z"/></marker></defs>
+          <!-- screens -->
+          <text class="tl t-seller" x="20" y="34">화면</text>
+          <rect class="box box-seller fill-seller" x="20" y="48" width="200" height="50" rx="8"/><text class="tt" x="32" y="70">판매자 앱 /</text><text class="tx" x="32" y="88">홈 · 내 공구 · 새 공구 · 레이더 · 설정</text>
+          <rect class="box box-sys fill-sys" x="20" y="112" width="200" height="50" rx="8"/><text class="tt" x="32" y="134">운영자 화면 /admin</text><text class="tx" x="32" y="152">수동 판정·대사 · 문자 재발송 · 판정표</text>
+          <rect class="box box-cust fill-cust" x="20" y="176" width="200" height="50" rx="8"/><text class="tt" x="32" y="198">고객 위젯 widget.js</text><text class="tx" x="32" y="216">쇼핑몰 상품 페이지 안</text>
+          <rect class="box box-seller fill-seller" x="20" y="240" width="200" height="50" rx="8"/><text class="tt" x="32" y="262">리포트 링크 /r/토큰</text><text class="tx" x="32" y="280">공방·공장 공유용 · 개인정보 없음</text>
+          <!-- server -->
+          <rect class="box box-sys" x="320" y="30" width="320" height="300" rx="12"/>
+          <text class="tl t-sys" x="336" y="56">찜꽁 서버 · Next.js (Vercel 서울)</text>
+          <rect class="box fill-sys" x="340" y="74" width="280" height="86" rx="8"/>
+          <text class="tt" x="352" y="96">공구 엔진 src/lib/engine</text>
+          <text class="tx" x="352" y="116">개설 · 신청 · 판정 · 쿠폰 · 문자 · 결제 집계 · 리포트</text>
+          <text class="tx" x="352" y="134">규칙은 src/lib/core (광고 문자 · 결제 기간 · 한도)</text>
+          <text class="tx" x="352" y="152">엔진 테스트 74개가 지켜요</text>
+          <rect class="box fill-sys" x="340" y="174" width="280" height="56" rx="8"/>
+          <text class="tt" x="352" y="196">정기 작업 1분마다</text>
+          <text class="tx" x="352" y="216">예약 문자 → 마감 판정 → 결제 종료 → 결과 문자</text>
+          <rect class="box" x="340" y="244" width="280" height="70" rx="8"/>
+          <text class="tt" x="352" y="266">Postgres (Supabase 서울)</text>
+          <text class="tx" x="352" y="286">몰 · 공구 · 신청 · 문자 · 주문 연결 · 확인할 일 · 기록</text>
+          <text class="tx" x="352" y="304">전화번호·이름 없음, 회원 ID만</text>
+          <!-- screen → server arrows -->
+          <line class="ln" x1="220" y1="73" x2="316" y2="73" marker-end="url(#a2)"/>
+          <line class="ln" x1="220" y1="137" x2="316" y2="137" marker-end="url(#a2)"/>
+          <line class="ln" x1="220" y1="201" x2="316" y2="201" marker-end="url(#a2)"/>
+          <text class="tx" x="268" y="195" text-anchor="middle">/api/public</text>
+          <line class="ln" x1="220" y1="265" x2="316" y2="265" marker-end="url(#a2)"/>
+          <!-- cafe24 -->
+          <rect class="box box-cafe fill-cafe" x="740" y="30" width="220" height="300" rx="12"/>
+          <text class="tl t-cafe" x="756" y="56">카페24 (판매자 쇼핑몰)</text>
+          <text class="ts" x="756" y="86">상품 · 장바구니 · 회원</text>
+          <text class="ts" x="756" y="126">쿠폰 (회원 지정 · 1회용)</text>
+          <text class="ts" x="756" y="166">문자 발송 (판매자 발신번호)</text>
+          <text class="ts" x="756" y="206">주문 · 결제 (판매자 PG)</text>
+          <text class="ts" x="756" y="246">앱 실행 · OAuth · 웹훅</text>
+          <text class="tx" x="756" y="300">우리 쪽 연결 코드</text>
+          <text class="tm" x="756" y="316">src/lib/cafe24</text>
+          <!-- server ↔ cafe24 -->
+          <line class="ln" x1="640" y1="80" x2="736" y2="80" marker-end="url(#a2)"/><text class="tx" x="688" y="74" text-anchor="middle">조회</text>
+          <line class="ln" x1="640" y1="120" x2="736" y2="120" marker-end="url(#a2)"/><text class="tx" x="688" y="114" text-anchor="middle">생성 · 발급</text>
+          <line class="ln" x1="640" y1="160" x2="736" y2="160" marker-end="url(#a2)"/><text class="tx" x="688" y="154" text-anchor="middle">회원 ID로 발송</text>
+          <line class="ln" x1="640" y1="200" x2="736" y2="200" marker-end="url(#a2)"/><text class="tx" x="688" y="194" text-anchor="middle">매시 대사</text>
+          <line class="ln-dash" x1="736" y1="240" x2="640" y2="240" marker-end="url(#a2)"/><text class="tx" x="688" y="234" text-anchor="middle">웹훅</text>
+          <!-- money -->
+          <path class="ln-money" d="M120 226 L 120 346 L 850 346 L 850 334" marker-end="url(#a2m)"/>
+          <text class="tx t-ok" x="485" y="340" text-anchor="middle">고객의 돈 → 판매자 쇼핑몰 결제. 찜꽁 서버를 거치지 않음</text>
+        </svg>
+      </div>
+      <figcaption>화면 넷이 모두 한 서버의 엔진을 써요. 엔진은 카페24에 "장바구니 누구야", "쿠폰 발급해", "문자 보내", "주문 뭐 있어"를 묻고 시키기만 하고, 고객 전화번호는 카페24가 들고 있어요. 그래서 우리 DB에는 개인정보가 없고, 결제 대행(PG) 등록도 필요 없어요.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ===== 5 ===== -->
+  <section id="status">
+    <div class="sec-h"><span class="eyebrow">5 · 구현 정도 (2026-10-12)</span><h2>코드는 거의 다 있고, 실제 쇼핑몰 검증과 파일럿이 남았어요</h2><p>기획서의 4주 범위(F1~F10)는 전부 코드로 존재하고 데모 모드에서 끝까지 돌아요. 남은 건 "실제 카페24에서도 똑같이 되는가"와 "실제 판매자 3곳에서 돌리는 것"이에요.</p></div>
+    <div class="sum3">
+      <div class="fact"><b>10 / 10</b><span>기능 코드 있음</span><small>F1~F10 전부 + 판매자 앱(F11 일부)까지</small><div class="meter"><i style="width:100%;background:var(--ok)"></i></div></div>
+      <div class="fact"><b>6 / 9</b><span>실제 카페24 확인</span><small>OAuth · 상품 · 장바구니 · 쿠폰 생성 · 위젯 설치 · 발신번호 · 웹훅 수신 완료</small><div class="meter"><i style="width:67%;background:var(--ok)"></i><i style="width:33%;background:var(--cafe)"></i></div></div>
+      <div class="fact"><b>0 / 3</b><span>파일럿 몰</span><small>섭외 전. 운영 배포(Vercel+Supabase)는 끝남</small><div class="meter"><i style="width:100%;background:var(--todo)"></i></div></div>
+    </div>
+    <div class="tblwrap"><table>
+      <thead><tr><th>기능</th><th>쉽게 말하면</th><th>코드</th><th>실제 카페24</th><th>남은 것</th></tr></thead>
+      <tbody>
+        <tr><td class="id">F1 설치 · 연결</td><td>카페24 관리자에서 앱 실행하면 우리 화면이 열림</td><td><span class="chip c-done">완료</span></td><td><span class="chip c-done">테스트몰 확인</span></td><td>S-01 설치 안내 화면 없음(접힘 목록으로 대체). 파일럿 몰 직접 설치 링크 P7 미검증</td></tr>
+        <tr><td class="id">F2 수요 레이더</td><td>관심 많은 상품 순위</td><td><span class="chip c-done">완료</span></td><td><span class="chip c-part">장바구니만</span></td><td>찜 조회 권한(READ_PRIVACY) 미승인이라 찜 수는 못 봄. 수집은 수동 버튼</td></tr>
+        <tr><td class="id">F3 공구 개설</td><td>조건 정하고 미리보기 후 열기</td><td><span class="chip c-done">완료</span></td><td><span class="chip c-done">쿠폰 생성 확인</span></td><td>결제 기간 24h 옵션 없음(48·72만). 업종 추천 카드 없음</td></tr>
+        <tr><td class="id">F4 초대 문자</td><td>수신동의자에게 (광고) 문자</td><td><span class="chip c-done">완료</span></td><td><span class="chip c-part">발신번호까지</span></td><td>실제 발송은 발신번호 승인 + 충전금 필요. 결제 마감 전 알림 문자 없음</td></tr>
+        <tr><td class="id">F5·F6 위젯 · 신청</td><td>상품 페이지에서 결제 없이 신청</td><td><span class="chip c-done">완료</span></td><td><span class="chip c-risk">P2 미검증</span></td><td>실제 로그인 회원 토큰의 필드 이름 확인 전. 그 전엔 연동 모드에서 신청이 거절됨. PR #4(알림 받기) 리뷰 대기</td></tr>
+        <tr><td class="id">F7·F8 판정 · 쿠폰</td><td>마감에 자동 판정, 달성 시 쿠폰 발급</td><td><span class="chip c-done">완료</span></td><td><span class="chip c-part">발급 미실행</span></td><td>공구 목표를 실제로 채워 끝까지 한 번 돌려야 함(P3 1,000명 발급)</td></tr>
+        <tr><td class="id">F9 결제 집계</td><td>쿠폰 쓴 주문만 세서 확정 수량</td><td><span class="chip c-done">완료</span></td><td><span class="chip c-part">대사로 대체</span></td><td>주문 웹훅이 개발 단계 앱엔 없음 → 매시 대사로 1시간 안 반영. 심사 후 웹훅 추가</td></tr>
+        <tr><td class="id">F10 리포트 · 판정표</td><td>공장용 링크, 4주 성적표</td><td><span class="chip c-done">완료</span></td><td><span class="chip c-done">–</span></td><td>"보완" 판정 규칙이 기획서와 다름(정할 것 10)</td></tr>
+        <tr><td class="id">판매자 앱 (Go 이후 범위)</td><td>홈·내 공구·새 공구·설정</td><td><span class="chip c-done">완료</span></td><td><span class="chip c-done">–</span></td><td>심사 대비로 앞당겨 만듦. 모바일은 반응형, PWA·푸시는 없음</td></tr>
+        <tr><td class="id">운영 · 심사</td><td>서버 배포, 스토어 제출 자료</td><td><span class="chip c-done">배포됨</span></td><td><span class="chip c-todo">제출 전</span></td><td>심사 자료(store/) 준비됨. 처리 위탁 계약, 탈퇴 웹훅 즉시 파기, 접근 기록 범위 남음</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">저장소 상태: PR #1~#3, #5 머지. PR #4(고객 위젯 "공구 열리면 알림 받기")는 충돌 해결 후 리뷰 대기. main 보호 규칙은 파일만 있고 아직 안 켜짐. 테스트 74개 통과, 타입 검사 통과.</p>
+  </section>
+
+  <!-- ===== 6 ===== -->
+  <section id="team">
+    <div class="sec-h"><span class="eyebrow">6 · 2인 분담</span><h2>코드는 이규현, 카페24와 파일럿은 김보성</h2><p>다섯 명일 때는 파일 단위로 쪼갰지만, 둘이면 "제품을 만드는 사람"과 "제품을 세상에 붙이는 사람"으로 나누는 게 충돌이 가장 적어요. 코드가 필요한 일은 둘 다 하되, 파일 경계는 아래처럼 둬요.</p></div>
+    <div class="split">
+      <div class="person" style="--c:var(--sys)">
+        <h3>이규현 <small>hybrid633</small></h3>
+        <div class="role">제품 · 엔진 · 화면 · 위젯</div>
+        <ul>
+          <li>공구 엔진과 규칙(판정·쿠폰·문자·결제 집계) 유지와 보강</li>
+          <li>고객 위젯과 문자 3종 + 결제 마감 전 알림 문자 추가</li>
+          <li>판매자 앱 화면(홈·내 공구·새 공구·상세·설정)과 운영자 화면</li>
+          <li>PR #4 마무리, 기획서 "고칠 문장" 코드 쪽 반영</li>
+          <li>데모 모드로 심사 담당자·판매자 시연 준비</li>
+        </ul>
+        <div class="files"><code>src/lib/engine</code><code>src/lib/core</code><code>public/widget.js</code><code>src/app/console</code><code>src/app/campaigns</code><code>src/app/admin</code><code>src/app/api/public</code></div>
+      </div>
+      <div class="person" style="--c:var(--cafe)">
+        <h3>김보성 <small>bobo33772-blip · 저장소 관리자</small></h3>
+        <div class="role">카페24 연동 · 운영 · 파일럿 · 심사</div>
+        <ul>
+          <li>카페24 개발자센터: 앱 정보, 권한 승인 요청(찜 조회), 발신번호 승인, 충전</li>
+          <li>남은 PoC 검증: P2 실제 회원 토큰, P3 쿠폰 대량 발급, P7 직접 설치, P8 찜 100명</li>
+          <li>수요 레이더 자동 수집, 설치 경로, 탈퇴 웹훅 파기, 접근 기록</li>
+          <li>파일럿 몰 3곳 섭외 + 처리 위탁 계약, 판매자 통화하며 공구 열기</li>
+          <li>저장소 관리: 보호 규칙 켜기, 심사 자료 제출, 28일 차 판정</li>
+        </ul>
+        <div class="files"><code>src/lib/cafe24</code><code>src/app/api/cafe24</code><code>src/lib/radar.ts</code><code>src/app/radar</code><code>src/lib/engine/retention.ts</code><code>docs/</code><code>store/</code></div>
+      </div>
+    </div>
+    <div class="rules">
+      <div class="rule"><b>PR은 그대로, 리뷰는 서로</b><span>작업 하나 = 브랜치 하나 = PR 하나. 상대가 승인하면 머지. 보호 규칙을 켜면 자동으로 강제돼요.</span></div>
+      <div class="rule"><b>공용 파일은 먼저 말하고</b><span><code>schema.ts</code> · <code>engine/campaigns.ts</code> · <code>console/types.ts</code>를 고칠 땐 작은 PR로 먼저. 둘뿐이라 메시지 한 줄이면 충분해요.</span></div>
+      <div class="rule"><b>매일 10분 싱크</b><span>"어제 머지한 것 · 오늘 할 것 · 막힌 것". 작업카드의 상태를 그때 같이 갱신해요.</span></div>
+    </div>
+  </section>
+
+  <!-- ===== 7 ===== -->
+  <section id="weeks">
+    <div class="sec-h"><span class="eyebrow">7 · 4주 일정</span><h2>10월 13일 시작, 11월 9일 판정</h2><p>코드 작업은 1~2주 차에 끝내고, 3주 차에 실제 공구를 열어요. 공구 하나가 모집 5일 + 결제 72시간이라 17일 차에는 열려 있어야 28일 차 판정이 돼요.</p></div>
+    <figure>
+      <p class="swipe" aria-hidden="true">그림이 옆으로 길어요. 옆으로 밀어서 보세요 →</p>
+      <div class="frame wide">
+        <svg viewBox="0 0 980 330" role="img" aria-label="4주 간트: 1주 PR 4 머지와 보호 규칙, 카페24 PoC 남은 것, 파일럿 몰 연락. 2주 결제 알림 문자와 기획서 결정 반영, 발신번호 승인과 위탁 계약, 몰 3곳 설치. 3주 17일 차 공구 3건 오픈과 모집 5일. 4주 22일 차 판정과 72시간 결제, 26일 차 리포트, 28일 차 Go 판정.">
+          <defs><marker id="a3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="mk" d="M0 0 L10 5 L0 10 z"/></marker></defs>
+          <!-- week columns: x0=180, each week 195px -->
+          <rect class="wk" x="180" y="20" width="195" height="290" rx="6"/>
+          <rect class="wk" x="375" y="20" width="195" height="290" rx="6"/>
+          <rect class="wk" x="570" y="20" width="195" height="290" rx="6"/>
+          <rect class="wk" x="765" y="20" width="195" height="290" rx="6"/>
+          <text class="tt" x="277" y="42" text-anchor="middle">1주 · 10/13~19</text>
+          <text class="tt" x="472" y="42" text-anchor="middle">2주 · 10/20~26</text>
+          <text class="tt" x="667" y="42" text-anchor="middle">3주 · 10/27~11/2</text>
+          <text class="tt" x="862" y="42" text-anchor="middle">4주 · 11/3~9</text>
+          <text class="tx" x="277" y="58" text-anchor="middle">관문 확인</text>
+          <text class="tx" x="472" y="58" text-anchor="middle">마무리 · 설치</text>
+          <text class="tx" x="667" y="58" text-anchor="middle">첫 공구</text>
+          <text class="tx" x="862" y="58" text-anchor="middle">결제 → 결정</text>
+          <!-- rows -->
+          <text class="lane-l t-sys" x="20" y="92">이규현 · 코드</text>
+          <rect class="gbar g-code" x="186" y="78" width="130" height="20"/><text class="tx" x="192" y="92" style="fill:#fff">PR #4 머지 · 24h 옵션 결정</text>
+          <rect class="gbar g-code" x="322" y="78" width="160" height="20"/><text class="tx" x="328" y="92" style="fill:#fff">결제 마감 전 알림 문자</text>
+          <rect class="gbar g-code" x="186" y="106" width="296" height="20"/><text class="tx" x="192" y="120" style="fill:#fff">기획서 결정 7개 코드 반영 · 데모 시연 준비</text>
+          <rect class="gbar g-code" x="576" y="106" width="380" height="20" opacity=".55"/><text class="tx" x="582" y="120" style="fill:#fff">운영 대응 · 버그 수정만 (새 기능 없음)</text>
+
+          <text class="lane-l t-cafe" x="20" y="160">김보성 · 연동</text>
+          <rect class="gbar g-ops" x="186" y="146" width="185" height="20"/><text class="tx" x="192" y="160" style="fill:#fff">보호 규칙 · P2 회원 토큰 · P3 발급</text>
+          <rect class="gbar g-ops" x="381" y="146" width="185" height="20"/><text class="tx" x="387" y="160" style="fill:#fff">발신번호 승인 · 충전 · P7 설치</text>
+          <rect class="gbar g-ops" x="186" y="174" width="185" height="20"/><text class="tx" x="192" y="188" style="fill:#fff">파일럿 후보 10곳 연락</text>
+          <rect class="gbar g-ops" x="381" y="174" width="185" height="20"/><text class="tx" x="387" y="188" style="fill:#fff">3몰 확정 · 위탁 계약 · 설치</text>
+
+          <text class="lane-l t-cust" x="20" y="236">둘이 같이 · 파일럿</text>
+          <rect class="gbar g-both" x="576" y="222" width="30" height="20"/><text class="tx" x="612" y="236">17일 차 공구 3건 오픈</text>
+          <rect class="gbar g-both" x="606" y="250" width="150" height="20" opacity=".35"/><text class="tx" x="612" y="264">모집 5일 · 위젯 신청</text>
+          <rect class="gbar g-both" x="771" y="222" width="30" height="20"/><text class="tx" x="807" y="236">22일 차 판정 · 72h 결제</text>
+          <rect class="gbar g-both" x="801" y="250" width="90" height="20" opacity=".35"/><text class="tx" x="807" y="264">26일 차 리포트</text>
+          <rect class="gbar g-both" x="900" y="278" width="52" height="20"/><text class="tx" x="806" y="292">28일 차 판정 →</text>
+          <!-- today -->
+          <line class="today" x1="180" y1="20" x2="180" y2="310"/>
+          <text class="tx t-cust" x="176" y="322" text-anchor="end">오늘 10/12</text>
+        </svg>
+      </div>
+      <figcaption>위 두 줄은 각자 혼자 하는 일, 아래 줄은 둘이 같이 하는 파일럿이에요. 3주 차부터는 새 기능을 넣지 않고 운영만 해요. 17일 차(10/29)에 공구가 열려야 28일 차(11/9)에 판정할 수 있어요.</figcaption>
+    </figure>
+    <div class="weeks">
+      <div class="week"><span class="n">1주</span><h3>관문 확인</h3><ul><li>PR #4 리뷰·머지, 보호 규칙 켜기</li><li>P2 실제 회원 토큰 필드, P3 쿠폰 1,000명 발급</li><li>"정할 것" 7개 결정(아래 9번)</li><li>파일럿 후보 10곳에 연락</li></ul><div class="done"><b>끝 조건</b> 위조 회원 100% 거부, 쿠폰 누락 0, 몰 3곳 긍정 회신</div></div>
+      <div class="week"><span class="n">2주</span><h3>마무리 · 설치</h3><ul><li>결제 마감 전 알림 문자, 결정 반영</li><li>발신번호 승인, SMS 충전</li><li>처리 위탁 계약, 3몰 설치(P7 링크)</li><li>각 몰 수요 레이더로 상품 고르기</li></ul><div class="done"><b>끝 조건</b> 3몰에서 초대 문자 미리보기까지 통과</div></div>
+      <div class="week"><span class="n">3주</span><h3>첫 공구</h3><ul><li>17일 차: 판매자와 통화하며 공구 3건 오픈</li><li>초대 문자 발송 확인, 위젯 신청 모니터링</li><li>매일 "확인할 일" 비우기</li><li>새 기능 금지, 버그만</li></ul><div class="done"><b>끝 조건</b> 공구 3건 열림, 연동 오류 0</div></div>
+      <div class="week"><span class="n">4주</span><h3>결제 → 결정</h3><ul><li>22일 차: 마감 판정, 쿠폰, 72시간 결제</li><li>26일 차: 확정 리포트 링크 전달</li><li>판매자 발주 확인 인터뷰</li><li>28일 차: Go · 보완 · 재검토 판정</li></ul><div class="done"><b>끝 조건</b> 원씽 1곳 + 성공 기준 표 채움</div></div>
+    </div>
+  </section>
+
+  <!-- ===== 8 ===== -->
+  <section id="success">
+    <div class="sec-h"><span class="eyebrow">8 · 성공 기준</span><h2>28일 차에 이 표를 채워요</h2><p>결과를 보기 전에 판정 규칙을 정해 둬요. 운영자 화면의 4주 판정표가 아래 숫자를 자동으로 계산해요.</p></div>
+    <div class="tblwrap"><table>
+      <thead><tr><th>지표</th><th>뜻</th><th>기준</th><th>어디서 재나</th></tr></thead>
+      <tbody>
+        <tr><td><b>원씽</b></td><td>확정 수량으로 발주·생산 일정을 확정한 판매자</td><td>1곳 이상</td><td>판매자가 앱에서 "생산 결정 기록" + 발주서·가마 일정 확인 인터뷰</td></tr>
+        <tr><td>파일럿 규모</td><td>설치한 홈리빙 몰 · 연 공구</td><td>3몰 · 3건 이상</td><td>운영 기록</td></tr>
+        <tr><td>공구 성사율</td><td>목표 달성 ÷ 개설</td><td>60% 이상</td><td>판정 로그</td></tr>
+        <tr><td>초대 → 신청</td><td>신청 회원 ÷ 초대 문자 받은 회원</td><td>5% 이상</td><td>발송 기록 · 신청 DB</td></tr>
+        <tr><td>신청 → 결제</td><td>72시간 안에 쿠폰으로 결제한 회원 ÷ 쿠폰 받은 회원</td><td>50% 이상</td><td>주문 대사</td></tr>
+        <tr><td>기술 정확성</td><td>쿠폰 발급 누락, 대사 불일치</td><td>0건</td><td>"확인할 일" 목록</td></tr>
+        <tr><td>개인정보</td><td>우리 DB에 저장된 전화번호·이름</td><td>0건</td><td>테스트가 DB 열 이름을 검사</td></tr>
+      </tbody>
+    </table></div>
+    <div class="rules">
+      <div class="rule"><b style="color:var(--ok)">Go</b><span>모두 충족 → 5주 차에 카페24 스토어 심사 제출, 파일럿을 10몰로.</span></div>
+      <div class="rule"><b style="color:var(--cafe)">보완 · 2주 추가</b><span>성사율과 신청 전환은 됐는데 결제 전환이 50% 미만 → 결제 기간·할인 폭·출고일 안내를 바꿔 2건 더.</span></div>
+      <div class="rule"><b style="color:var(--warn)">재검토</b><span>3건 모두 신청 전환 2% 미만 → 개발을 멈추고 문자 채널·할인 폭·품목 가정을 다시 봄.</span></div>
+    </div>
+  </section>
+
+  <!-- ===== 9 ===== -->
+  <section id="decisions">
+    <div class="sec-h"><span class="eyebrow">9 · 정할 것</span><h2>첫 주에 둘이 정하면 되는 7가지</h2><p>작업카드의 "팀이 정할 것" 18개 중 첫 PR을 막는 것만 골랐어요. 각 항목에 제안을 붙였으니 동의하면 그대로, 아니면 바꿔요. 나머지 11개는 Go 판정 뒤로 미뤄요.</p></div>
+    <div class="decs">
+      <div class="dec"><span class="n">1</span><b>결제 기간 24시간 옵션</b><p>기획서는 24·48·72시간인데 구현은 48·72만 받아요.</p><p class="pick">기획서에서 24시간을 빼요. 홈리빙 객단가(7만 원)에 24시간은 짧고, 코드 변경이 없어요.</p></div>
+      <div class="dec"><span class="n">2</span><b>결제 마감 전 알림 문자</b><p>기획서엔 있는데 구현은 초대·결과 두 종류뿐이에요.</p><p class="pick">만들어요. 결제 기한 24시간 전에 아직 결제 안 한 신청자에게만. 설계는 이미 있고 엔진 파일 2개만 고쳐요. 신청→결제 50%를 넘기는 데 가장 직접적인 장치예요.</p></div>
+      <div class="dec"><span class="n">3</span><b>쿠폰 유효기간</b><p>기획서는 "결제 기간과 같게", 구현은 24시간 더 열어 두되 늦은 결제는 확정에서 뺌.</p><p class="pick">구현을 유지하고 기획서를 고쳐요. 늦게라도 결제한 고객에게 쿠폰 오류를 보여 주는 것보다 나아요. 문자에는 "기한 안에 결제해야 공구가로 확정"이라고만 적어요.</p></div>
+      <div class="dec"><span class="n">4</span><b>고객 "내 공구" 페이지</b><p>기획서엔 있고 구현은 상품 위젯에서만 상태·취소가 돼요.</p><p class="pick">4주 안엔 안 만들고 기획서를 위젯 기준으로 고쳐요. 고객은 문자 링크로 상품 페이지에 오니 거기서 다 보여요.</p></div>
+      <div class="dec"><span class="n">5</span><b>미달 시 "그래도 진행"</b><p>구현은 미달이면 끝. 판매자가 할 수 있는 게 없어요.</p><p class="pick">4주엔 빼요. 성사율 60% 기준을 재려면 미달은 미달로 끝나야 숫자가 깨끗해요.</p></div>
+      <div class="dec"><span class="n">6</span><b>판매자 오류 안내(연결 끊김)</b><p>지금은 JSON 글자만 보이거나 첫 화면으로 튕겨요.</p><p class="pick">첫 화면에 "카페24 연결이 끊겼어요. 관리자에서 찜꽁을 다시 실행해 주세요" 한 줄만 추가해요. 별도 화면은 안 만들어요.</p></div>
+      <div class="dec"><span class="n">7</span><b>수요 레이더 자동 수집</b><p>기획서는 설치 직후 자동, 구현은 버튼을 눌러야 해요.</p><p class="pick">설치 직후 1회만 자동으로 시작해요(김보성). 매일 새벽 갱신은 Go 뒤로.</p></div>
+    </div>
+    <p class="note">미룬 11개(요금 숫자, 심사 시점, 판정표 "보완" 규칙, 접근 기록 범위, 탈퇴 웹훅 즉시 파기, 찜 100명 한계, 어뷰징 검토 표시 등)는 작업카드 "팀이 정할 것"에 그대로 있어요. 이 중 탈퇴 웹훅 파기와 접근 기록은 심사 자료와 맞물려 2주 차에 김보성이 봐요.</p>
+  </section>
+
+  <!-- ===== 10 ===== -->
+  <section id="risks">
+    <div class="sec-h"><span class="eyebrow">10 · 리스크</span><h2>막히면 이렇게 돌아가요</h2></div>
+    <div class="risks">
+      <div class="rule"><b>P2 실제 회원 검증이 안 됨</b><span>연동 모드에서 신청이 전부 거절돼요. 1주 차 첫 과제. 안 되면 카페24 개발자 포럼 문의 + 데모 모드로 시연만 먼저.</span></div>
+      <div class="rule"><b>파일럿 몰 섭외 지연</b><span>1주 차 첫날 후보 10곳. 장바구니·알림 신청이 많은 품절 상품이 있는 몰을 먼저. 2곳만 돼도 공구 3건은 열 수 있어요.</span></div>
+      <div class="rule"><b>직접 설치(P7)가 막힘</b><span>판매자가 카페24 관리자에서 직접 쿠폰을 발급하고, 우리는 위젯과 집계만 맡는 수동 방식으로 같은 실험.</span></div>
+      <div class="rule"><b>찜 조회 권한 미승인</b><span>지금 상태. 장바구니 + "알림 받기"(PR #4) 고객으로 초대 대상을 모아요. 그래서 PR #4가 1주 차 1순위예요.</span></div>
+      <div class="rule"><b>문자 발송 실패</b><span>발신번호 승인과 충전금이 2주 차까지 안 되면 공구를 열 수 없어요. 카페24 심사 3~5일을 감안해 1주 차에 신청.</span></div>
+      <div class="rule"><b>둘 중 한 명이 빠짐</b><span>이 문서와 작업카드, 저장소 README만으로 상대 영역을 이어받을 수 있게 PR 본문을 충실히 써요.</span></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="links">
+      <a href="https://github.com/bobo33772-blip/HOP">HOP 저장소</a>
+      <a href="https://claude.ai/artifact/Sddu5GmfiTmEoRMVpYceSL">GitHub 안내서</a>
+      <a href="https://claude.ai/artifact/UquFsh4VaNN8doNU4QT8Zo">작업카드</a>
+      <a href="https://claude.ai/artifact/Kpn37JvKkBSTCBYmX5daYE">5인 배정안(이전 안)</a>
+    </div>
+    <p>기획서 v1.1(2026-10-07, 팀원용)의 목표·성공 기준·판정 규칙을 그대로 두고, 구현 상태와 팀 구성(2인)만 2026-10-12 기준으로 다시 썼어요. 그림의 숫자는 데모 데이터 예시예요.</p>
+  </footer>
+</div>
