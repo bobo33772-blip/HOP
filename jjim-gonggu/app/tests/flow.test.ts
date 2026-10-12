@@ -197,6 +197,60 @@ describe("결제 집계", () => {
   });
 });
 
+describe("결제 마감 전 알림 문자", () => {
+  async function reachedWithPayers(payers: string[]) {
+    const env = await setup();
+    const c = await openAndFill(env, range(1, 40), 1); // 수신 동의자는 짝수 회원 20명
+    env.clock.advance(DAY5);
+    await tick(env.ctx); // 10/17 10:00 KST 판정 → 결제 기한 10/20 10:00
+    const cp = (await getCampaign(env.ctx, c.id)).couponNo!;
+    for (const m of payers) await env.world.placeOrder(MALL, m, PRODUCT, 1, cp);
+    return { env, c };
+  }
+  const reminders = (env: Awaited<ReturnType<typeof setup>>) => env.world.smsLog.filter((s) => !s.isAd && /결제 기한/.test(s.content));
+
+  it("결제 기한 24시간 전에, 아직 결제하지 않은 수신 동의 신청자에게만 간다", async () => {
+    const { env } = await reachedWithPayers(["m2", "m4"]);
+    env.clock.advance(48 * HOUR - 60_000);
+    await tick(env.ctx);
+    expect(reminders(env)).toHaveLength(0);
+    env.clock.advance(2 * 60_000);
+    await tick(env.ctx);
+    const [r] = reminders(env);
+    expect(r).toBeDefined();
+    expect(r.isAd).toBe(false);
+    expect(r.content).toMatch(/10\/20\(화\) 10:00/);
+    expect(r.memberIds).not.toContain("m2");
+    expect(r.memberIds).not.toContain("m4");
+    expect(r.memberIds).toHaveLength(18);
+    expect(r.memberIds.every((id) => Number(id.slice(1)) % 2 === 0)).toBe(true);
+  });
+
+  it("알림 시각이 밤 9시~아침 8시면 다음 날 08:00에 보낸다", async () => {
+    const env = await setup();
+    const c = await openAndFill(env, range(1, 40), 1);
+    env.clock.advance(DAY5 + 12 * HOUR); // 10/17 22:00 KST에 판정 → 기한 10/20 22:00, 알림 시각 10/19 22:00(야간)
+    await tick(env.ctx);
+    expect((await getCampaign(env.ctx, c.id)).state).toBe("reached");
+    env.clock.set(new Date("2026-10-19T13:30:00Z")); // 10/19 22:30 KST
+    await tick(env.ctx);
+    expect(reminders(env)).toHaveLength(0);
+    env.clock.set(new Date("2026-10-19T23:01:00Z")); // 10/20 08:01 KST
+    await tick(env.ctx);
+    expect(reminders(env)).toHaveLength(1);
+  });
+
+  it("전원 결제했으면 보내지 않고 0명으로 닫는다", async () => {
+    const { env, c } = await reachedWithPayers(range(1, 40));
+    env.clock.advance(48 * HOUR + 60_000);
+    await tick(env.ctx);
+    expect(reminders(env)).toHaveLength(0);
+    const [m] = await env.db.select().from(schema.messages).where(and(eq(schema.messages.campaignId, c.id), eq(schema.messages.kind, "pay_reminder")));
+    expect(m.status).toBe("sent");
+    expect(m.recipients).toEqual([]);
+  });
+});
+
 describe("확정 리포트와 4주 판정표", () => {
   it("확정 → 생산 결정 기록까지 끝나면 원씽을 충족한다", async () => {
     const env = await setup();

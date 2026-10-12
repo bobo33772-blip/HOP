@@ -111,7 +111,7 @@ export const orderLinks = pgTable("order_links", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
 }, (t) => [index("order_campaign_idx").on(t.campaignId)]);
 
-// 예약 문자. kind: invite_ad(광고) | result, status: scheduled | sending | sent | failed
+// 예약 문자. kind: invite_ad(광고) | result | pay_reminder(결제 마감 전 알림), status: scheduled | sending | sent | failed
 export const messages = pgTable("messages", {
   id: uuid("id").primaryKey().defaultRandom(),
   campaignId: uuid("campaign_id").notNull().references(() => campaigns.id),
