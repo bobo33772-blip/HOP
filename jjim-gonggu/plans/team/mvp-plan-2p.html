@@ -177,7 +177,7 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
   <header class="top">
     <div class="eyebrow">찜꽁 · MVP 기획서 v2 · 2인 체제 · 2026-10-12</div>
     <h1>찜꽁 MVP 기획서</h1>
-    <p class="lead">쇼핑몰에서 <b>찜하거나 장바구니에 담아 둔 고객</b>을 모아, 목표 수량이 차면 할인가로 여는 <b>결제 없는 예약 공동구매</b>예요. 고객은 신청만 하고, 목표가 차면 쿠폰으로 결제하고, 판매자는 결제된 만큼만 만들어요. 이 문서는 이규현·김보성 두 명이 4주 안에 무엇을 끝내야 하는지와 지금 어디까지 만들어졌는지를 한 장에 담았어요.</p>
+    <p class="lead">쇼핑몰에서 <b>찜하거나 장바구니에 담아 둔 고객</b>을 모아, 목표 수량이 차면 할인가로 여는 <b>결제 없는 예약 공동구매</b>예요. 고객은 신청만 하고, 목표가 차면 쿠폰으로 결제하고, 판매자는 결제된 만큼만 만들어요. 이 문서는 두 명이 4주 안에 무엇을 끝내야 하는지와 지금 어디까지 만들어졌는지를 한 장에 담았어요. 누가 무엇을 맡는지는 <a href="https://claude.ai/artifact/DjFGS779qLqQFiL5xrfJqn">둘이 고치는 순서</a> 안내를 따라요.</p>
     <div class="hero"><img src="images/hero.png" alt="찜(하트)이 모여 휴대폰 화면의 진행률이 차고, 그만큼 상품 상자가 되어 나가는 그림" width="1376" height="768"></div>
     <div class="meta"><span>기준: 기획서 v1.1(10/7) · 로드맵(10/8) · 저장소 main ea319a0 · 작업카드(10/12) · 카페24 API 조사(10/12)</span><span>팀: 이규현(hybrid633) · 김보성(bobo33772-blip)</span></div>
   </header>
@@ -188,11 +188,10 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
     <a href="#flow">3. 흐름</a>
     <a href="#arch">4. 구조</a>
     <a href="#status">5. 구현 정도</a>
-    <a href="#team">6. 2인 분담</a>
-    <a href="#weeks">7. 4주 일정</a>
-    <a href="#success">8. 성공 기준</a>
-    <a href="#decisions">9. 정할 것</a>
-    <a href="#risks">10. 리스크</a>
+    <a href="#weeks">6. 4주 일정</a>
+    <a href="#success">7. 성공 기준</a>
+    <a href="#decisions">8. 정할 것</a>
+    <a href="#risks">9. 리스크</a>
   </nav>
 
   <!-- ===== 1 ===== -->
@@ -397,45 +396,11 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
     <p class="note">저장소 상태: PR #1~#3, #5 머지. PR #4(고객 위젯 "공구 열리면 알림 받기")는 충돌 해결 후 리뷰 대기. main 보호 규칙은 파일만 있고 아직 안 켜짐. 테스트 74개 통과, 타입 검사 통과.</p>
   </section>
 
-  <!-- ===== 6 ===== -->
-  <section id="team">
-    <div class="sec-h"><span class="eyebrow">6 · 2인 분담</span><h2>코드는 이규현, 카페24와 파일럿은 김보성</h2><p>다섯 명일 때는 파일 단위로 쪼갰지만, 둘이면 "제품을 만드는 사람"과 "제품을 세상에 붙이는 사람"으로 나누는 게 충돌이 가장 적어요. 코드가 필요한 일은 둘 다 하되, 파일 경계는 아래처럼 둬요.</p></div>
-    <div class="split">
-      <div class="person" style="--c:var(--sys)">
-        <h3>이규현 <small>hybrid633</small></h3>
-        <div class="role">제품 · 엔진 · 화면 · 위젯</div>
-        <ul>
-          <li>공구 엔진과 규칙(판정·쿠폰·문자·결제 집계) 유지와 보강</li>
-          <li>고객 위젯과 문자 3종 + 결제 마감 전 알림 문자 추가</li>
-          <li>판매자 앱 화면(홈·내 공구·새 공구·상세·설정)과 운영자 화면</li>
-          <li>PR #4 마무리, 기획서 "고칠 문장" 코드 쪽 반영</li>
-          <li>데모 모드로 심사 담당자·판매자 시연 준비</li>
-        </ul>
-        <div class="files"><code>src/lib/engine</code><code>src/lib/core</code><code>public/widget.js</code><code>src/app/console</code><code>src/app/campaigns</code><code>src/app/admin</code><code>src/app/api/public</code></div>
-      </div>
-      <div class="person" style="--c:var(--cafe)">
-        <h3>김보성 <small>bobo33772-blip · 저장소 관리자</small></h3>
-        <div class="role">카페24 연동 · 운영 · 파일럿 · 심사</div>
-        <ul>
-          <li>카페24 개발자센터: 앱 정보, 권한 승인 요청(찜 조회), 발신번호 승인, 충전</li>
-          <li>남은 PoC 검증: P2 실제 회원 토큰, P3 쿠폰 대량 발급, P7 직접 설치, P8 찜 100명</li>
-          <li>수요 레이더 자동 수집, 설치 경로, 탈퇴 웹훅 파기, 접근 기록</li>
-          <li>파일럿 몰 3곳 섭외 + 처리 위탁 계약, 판매자 통화하며 공구 열기</li>
-          <li>저장소 관리: 보호 규칙 켜기, 심사 자료 제출, 28일 차 판정</li>
-        </ul>
-        <div class="files"><code>src/lib/cafe24</code><code>src/app/api/cafe24</code><code>src/lib/radar.ts</code><code>src/app/radar</code><code>src/lib/engine/retention.ts</code><code>docs/</code><code>store/</code></div>
-      </div>
-    </div>
-    <div class="rules">
-      <div class="rule"><b>PR은 그대로, 리뷰는 서로</b><span>작업 하나 = 브랜치 하나 = PR 하나. 상대가 승인하면 머지. 보호 규칙을 켜면 자동으로 강제돼요.</span></div>
-      <div class="rule"><b>공용 파일은 먼저 말하고</b><span><code>schema.ts</code> · <code>engine/campaigns.ts</code> · <code>console/types.ts</code>를 고칠 땐 작은 PR로 먼저. 둘뿐이라 메시지 한 줄이면 충분해요.</span></div>
-      <div class="rule"><b>매일 10분 싱크</b><span>"어제 머지한 것 · 오늘 할 것 · 막힌 것". 작업카드의 상태를 그때 같이 갱신해요.</span></div>
-    </div>
-  </section>
+  <!-- 분담: 사람별 배정은 "둘이 고치는 순서" 안내(https://claude.ai/artifact/DjFGS779qLqQFiL5xrfJqn)의 나눠 맡기 기준을 따른다. 이 문서에서는 다루지 않는다. -->
 
   <!-- ===== 7 ===== -->
   <section id="weeks">
-    <div class="sec-h"><span class="eyebrow">7 · 4주 일정</span><h2>10월 13일 시작, 11월 9일 판정</h2><p>코드 작업은 1~2주 차에 끝내고, 3주 차에 실제 공구를 열어요. 공구 하나가 모집 5일 + 결제 72시간이라 17일 차에는 열려 있어야 28일 차 판정이 돼요.</p></div>
+    <div class="sec-h"><span class="eyebrow">6 · 4주 일정</span><h2>10월 13일 시작, 11월 9일 판정</h2><p>코드 작업은 1~2주 차에 끝내고, 3주 차에 실제 공구를 열어요. 공구 하나가 모집 5일 + 결제 72시간이라 17일 차에는 열려 있어야 28일 차 판정이 돼요.</p></div>
     <figure>
       <p class="swipe" aria-hidden="true">그림이 옆으로 길어요. 옆으로 밀어서 보세요 →</p>
       <div class="frame wide">
@@ -455,13 +420,13 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
           <text class="tx" x="667" y="58" text-anchor="middle">첫 공구</text>
           <text class="tx" x="862" y="58" text-anchor="middle">결제 → 결정</text>
           <!-- rows -->
-          <text class="lane-l t-sys" x="20" y="92">이규현 · 코드</text>
+          <text class="lane-l t-sys" x="20" y="92">코드</text>
           <rect class="gbar g-code" x="186" y="78" width="130" height="20"/><text class="tx" x="192" y="92" style="fill:#fff">PR #4 머지 · 24h 옵션 결정</text>
           <rect class="gbar g-code" x="322" y="78" width="160" height="20"/><text class="tx" x="328" y="92" style="fill:#fff">결제 마감 전 알림 문자</text>
           <rect class="gbar g-code" x="186" y="106" width="296" height="20"/><text class="tx" x="192" y="120" style="fill:#fff">기획서 결정 7개 코드 반영 · 데모 시연 준비</text>
           <rect class="gbar g-code" x="576" y="106" width="380" height="20" opacity=".55"/><text class="tx" x="582" y="120" style="fill:#fff">운영 대응 · 버그 수정만 (새 기능 없음)</text>
 
-          <text class="lane-l t-cafe" x="20" y="160">김보성 · 연동</text>
+          <text class="lane-l t-cafe" x="20" y="160">카페24 연동 · 운영</text>
           <rect class="gbar g-ops" x="186" y="146" width="185" height="20"/><text class="tx" x="192" y="160" style="fill:#fff">보호 규칙 · P2 회원 토큰 · P3 발급</text>
           <rect class="gbar g-ops" x="381" y="146" width="185" height="20"/><text class="tx" x="387" y="160" style="fill:#fff">발신번호 승인 · 충전 · P7 설치</text>
           <rect class="gbar g-ops" x="186" y="174" width="185" height="20"/><text class="tx" x="192" y="188" style="fill:#fff">파일럿 후보 10곳 연락</text>
@@ -478,10 +443,10 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
           <text class="tx t-cust" x="176" y="322" text-anchor="end">오늘 10/12</text>
         </svg>
       </div>
-      <figcaption>위 두 줄은 각자 혼자 하는 일, 아래 줄은 둘이 같이 하는 파일럿이에요. 3주 차부터는 새 기능을 넣지 않고 운영만 해요. 17일 차(10/29)에 공구가 열려야 28일 차(11/9)에 판정할 수 있어요.</figcaption>
+      <figcaption>위 두 줄은 코드와 연동 일, 아래 줄은 둘이 같이 하는 파일럿이에요. 누가 맡는지는 "둘이 고치는 순서" 안내의 나눠 맡기 기준을 따라요. 3주 차부터는 새 기능을 넣지 않고 운영만 해요. 17일 차(10/29)에 공구가 열려야 28일 차(11/9)에 판정할 수 있어요.</figcaption>
     </figure>
     <div class="weeks">
-      <div class="week"><span class="n">1주</span><h3>관문 확인</h3><ul><li>PR #4 리뷰·머지, 보호 규칙 켜기</li><li>P2 실제 회원 토큰 필드, P3 쿠폰 1,000명 발급</li><li>"정할 것" 7개 결정(아래 9번)</li><li>파일럿 후보 10곳에 연락</li></ul><div class="done"><b>끝 조건</b> 위조 회원 100% 거부, 쿠폰 누락 0, 몰 3곳 긍정 회신</div></div>
+      <div class="week"><span class="n">1주</span><h3>관문 확인</h3><ul><li>PR #4 리뷰·머지, 보호 규칙 켜기</li><li>P2 실제 회원 토큰 필드, P3 쿠폰 1,000명 발급</li><li>"정할 것" 8개 결정(아래 8번)</li><li>파일럿 후보 10곳에 연락</li></ul><div class="done"><b>끝 조건</b> 위조 회원 100% 거부, 쿠폰 누락 0, 몰 3곳 긍정 회신</div></div>
       <div class="week"><span class="n">2주</span><h3>마무리 · 설치</h3><ul><li>결제 마감 전 알림 문자, 결정 반영</li><li>발신번호 승인, SMS 충전</li><li>처리 위탁 계약, 3몰 설치(P7 링크)</li><li>각 몰 수요 레이더로 상품 고르기</li></ul><div class="done"><b>끝 조건</b> 3몰에서 초대 문자 미리보기까지 통과</div></div>
       <div class="week"><span class="n">3주</span><h3>첫 공구</h3><ul><li>17일 차: 판매자와 통화하며 공구 3건 오픈</li><li>초대 문자 발송 확인, 위젯 신청 모니터링</li><li>매일 "확인할 일" 비우기</li><li>새 기능 금지, 버그만</li></ul><div class="done"><b>끝 조건</b> 공구 3건 열림, 연동 오류 0</div></div>
       <div class="week"><span class="n">4주</span><h3>결제 → 결정</h3><ul><li>22일 차: 마감 판정, 쿠폰, 72시간 결제</li><li>26일 차: 확정 리포트 링크 전달</li><li>판매자 발주 확인 인터뷰</li><li>28일 차: Go · 보완 · 재검토 판정</li></ul><div class="done"><b>끝 조건</b> 원씽 1곳 + 성공 기준 표 채움</div></div>
@@ -490,7 +455,7 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
 
   <!-- ===== 8 ===== -->
   <section id="success">
-    <div class="sec-h"><span class="eyebrow">8 · 성공 기준</span><h2>28일 차에 이 표를 채워요</h2><p>결과를 보기 전에 판정 규칙을 정해 둬요. 운영자 화면의 4주 판정표가 아래 숫자를 자동으로 계산해요.</p></div>
+    <div class="sec-h"><span class="eyebrow">7 · 성공 기준</span><h2>28일 차에 이 표를 채워요</h2><p>결과를 보기 전에 판정 규칙을 정해 둬요. 운영자 화면의 4주 판정표가 아래 숫자를 자동으로 계산해요.</p></div>
     <div class="tblwrap"><table>
       <thead><tr><th>지표</th><th>뜻</th><th>기준</th><th>어디서 재나</th></tr></thead>
       <tbody>
@@ -512,7 +477,7 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
 
   <!-- ===== 9 ===== -->
   <section id="decisions">
-    <div class="sec-h"><span class="eyebrow">9 · 정할 것</span><h2>첫 주에 둘이 정하면 되는 8가지</h2><p>작업카드의 "팀이 정할 것" 18개 중 첫 PR을 막는 7개와, 카페24 API 조사(10/12)에서 새로 생긴 1개(사업자등록)예요. 각 항목에 제안을 붙였으니 동의하면 그대로, 아니면 바꿔요. 작업카드의 나머지 11개는 Go 판정 뒤로 미뤄요.</p></div>
+    <div class="sec-h"><span class="eyebrow">8 · 정할 것</span><h2>첫 주에 둘이 정하면 되는 8가지</h2><p>작업카드의 "팀이 정할 것" 18개 중 첫 PR을 막는 7개와, 카페24 API 조사(10/12)에서 새로 생긴 1개(사업자등록)예요. 각 항목에 제안을 붙였으니 동의하면 그대로, 아니면 바꿔요. 작업카드의 나머지 11개는 Go 판정 뒤로 미뤄요.</p></div>
     <div class="decs">
       <div class="dec"><span class="n">1</span><b>결제 기간 24시간 옵션</b><p>기획서는 24·48·72시간인데 구현은 48·72만 받아요.</p><p class="pick">기획서에서 24시간을 빼요. 홈리빙 객단가(7만 원)에 24시간은 짧고, 코드 변경이 없어요.</p></div>
       <div class="dec"><span class="n">2</span><b>결제 마감 전 알림 문자</b><p>기획서엔 있는데 구현은 초대·결과 두 종류뿐이에요.</p><p class="pick">만들어요. 결제 기한 24시간 전에 아직 결제 안 한 신청자에게만. 설계는 이미 있고 엔진 파일 2개만 고쳐요. 신청→결제 50%를 넘기는 데 가장 직접적인 장치예요.</p></div>
@@ -520,15 +485,15 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
       <div class="dec"><span class="n">4</span><b>고객 "내 공구" 페이지</b><p>기획서엔 있고 구현은 상품 위젯에서만 상태·취소가 돼요.</p><p class="pick">4주 안엔 안 만들고 기획서를 위젯 기준으로 고쳐요. 고객은 문자 링크로 상품 페이지에 오니 거기서 다 보여요.</p></div>
       <div class="dec"><span class="n">5</span><b>미달 시 "그래도 진행"</b><p>구현은 미달이면 끝. 판매자가 할 수 있는 게 없어요.</p><p class="pick">4주엔 빼요. 성사율 60% 기준을 재려면 미달은 미달로 끝나야 숫자가 깨끗해요.</p></div>
       <div class="dec"><span class="n">6</span><b>판매자 오류 안내(연결 끊김)</b><p>지금은 JSON 글자만 보이거나 첫 화면으로 튕겨요.</p><p class="pick">첫 화면에 "카페24 연결이 끊겼어요. 관리자에서 찜꽁을 다시 실행해 주세요" 한 줄만 추가해요. 별도 화면은 안 만들어요.</p></div>
-      <div class="dec"><span class="n">7</span><b>수요 레이더 자동 수집</b><p>기획서는 설치 직후 자동, 구현은 버튼을 눌러야 해요.</p><p class="pick">설치 직후 1회만 자동으로 시작해요(김보성). 매일 새벽 갱신 대신, 카페24 웹훅 90084(장바구니 담김)·90150(재고 상태 변경)을 받아 상품별 숫자를 그때그때 올리는 쪽이 호출 한도(10분 3,000건)에도 안전해요. 웹훅 연동은 2주 차 김보성 몫, 안 되면 수동 버튼 유지.</p></div>
-      <div class="dec"><span class="n">8</span><b>사업자등록을 파일럿 전에 할지</b><p>카페24 API 조사 결과, 유료 요금제·부가서비스(애널리틱스 프리미엄·SERA·PRO)를 써도 앱 권한은 하나도 늘지 않아요. 찜 회원 조회와 수신동의 조회(mall.read_privacy)는 "개인개발자에게는 주지 않는다"고 명시돼 있어, 사업자등록(개인사업자 가능) + 개인정보 서약서가 유일한 길이에요. 재입고 알림 신청자 목록 API와 알림톡 발송 API는 아예 없어요.</p><p class="pick">김보성이 1주 차에 개인사업자 등록 비용·기간을 확인해 첫 회의에 가져와요. 등록하면 기획서 원안(찜 고객 초대 + 수신동의 필터)이 그대로 살아나고 심사 자료의 권한 소명도 단순해져요. 등록 전에는 알림 받기(PR #4) + 장바구니로 가고, 회원별 찜 목록 API(mall.read_personal로 될 가능성, 미확인)를 토큰 scope 조회로 하루 안에 검증해 역색인 가능 여부만 봐 둬요.</p></div>
+      <div class="dec"><span class="n">7</span><b>수요 레이더 자동 수집</b><p>기획서는 설치 직후 자동, 구현은 버튼을 눌러야 해요.</p><p class="pick">설치 직후 1회만 자동으로 시작해요. 매일 새벽 갱신 대신, 카페24 웹훅 90084(장바구니 담김)·90150(재고 상태 변경)을 받아 상품별 숫자를 그때그때 올리는 쪽이 호출 한도(10분 3,000건)에도 안전해요. 웹훅 연동은 2주 차, 안 되면 수동 버튼 유지.</p></div>
+      <div class="dec"><span class="n">8</span><b>사업자등록을 파일럿 전에 할지</b><p>카페24 API 조사 결과, 유료 요금제·부가서비스(애널리틱스 프리미엄·SERA·PRO)를 써도 앱 권한은 하나도 늘지 않아요. 찜 회원 조회와 수신동의 조회(mall.read_privacy)는 "개인개발자에게는 주지 않는다"고 명시돼 있어, 사업자등록(개인사업자 가능) + 개인정보 서약서가 유일한 길이에요. 재입고 알림 신청자 목록 API와 알림톡 발송 API는 아예 없어요.</p><p class="pick">1주 차에 개인사업자 등록 비용·기간을 확인해 첫 회의에 가져와요. 등록하면 기획서 원안(찜 고객 초대 + 수신동의 필터)이 그대로 살아나고 심사 자료의 권한 소명도 단순해져요. 등록 전에는 알림 받기(PR #4) + 장바구니로 가고, 회원별 찜 목록 API(mall.read_personal로 될 가능성, 미확인)를 토큰 scope 조회로 하루 안에 검증해 역색인 가능 여부만 봐 둬요.</p></div>
     </div>
-    <p class="note">미룬 11개(요금 숫자, 심사 시점, 판정표 "보완" 규칙, 접근 기록 범위, 탈퇴 웹훅 즉시 파기, 찜 100명 한계, 어뷰징 검토 표시 등)는 작업카드 "팀이 정할 것"에 그대로 있어요. 이 중 탈퇴 웹훅 파기와 접근 기록은 심사 자료와 맞물려 2주 차에 김보성이 봐요.</p>
+    <p class="note">미룬 11개(요금 숫자, 심사 시점, 판정표 "보완" 규칙, 접근 기록 범위, 탈퇴 웹훅 즉시 파기, 찜 100명 한계, 어뷰징 검토 표시 등)는 작업카드 "팀이 정할 것"에 그대로 있어요. 이 중 탈퇴 웹훅 파기와 접근 기록은 심사 자료와 맞물려 2주 차에 봐요.</p>
   </section>
 
   <!-- ===== 10 ===== -->
   <section id="risks">
-    <div class="sec-h"><span class="eyebrow">10 · 리스크</span><h2>막히면 이렇게 돌아가요</h2></div>
+    <div class="sec-h"><span class="eyebrow">9 · 리스크</span><h2>막히면 이렇게 돌아가요</h2></div>
     <div class="risks">
       <div class="rule"><b>P2 실제 회원 검증이 안 됨</b><span>연동 모드에서 신청이 전부 거절돼요. 1주 차 첫 과제. 안 되면 카페24 개발자 포럼 문의 + 데모 모드로 시연만 먼저.</span></div>
       <div class="rule"><b>파일럿 몰 섭외 지연</b><span>1주 차 첫날 후보 10곳. 장바구니·알림 신청이 많은 품절 상품이 있는 몰을 먼저. 2곳만 돼도 공구 3건은 열 수 있어요.</span></div>
@@ -544,7 +509,7 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
       <a href="https://github.com/bobo33772-blip/HOP">HOP 저장소</a>
       <a href="https://claude.ai/artifact/Sddu5GmfiTmEoRMVpYceSL">GitHub 안내서</a>
       <a href="https://claude.ai/artifact/UquFsh4VaNN8doNU4QT8Zo">작업카드</a>
-      <a href="https://claude.ai/artifact/Kpn37JvKkBSTCBYmX5daYE">5인 배정안(이전 안)</a>
+      <a href="https://claude.ai/artifact/DjFGS779qLqQFiL5xrfJqn">둘이 고치는 순서</a>
     </div>
     <p>기획서 v1.1(2026-10-07, 팀원용)의 목표·성공 기준·판정 규칙을 그대로 두고, 구현 상태와 팀 구성(2인)만 2026-10-12 기준으로 다시 썼어요. 그림의 숫자는 데모 데이터 예시예요.</p>
   </footer>
