@@ -3,7 +3,12 @@
 // 운영자 화면: 공구 목록·상세 / 새 공구(찜 많은 상품 → 조건 → 미리보기 → 열기) / 4주 판정표.
 
 import { useCallback, useEffect, useState } from "react";
-import { ConsoleProvider, ListTab, NewTab, ProfileCard, ScoreTab, useToast, type Mall } from "../console/console";
+import { ConsoleProvider, useToast } from "../console/provider";
+import { ListTab } from "../console/campaign-list";
+import { NewTab } from "../console/radar-picker";
+import { ProfileCard } from "../console/profile-card";
+import { ScoreTab } from "../console/score-tab";
+import type { Mall } from "../console/types";
 
 async function get<T>(path: string): Promise<T> {
   const r = await fetch(path, { cache: "no-store" });

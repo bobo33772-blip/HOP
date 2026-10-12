@@ -1,12 +1,12 @@
 # 찜 공구 서버(jjim-gonggu/app) 검사: PR과 main 푸시마다 타입 검사 · 테스트 · 프로덕션 빌드.
 # 비밀값 없이 돈다 — 테스트와 빌드는 데모 모드(모의 쇼핑몰 + 메모리 DB)를 쓴다.
+# main 규칙셋(.github/rulesets/protect-main.json)이 이 워크플로의 job `check`를 필수로 요구한다.
+# 그래서 pull_request에는 paths 필터를 두지 않는다: 필터로 건너뛴 PR은 check가 'Pending'에 머물러 병합이 막힌다.
+# job id `check`를 바꾸거나 name:을 붙이면 체크 이름이 바뀌니, 그때는 규칙셋도 같이 고친다.
 name: jjim-app
 
 on:
   pull_request:
-    paths:
-      - "jjim-gonggu/app/**"
-      - ".github/workflows/jjim-app.yml"
   push:
     branches: [main]
     paths:
