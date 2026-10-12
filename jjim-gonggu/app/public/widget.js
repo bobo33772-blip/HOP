@@ -101,7 +101,7 @@
     root.appendChild(bar);
 
     if (c.state === 'open') {
-      root.appendChild(el('div', { class: 'jjg-muted' }, [(ok ? '목표를 채웠어요! 마감 후 공구가 쿠폰을 드려요.' : (c.targetQty - c.pledgedQty) + '개 더 모이면 공구가로 살 수 있어요.') + ' 지금은 결제하지 않아요 · 예상 출고 ' + c.shipEta]));
+      root.appendChild(el('div', { class: 'jjg-muted' }, [(ok ? '목표를 채웠어요! 마감 후 ' + won(c.listPrice - c.dealPrice) + ' 할인 쿠폰을 드려요.' : (c.targetQty - c.pledgedQty) + '개 더 모이면 공구가로 살 수 있어요.') + ' 지금은 결제하지 않아요 · 예상 출고 ' + c.shipEta]));
       if (state.mine && state.mine.state === 'pledged') {
         root.appendChild(el('div', { class: 'jjg-row' }, [el('b', null, ['신청 완료 · ' + state.mine.qty + '개']), el('button', { class: 'jjg-btn ghost', style: 'width:auto;padding:0 14px', onclick: cancel }, ['신청 취소'])]));
         root.appendChild(el('div', { class: 'jjg-muted' }, ['마감 후 결과를 알려 드려요. 마감 전까지 언제든 취소할 수 있어요.']));
@@ -110,7 +110,7 @@
       } else if (state.step === 'form') {
         root.appendChild(el('div', { class: 'jjg-row' }, [el('span', { class: 'jjg-muted' }, ['수량 (1인 최대 ' + c.perMemberLimit + '개)']),
           el('div', { class: 'jjg-step' }, [el('button', { 'aria-label': '수량 줄이기', onclick: function () { state.qty = Math.max(1, state.qty - 1); render(); } }, ['−']), el('span', null, [String(state.qty)]), el('button', { 'aria-label': '수량 늘리기', onclick: function () { state.qty = Math.min(c.perMemberLimit, state.qty + 1); render(); } }, ['+'])])]));
-        root.appendChild(el('ul', { class: 'jjg-list' }, [el('li', null, [el('b', null, ['지금은 결제하지 않아요'])]), el('li', null, [c.targetQty + '개가 모이면 ' + won(c.dealPrice) + ' 쿠폰을 드려요. 쿠폰을 받으면 정해진 기간 안에 결제해 주세요']), el('li', null, ['못 모이면 진행 안 됨 안내만 드려요']), el('li', null, ['예상 출고 ' + c.shipEta])]));
+        root.appendChild(el('ul', { class: 'jjg-list' }, [el('li', null, [el('b', null, ['지금은 결제하지 않아요'])]), el('li', null, [c.targetQty + '개가 모이면 ' + won(c.listPrice - c.dealPrice) + ' 할인 쿠폰을 드려요. 쿠폰을 쓰면 ' + won(c.dealPrice) + '이에요']), el('li', null, ['쿠폰을 받은 뒤 ' + c.payWindowHours + '시간 안에 결제해 주세요']),el('li', null, ['못 모이면 진행 안 됨 안내만 드려요']), el('li', null, ['예상 출고 ' + c.shipEta])]));
         root.appendChild(el('button', { class: 'jjg-btn', onclick: submit, disabled: state.busy ? '' : null }, [state.busy ? '신청 중…' : state.qty + '개 신청하기']));
       } else {
         root.appendChild(el('button', { class: 'jjg-btn', onclick: start }, ['참여 신청 · 지금 결제 없음']));
