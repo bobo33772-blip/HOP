@@ -120,7 +120,7 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
     <div class="eyebrow">HOP 저장소 · 찜꽁 팀 5명 · 2026-10-12 작성</div>
     <h1>찜꽁 화면 배정안</h1>
     <p class="lead">화면이 아니라 <b>파일 소유권</b>으로 나눴어요. 한 사람이 자기 파일만 고치면 두 PR이 같은 줄을 건드릴 일이 거의 없어서 충돌이 안 나요. 판매자와 운영자 화면은 같은 console 부품을 쓰므로 부품 파일 기준으로 한 사람이 둘 다 맡아요.</p>
-    <p class="asof">근거: 작업카드의 화면별 코드 위치(51개 화면) · GitHub 안내서의 console 9칸 분리(PR #3) · 팀이 정할 것 18개. 담당은 2026-10-12에 정했고, 각자 작업카드에서 자기 레인 화면에 "내가 맡기"를 눌러요.</p>
+    <p class="asof">근거: 작업카드의 화면별 코드 위치(51개 화면) · GitHub 안내서의 console 9칸 분리(PR #3) · 팀이 정할 것 18개. 담당(GitHub 이름)은 2026-10-12에 정했고, 각자 작업카드에서 자기 레인 화면에 "내가 맡기"를 눌러요.</p>
     <nav class="nav" aria-label="이 페이지의 부분">
       <a href="#lanes">레인 5개</a>
       <a href="#shared">공용 파일 규칙</a>
@@ -144,7 +144,7 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
     <div class="sec-h"><h2>레인 5개</h2><p>"내 파일"은 이 레인만 고치는 파일이에요. "같이 쓰는 파일"은 다른 레인도 고칠 수 있으니 고치기 전에 작업카드 메모로 알리고, 가능하면 작은 PR로 먼저 올려요.</p></div>
 
     <article class="lane" style="--c:var(--l1)"><div class="bar"></div><div class="in">
-      <div class="lane-h"><span class="n">레인 1</span><h3>공구 개설</h3><span class="who">담당 <b>김혜수</b> · tkr020683</span></div>
+      <div class="lane-h"><span class="n">레인 1</span><h3>공구 개설</h3><span class="who">담당 <b>김혜수</b> · hyesu-0213</span></div>
       <p class="why">판매자 "새 공구" 탭과 운영자 "새 공구" 탭은 같은 두 부품(radar-picker, campaign-form)을 써요. 한 사람이 맡아야 판매자 쪽 고친 게 운영자 쪽을 깨뜨리지 않아요.</p>
       <div class="grid2">
         <div class="blk"><h4>내 파일</h4><div class="files"><code class="own">console/radar-picker.tsx</code><code class="own">console/campaign-form.tsx</code><code class="own">lib/core/campaign.ts</code><code>api/admin/malls/[mall]/campaigns/*</code><code>api/seller/campaigns (생성)</code></div></div>
@@ -165,7 +165,7 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
     </div></article>
 
     <article class="lane" style="--c:var(--l2)"><div class="bar"></div><div class="in">
-      <div class="lane-h"><span class="n">레인 2</span><h3>공구 상세 · 리포트</h3><span class="who">담당 <b>강민서</b> · GitHub ID 확인 예정</span></div>
+      <div class="lane-h"><span class="n">레인 2</span><h3>공구 상세 · 리포트</h3><span class="who">담당 <b>강민서</b> · IrisKang-pjt</span></div>
       <p class="why">공구 하나의 숫자(초대 → 신청 → 쿠폰 → 결제)와 확정 결과를 보여 주는 곳이에요. 판매자·운영자 상세는 campaign-detail 한 부품이고, 공장에 보내는 리포트 링크도 같은 계산(report.ts)을 써요.</p>
       <div class="grid2">
         <div class="blk"><h4>내 파일</h4><div class="files"><code class="own">console/campaign-detail.tsx</code><code class="own">app/r/[token]/page.tsx</code><code class="own">lib/engine/report.ts</code><code>api/*/campaigns/[id]/decision</code><code>api/admin/campaigns/[id]/judge · reconcile</code></div></div>
@@ -186,7 +186,7 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
     </div></article>
 
     <article class="lane" style="--c:var(--l3)"><div class="bar"></div><div class="in">
-      <div class="lane-h"><span class="n">레인 3</span><h3>홈 · 목록 · 설정</h3><span class="who">담당 <b>하유정</b> · aksla2013</span></div>
+      <div class="lane-h"><span class="n">레인 3</span><h3>홈 · 목록 · 설정</h3><span class="who">담당 <b>하유정</b> · aksla2013-star</span></div>
       <p class="why">판매자 앱의 틀(첫 화면, 홈, 상단바, 탭)과 목록·설정 부품이에요. 운영자 목록과 쇼핑몰 정보 카드도 같은 부품이라 함께 맡아요. 화면 수는 많지만 하나하나는 작아요.</p>
       <div class="grid2">
         <div class="blk"><h4>내 파일</h4><div class="files"><code class="own">app/page.tsx</code><code class="own">components/app-bar.tsx</code><code class="own">console/campaign-list.tsx</code><code class="own">console/profile-card.tsx</code><code class="own">campaigns/seller-console.tsx</code><code>admin/admin-client.tsx (탭·목록)</code><code>api/seller/profile</code></div></div>
@@ -208,7 +208,7 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
     </div></article>
 
     <article class="lane" style="--c:var(--l4)"><div class="bar"></div><div class="in">
-      <div class="lane-h"><span class="n">레인 4</span><h3>수요 레이더 · 판정표 · 설치</h3><span class="who">담당 <b>김보성</b> · bobo33772 · 저장소 관리자</span></div>
+      <div class="lane-h"><span class="n">레인 4</span><h3>수요 레이더 · 판정표 · 설치</h3><span class="who">담당 <b>김보성</b> · bobo33772-blip · 저장소 관리자</span></div>
       <p class="why">화면보다 서버 쪽 일이 많은 레인이에요. 수요 수집(radar), 4주 판정표(score-tab), 카페24 앱 실행·권한 동의·설치 경로, 정기 작업(scheduler)과 개인정보 파기(retention)를 맡아요.</p>
       <div class="grid2">
         <div class="blk"><h4>내 파일</h4><div class="files"><code class="own">app/radar/*</code><code class="own">lib/radar.ts</code><code class="own">api/v1/demand/*</code><code class="own">console/score-tab.tsx</code><code class="own">api/admin/scorecard</code><code class="own">api/cafe24/launch · callback · install</code><code>api/admin/login</code><code>engine/scheduler.ts</code><code>engine/retention.ts</code></div></div>
@@ -326,6 +326,6 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
       <a href="https://claude.ai/artifact/UquFsh4VaNN8doNU4QT8Zo">작업카드</a>
       <a href="https://github.com/bobo33772-blip/HOP/pulls">PR 목록</a>
     </div>
-    <p>화면 수와 코드 위치는 2026-10-12 작업카드(PR #4 브랜치 @ec46ada) 기준이에요. 레인 2 담당 강민서의 GitHub ID는 확인되는 대로 채워요.</p>
+    <p>화면 수와 코드 위치는 2026-10-12 작업카드(PR #4 브랜치 @ec46ada) 기준이에요. 담당 옆 이름은 HOP 저장소에 초대된 GitHub 계정이에요.</p>
   </footer>
 </div>
