@@ -321,6 +321,9 @@ describe("확정 리포트와 4주 판정표", () => {
     expect(rep.funnel.invitedPledgers).toBe(20); // 짝수 회원만 초대받았다
     expect(rep.rates.inviteToPledge).toBe(20 / 69);
     await expect(recordProductionDecision(env.ctx, "op", c.id, { qty: 25, note: " " })).rejects.toThrow(/근거/);
+    // 확정 25개인데 2,530개: 입력란에 미리 채워진 25 뒤에 30을 이어 친 실수 → 한 번 더 확인받는다
+    await expect(recordProductionDecision(env.ctx, "op", c.id, { qty: 2530, note: "가마 10/30" })).rejects.toThrow(/3배/);
+    expect((await getCampaign(env.ctx, c.id)).decidedAt).toBeNull();
     await recordProductionDecision(env.ctx, "op", c.id, { qty: 26, note: "가마 10/30 · 여유 1장" });
     const sc = await pilotScorecard(env.ctx);
     expect(sc.rows.find((r) => r.key === "one_thing")!.pass).toBe(true);

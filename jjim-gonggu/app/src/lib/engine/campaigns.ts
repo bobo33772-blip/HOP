@@ -4,7 +4,7 @@ import { randomBytes } from "node:crypto";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { schema } from "@/db";
 import { allProducts } from "../cafe24/api";
-import { errorMessages, validateCampaignInput, type CampaignInput, type CampaignState } from "../core/campaign";
+import { DECISION_CONFIRM_RATIO, decisionNeedsConfirm, errorMessages, validateCampaignInput, type CampaignInput, type CampaignState } from "../core/campaign";
 import { COUNTED_PLEDGE_STATES } from "../core/pledge";
 import { formatAdMessage, isValidOptOutNumber, nextAllowedSendTime } from "../core/messaging";
 import { HOUR, fmtKst, won } from "../time";
@@ -184,11 +184,17 @@ export async function listCampaigns(ctx: Ctx, mallId: string) {
 }
 
 /** 원씽 기록: 판매자가 확정 수량을 보고 생산·발주를 결정했다 (운영자가 판매자 확인 후 입력) */
-export async function recordProductionDecision(ctx: Ctx, actor: string, campaignId: string, body: { qty?: unknown; note?: unknown }) {
+export async function recordProductionDecision(ctx: Ctx, actor: string, campaignId: string, body: { qty?: unknown; note?: unknown; confirmLarge?: unknown }) {
   const c = await getCampaign(ctx, campaignId);
   if (c.state !== "settled") throw new UserError("not_settled", "결제 기간이 끝나 확정된 공구만 기록할 수 있어요.", 409);
   const qty = Number(body.qty);
   if (!Number.isInteger(qty) || qty < 1) throw new UserError("bad_qty", "생산·발주 수량을 입력해 주세요.");
+  const [paid] = await ctx.db.select({ q: sql<number>`coalesce(sum(${schema.orderLinks.qty}), 0)` }).from(schema.orderLinks)
+    .where(and(eq(schema.orderLinks.campaignId, c.id), eq(schema.orderLinks.status, "paid")));
+  const settled = Number(paid?.q ?? 0);
+  if (decisionNeedsConfirm(qty, settled) && body.confirmLarge !== true) {
+    throw new UserError("confirm_large", `확정 수량(${settled}개)의 ${DECISION_CONFIRM_RATIO}배가 넘어요(${qty.toLocaleString("ko-KR")}개). 숫자가 맞는지 확인해 주세요.`, 422);
+  }
   const note = String(body.note ?? "").slice(0, 300);
   if (!note.trim()) throw new UserError("note_required", "확인 근거를 적어 주세요. 예: 발주서 번호, 가마 일정 날짜");
   const now = ctx.clock.now();
