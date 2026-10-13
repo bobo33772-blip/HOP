@@ -10,6 +10,7 @@ import { installWidget } from "@/lib/console-actions";
 import { runCollection, startFirstCollection } from "@/lib/radar";
 import { getCtx } from "@/lib/server";
 import { setSession } from "@/lib/session";
+import { launchErrorUrl } from "@/lib/launch-errors";
 
 const STATE_TTL_MS = 10 * 60_000;
 
@@ -17,14 +18,21 @@ export async function GET(req: NextRequest) {
   const e = requireReal();
   const code = req.nextUrl.searchParams.get("code");
   const state = req.nextUrl.searchParams.get("state");
-  if (!code || !state) return NextResponse.json({ error: "missing_code" }, { status: 400 });
+  // 실패하면 JSON 대신 첫 화면의 안내 한 줄로 보낸다 (#28). 판매자가 동의를 거절하면 카페24가 code 없이 error를 붙여 돌려보낸다
+  if (!code || !state) return NextResponse.redirect(launchErrorUrl(e.APP_BASE_URL, req.nextUrl.searchParams.get("error") ? "denied" : "install_retry"));
 
   const db = await getDb();
   const [s] = await db.delete(schema.oauthStates).where(eq(schema.oauthStates.state, state)).returning();
-  if (!s || Date.now() - s.createdAt.getTime() > STATE_TTL_MS) return NextResponse.json({ error: "invalid_state" }, { status: 400 });
+  if (!s || Date.now() - s.createdAt.getTime() > STATE_TTL_MS) return NextResponse.redirect(launchErrorUrl(e.APP_BASE_URL, "install_retry"));
 
-  const tokens = await exchangeCode(s.mallId, e.CAFE24_CLIENT_ID, e.CAFE24_CLIENT_SECRET, code, e.redirectUri);
-  await saveInstall(s.mallId, tokens);
+  let tokens: Awaited<ReturnType<typeof exchangeCode>>;
+  try {
+    tokens = await exchangeCode(s.mallId, e.CAFE24_CLIENT_ID, e.CAFE24_CLIENT_SECRET, code, e.redirectUri);
+    await saveInstall(s.mallId, tokens);
+  } catch (err) {
+    console.error("cafe24 token exchange failed", err);
+    return NextResponse.redirect(launchErrorUrl(e.APP_BASE_URL, "install_failed"));
+  }
 
   try {
     await installWidget(await getCtx(), s.mallId);

@@ -10,20 +10,24 @@ import { getSession } from "@/lib/session";
 import { getCtx } from "@/lib/server";
 import { listCampaigns } from "@/lib/engine/campaigns";
 import { requestedScopes } from "@/lib/cafe24/scopes";
+import { launchErrorMessage } from "@/lib/launch-errors";
 
 export const dynamic = "force-dynamic";
 
 const STATE: Record<string, [string, string]> = { open: ["모집 중", "open"], reached: ["달성 · 결제 기간", "ok"], failed: ["진행 안 됨", "bad"], settled: ["확정 완료", "ok"] };
 
-export default async function Home() {
+export default async function Home({ searchParams }: { searchParams: Promise<{ error?: string | string[] }> }) {
   const session = await getSession();
   const { mock } = env();
+  // 카페24 실행 · 설치가 실패해 돌아온 경우의 안내 한 줄 (#28). 정해 둔 코드만 문구로 바꾼다
+  const notice = launchErrorMessage((await searchParams).error);
 
   if (!session) {
     return (
       <main style={{ minHeight: "100dvh", alignContent: "center", justifyItems: "center", textAlign: "center" }}>
         <img src="/logo.svg" alt="" width={72} height={72} style={{ borderRadius: 18 }} />
         <h1>찜꽁</h1>
+        {notice && <p className="err" role="alert">{notice}</p>}
         <p className="muted">찜·장바구니 고객과 함께 여는 결제 없는 예약 공동구매<br />카페24 관리자 › 앱 › 마이앱에서 &lsquo;찜꽁&rsquo;을 실행하면 이 화면이 열려요.</p>
         {mock && <a className="btn brand" href="/api/cafe24/launch">데모 쇼핑몰로 시작하기</a>}
         {mock && <a className="ghost" href="/demo">데모 안내 (운영자·고객 화면)</a>}
@@ -54,6 +58,7 @@ export default async function Home() {
     <>
       <AppBar current="home" shop={mall?.brandName ?? session.mallId} />
       <main>
+        {notice && <p className="err" role="alert">{notice}</p>}
         <div className="hello">
           <span className="eyebrow">{mock ? "데모 모드" : "카페24 연결됨"}</span>
           <h1>{mall?.brandName ?? session.mallId}님, 안녕하세요</h1>
