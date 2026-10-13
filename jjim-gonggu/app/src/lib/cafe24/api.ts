@@ -38,6 +38,8 @@ export interface ShopApi {
   /** 개인정보(mall.read_privacy) 권한이 있는가. 없으면 찜 회원·수신 동의를 조회할 수 없다 → 장바구니 고객 + 카페24 수신거부 자동 제외로 동작 */
   readonly privacy: boolean;
   listProducts(offset: number, limit: number): Promise<Product[]>;
+  /** 상품 하나. 몰에 없는 번호면 null */
+  getProduct(productNo: number): Promise<Product | null>;
   wishlistCount(productNo: number): Promise<number>;
   wishlistMembers(productNo: number): Promise<string[]>;
   cartCount(productNo: number): Promise<number>;
@@ -98,6 +100,19 @@ export class Cafe24Api implements ShopApi {
       query: { shop_no: this.shopNo, offset, limit, fields: "product_no,product_name,price,sold_out,list_image" },
     });
     return r.products.map((p) => ({ productNo: Number(p.product_no), name: p.product_name, price: Math.round(Number(p.price)), soldOut: p.sold_out === "T", imageUrl: p.list_image }));
+  }
+
+  async getProduct(productNo: number) {
+    try {
+      const r = await this.c.request<{ product: { product_no: number; product_name: string; price: string; sold_out?: "T" | "F"; list_image?: string } }>("GET", `/products/${productNo}`, {
+        query: { shop_no: this.shopNo, fields: "product_no,product_name,price,sold_out,list_image" },
+      });
+      const p = r.product;
+      return p ? { productNo: Number(p.product_no), name: p.product_name, price: Math.round(Number(p.price)), soldOut: p.sold_out === "T", imageUrl: p.list_image } : null;
+    } catch (e) {
+      if ((e as { status?: number }).status === 404) return null;
+      throw e;
+    }
   }
 
   async wishlistCount(productNo: number) {

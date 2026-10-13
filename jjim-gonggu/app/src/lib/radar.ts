@@ -97,13 +97,18 @@ export async function resumeCollections(db: Db, shop: (mallId: string) => Promis
   return runs.length;
 }
 
+/** 수집 결과에 없는 알림 신청 상품을 한 번에 몇 개까지 카페24에서 하나씩 조회할지 (#21: 요청마다 상품 전체 목록을 받지 않는다) */
+const FILL_MAX = 20;
+
 /**
  * 마지막으로 끝난 수집 결과에 지금의 알림 신청 수를 더한다. 셋 다 하나도 없는 상품은 뺀다.
  * 알림 신청은 수집과 무관하게 쌓이므로, 수집 전이거나 수집 결과에 없는 상품에 알림이 있으면 shop에서 상품 정보를 채워 함께 보여 준다
  * (몰에 없는 상품 번호는 뺀다). shop이 없으면 수집 결과에 있는 상품만 보여 준다.
+ * 채울 때는 알림이 많은 순으로 FILL_MAX개만 하나씩 조회한다. 수집 중에는 화면이 1.5초마다 다시 불러오고 수집도 카페24 호출 한도를
+ * 거의 다 쓰므로 채우지 않는다 (수집 중 화면은 진행률만 보여 주고, 수집이 끝나면 다시 채운다).
  */
 export async function getRadar(db: Db, mallId: string, sort: RadarSort = "total", limit = 50, shop?: ShopApi): Promise<{ run: RunStatus | null; rows: RadarRow[] }> {
-  const run = await latestRun(db, mallId, "done");
+  const [run, running] = await Promise.all([latestRun(db, mallId, "done"), latestRun(db, mallId, "running")]);
   const [snaps, alerts] = await Promise.all([
     run ? db.select().from(schema.demandSnapshots).where(eq(schema.demandSnapshots.runId, run.id)) : Promise.resolve([]),
     alertCounts({ db }, mallId),
@@ -113,12 +118,11 @@ export async function getRadar(db: Db, mallId: string, sort: RadarSort = "total"
   const latest = new Map(snaps.map((s) => [s.productNo, s]));
   const rows: RadarRow[] = [...latest.values()]
     .map((s) => ({ productNo: s.productNo, name: s.productName, price: s.price, soldOut: s.soldOut, alert: alerts.get(s.productNo) ?? 0, wishlist: s.wishlistCount, cart: s.cartCount }));
-  const missing = [...alerts.keys()].filter((no) => !latest.has(no));
-  if (missing.length && shop) {
-    const products = new Map((await allProducts(shop)).map((p) => [p.productNo, p]));
-    for (const no of missing) {
-      const p = products.get(no);
-      if (p) rows.push({ productNo: no, name: p.name, price: p.price, soldOut: p.soldOut ?? false, alert: alerts.get(no)!, wishlist: 0, cart: 0 });
+  const missing = [...alerts.keys()].filter((no) => !latest.has(no)).sort((a, b) => alerts.get(b)! - alerts.get(a)! || a - b).slice(0, FILL_MAX);
+  if (missing.length && shop && !running) {
+    const found = await Promise.all(missing.map((no) => shop.getProduct(no)));
+    for (const p of found) {
+      if (p) rows.push({ productNo: p.productNo, name: p.name, price: p.price, soldOut: p.soldOut ?? false, alert: alerts.get(p.productNo)!, wishlist: 0, cart: 0 });
     }
   }
   const picked = rows

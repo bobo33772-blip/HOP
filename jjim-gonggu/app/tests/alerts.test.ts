@@ -42,6 +42,8 @@ describe("알림 신청", () => {
     const env = await noPrivacy();
     await expect(requestAlert(env.ctx, "nope", PRODUCT, tok(env, "m1"))).rejects.toThrow(/연결된 쇼핑몰/);
     await expect(requestAlert(env.ctx, MALL, "abc", tok(env, "m1"))).rejects.toThrow(/상품/);
+    await expect(requestAlert(env.ctx, MALL, 999, tok(env, "m1"))).rejects.toThrow(/상품을 찾을 수 없어요/); // 몰에 없는 상품 (#21)
+    expect((await publicAlertView(env.ctx, MALL, 999)).waiting).toBe(0);
   });
 });
 
