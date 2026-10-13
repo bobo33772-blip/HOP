@@ -133,7 +133,10 @@
     }
     var ok = c.pledgedQty >= c.targetQty;
     var bar = el('div', { class: 'jjg-bar' + (ok ? ' ok' : ''), role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': String(c.targetQty), 'aria-valuenow': String(c.pledgedQty) }, [el('i', { style: 'width:' + Math.min(100, c.pledgedQty / c.targetQty * 100) + '%' })]);
-    var label = c.proceeded && c.state === 'reached' ? ['그래도 진행', 'ok'] : { open: ['공동구매 진행 중', ''], reached: ['목표 달성', 'ok'], settled: ['공동구매 종료', 'ok'], failed: ['진행 안 됨', 'no'] }[c.state];
+    // 상태 이름표 (#10). 위젯은 앱 코드를 불러올 수 없어 이름표를 따로 둔다. 판매자 화면과 다르게 쓰는 것:
+    // 목표 달성(초록) — 고객에게는 "쿠폰을 받았다"가 핵심이라 '달성 · 결제 기간' 대신 / 진행 안 됨(회색) — 고객을 놀라게 하지 않게 판매자 화면의 빨강 대신 /
+    // 공동구매 종료 — 고객 입장의 말로 '확정 완료' 대신 / 그래도 진행 — 미달 뒤 판매자가 진행한 공구(#24)
+    var label = c.proceeded && c.state === 'reached' ? ['그래도 진행', 'ok'] : { open: ['공동구매 모집 중', ''], reached: ['목표 달성', 'ok'], settled: ['공동구매 종료', 'ok'], failed: ['진행 안 됨', 'no'] }[c.state];
     var badge = el('span', { class: 'jjg-badge ' + label[1] }, [label[0]]); badge.insertAdjacentHTML('afterbegin', HEART);
     root.appendChild(el('div', { class: 'jjg-top' }, [badge, el('span', { class: 'jjg-muted' }, [when(c.deadlineAt) + ' 마감'])]));
     root.appendChild(el('div', { class: 'jjg-row' }, [el('div', { class: 'jjg-cnt' }, [String(c.pledgedQty), el('small', null, [' / ' + c.targetQty + '개 모였어요'])]),
