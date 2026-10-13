@@ -17,3 +17,12 @@ describe("날짜·시간 표시", () => {
     expect(kst(null)).toBe("–");
   });
 });
+
+describe("공구 상태 이름표 (#10)", () => {
+  it("판매자 화면은 CHIP 한 곳의 이름을 쓴다: 모집 중 · 달성 · 결제 기간 · 진행 안 됨 · 확정 완료", async () => {
+    const { CHIP } = await import("@/app/console/format");
+    expect(Object.fromEntries(Object.entries(CHIP).map(([k, v]) => [k, v[0]]))).toEqual({
+      open: "모집 중", reached: "달성 · 결제 기간", failed: "진행 안 됨", settled: "확정 완료",
+    });
+  });
+});
