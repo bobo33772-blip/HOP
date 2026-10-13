@@ -2,7 +2,8 @@
 
 import type { CampaignState } from "./campaign";
 
-export type PledgeState = "pledged" | "cancelled" | "coupon_issued" | "paid" | "expired" | "not_reached";
+/** still_wanted: 미달 뒤 '그래도 살래요'를 표시한 신청 (판매자가 그래도 진행하면 이 신청만 쿠폰을 받는다) */
+export type PledgeState = "pledged" | "cancelled" | "coupon_issued" | "paid" | "expired" | "not_reached" | "still_wanted";
 
 /** 진행률(신청 수량)에 들어가는 상태 — 취소·미달은 뺀다 */
 export const COUNTED_PLEDGE_STATES: PledgeState[] = ["pledged", "coupon_issued", "paid", "expired"];

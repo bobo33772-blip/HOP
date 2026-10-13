@@ -8,6 +8,8 @@ import { audit, UserError } from "./engine/context";
 import { isValidOptOutNumber } from "./core/messaging";
 import { getCampaign, getMall, type Campaign } from "./engine/campaigns";
 import { buildReport } from "./engine/report";
+import { stillWanted } from "./engine/proceed";
+import { proceedInfo } from "./core/campaign";
 import { getRadar, latestRun, runCollection, startCollection } from "./radar";
 import { env } from "./env";
 import { digits, type SmsSender } from "./cafe24/api";
@@ -84,6 +86,10 @@ export async function campaignDetail(ctx: Ctx, id: string, mallId?: string) {
     reportToken: c.reportToken,
     messages: messages.map((m) => ({ id: m.id, kind: m.kind, recipients: m.recipients.length, content: m.content, status: m.status, sendAfter: m.sendAfter, sentAt: m.sentAt, error: m.error })),
     issues: mallId ? [] : issues, // 판매자에게는 내부 확인 목록을 보여 주지 않는다
+    // 미달 공구: '그래도 살래요' 표시 수와 그래도 진행할 수 있는 기간 (원가는 판매자 본인 · 운영자에게만)
+    proceed: c.state === "failed"
+      ? { ...proceedInfo(c, ctx.clock.now()), wanted: await stillWanted(ctx, c.id), payWindowHours: c.payWindowHours, costPrice: c.costPrice }
+      : null,
   };
 }
 
