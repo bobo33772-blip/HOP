@@ -5,14 +5,15 @@ import { randomBytes } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 import { getDb, schema } from "@/db";
 import { env, requireReal } from "@/lib/env";
-import { json } from "@/lib/http";
 import { authorizeUrl } from "@/lib/cafe24/oauth";
+import { launchErrorUrl } from "@/lib/launch-errors";
 
 export async function GET(req: NextRequest) {
-  if (env().mock) return json({ error: "mock_mode", message: "데모 모드에서는 설치할 필요가 없어요." }, 400);
+  // 판매자가 여는 주소라 실패는 JSON 대신 첫 화면의 안내 한 줄로 보낸다 (#28)
+  if (env().mock) return NextResponse.redirect(launchErrorUrl(env().APP_BASE_URL, "demo"));
   const e = requireReal();
   const mallId = req.nextUrl.searchParams.get("mall_id") ?? "";
-  if (!/^[a-z0-9-]{3,40}$/.test(mallId)) return json({ error: "bad_mall", message: "쇼핑몰 ID를 확인해 주세요." }, 400);
+  if (!/^[a-z0-9-]{3,40}$/.test(mallId)) return NextResponse.redirect(launchErrorUrl(e.APP_BASE_URL, "bad_mall"));
   const state = randomBytes(16).toString("hex");
   await (await getDb()).insert(schema.oauthStates).values({ state, mallId });
   return NextResponse.redirect(authorizeUrl({ mallId, clientId: e.CAFE24_CLIENT_ID, redirectUri: e.redirectUri, state }));

@@ -11,6 +11,7 @@ import { hasValidInstall } from "@/lib/malls";
 import { DEMO_MALL } from "@/lib/cafe24/mock";
 import { getCtx } from "@/lib/server";
 import { setSession } from "@/lib/session";
+import { launchErrorUrl } from "@/lib/launch-errors";
 
 export async function GET(req: NextRequest) {
   const e = env();
@@ -22,7 +23,11 @@ export async function GET(req: NextRequest) {
   }
 
   const v = verifyLaunch(req.nextUrl.search, e.CAFE24_CLIENT_SECRET);
-  if (!v.ok) return NextResponse.json({ error: `launch_${v.reason}` }, { status: 401 });
+  if (!v.ok) {
+    // 판매자에게는 JSON 대신 첫 화면의 안내 한 줄을 보여 준다 (이유는 서버 로그에만)
+    console.warn(`[launch] 실행 확인 실패: ${v.reason}`);
+    return NextResponse.redirect(launchErrorUrl(e.APP_BASE_URL, "launch"));
+  }
   const { mallId, userId } = v.params;
 
   if (await hasValidInstall(mallId)) {
