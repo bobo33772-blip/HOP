@@ -389,8 +389,12 @@ describe("확정 리포트와 4주 판정표", () => {
     const rows = ((res as unknown as { rows?: { table_name: string; column_name: string }[] }).rows ?? (res as unknown as { table_name: string; column_name: string }[]));
     const cols = rows.map((r) => `${r.table_name}.${r.column_name}`);
     expect(cols.length).toBeGreaterThan(50);
-    const bad = cols.filter((c) => /phone|cellphone|mobile|email|address|customer_name|member_name/i.test(c));
-    expect(bad).toEqual([]);
+    // 이름·연락처·주소처럼 보이는 열은 모두 잡고, 개인정보가 아닌 걸 확인한 열만 예외로 둔다 (새 열은 여기서 먼저 걸린다)
+    // messages.recipients: 받는 회원 ID 목록 (전화번호 아님, 문자는 카페24가 회원 ID로 보낸다)
+    const NOT_PERSONAL = new Set(["malls.brand_name", "campaigns.product_name", "demand_snapshots.product_name", "messages.recipients"]);
+    const personal = (cs: string[]) => cs.filter((c) => !NOT_PERSONAL.has(c) && /name|phone|mobile|tel|email|addr|birth|zip|postal|recipient|receiver/i.test(c.split(".")[1]));
+    expect(personal(["members.name", "orders.receiver_cellphone", "pledges.zipcode", "malls.brand_name"])).toEqual(["members.name", "orders.receiver_cellphone", "pledges.zipcode"]);
+    expect(personal(cols)).toEqual([]);
   });
 });
 
