@@ -1,4 +1,4 @@
-// 카페24 웹훅 수신. 받으면 저장(trace id로 중복 제거)하고, 주문·결제·취소·앱 삭제 이벤트는 바로 반영한다.
+// 카페24 웹훅 수신. 받으면 저장(trace id로 중복 제거)하고, 주문·결제·취소·앱 삭제·회원 탈퇴 이벤트는 바로 반영한다.
 // 반영할 때도 본문은 믿지 않고 주문번호로 카페24 주문을 다시 조회한다 → 위조 웹훅이 확정 수량을 바꾸지 못한다.
 // 공식 형식(2026-10-07 확인): 헤더 X-API-Key, X-Trace-ID / 본문 { event_no, resource: { mall_id, ... } }
 // 웹훅은 누락될 수 있어 매시·매일 03:00 대사로 보완한다. 실패 응답이 쌓이면 카페24가 자동 미수신 처리하므로 처리 오류도 200으로 답한다.
@@ -12,6 +12,7 @@ import { json, safeEqual } from "@/lib/http";
 import { getCtx } from "@/lib/server";
 import { CANCEL_EVENTS, PAID_EVENTS, handleOrderWebhook } from "@/lib/engine/payments";
 import { confirmUninstall } from "@/lib/malls";
+import { MEMBER_WITHDRAWN, forgetMember } from "@/lib/engine/withdrawal";
 
 // [앱] 설치된 앱이 스토어에서 삭제된 경우
 const APP_UNINSTALLED = 90077;
@@ -23,7 +24,7 @@ export async function POST(req: Request) {
   if (key && !safeEqual(req.headers.get("x-api-key") ?? "", key)) return json({ error: "bad_key" }, 401);
 
   const raw = await req.text();
-  let body: { event_no?: number; resource?: { mall_id?: string } };
+  let body: { event_no?: number; resource?: { mall_id?: string; member_id?: string } };
   try {
     body = JSON.parse(raw);
   } catch {
@@ -39,9 +40,13 @@ export async function POST(req: Request) {
   if (!ev) return json({ ok: true, duplicate: true });
 
   const isUninstall = body.event_no === APP_UNINSTALLED && !!body.resource?.mall_id && !env().mock;
-  if (!isUninstall && !PAID_EVENTS.has(body.event_no) && !CANCEL_EVENTS.has(body.event_no)) return json({ ok: true, handled: 0 });
+  // 회원 탈퇴: 본문을 믿지 않고 회원 조회로 확인한 뒤 회원 ID를 지운다 (#29). 실패하면 매일 03:00 파기가 다시 시도한다
+  const isWithdrawal = body.event_no === MEMBER_WITHDRAWN && !!body.resource?.mall_id && !!body.resource?.member_id;
+  if (!isUninstall && !isWithdrawal && !PAID_EVENTS.has(body.event_no) && !CANCEL_EVENTS.has(body.event_no)) return json({ ok: true, handled: 0 });
   try {
-    const out = isUninstall ? { uninstalled: await confirmUninstall(body.resource!.mall_id!) } : await handleOrderWebhook(ctx, body);
+    const out = isUninstall ? { uninstalled: await confirmUninstall(body.resource!.mall_id!) }
+      : isWithdrawal ? await forgetMember(ctx, body.resource!.mall_id!, String(body.resource!.member_id))
+      : await handleOrderWebhook(ctx, body);
     await ctx.db.update(schema.webhookEvents).set({ processedAt: new Date() }).where(eq(schema.webhookEvents.id, ev.id));
     return json({ ok: true, ...out });
   } catch (e) {

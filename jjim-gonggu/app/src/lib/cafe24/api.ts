@@ -59,6 +59,8 @@ export interface ShopApi {
   listOrdersWithCoupon(couponNo: string, since: Date): Promise<OrderInfo[]>;
   /** 위젯이 보낸 암호화 회원 ID를 검증해 member_id를 돌려준다. 실패하면 null */
   verifyMember(token: string): Promise<string | null>;
+  /** 아직 그 몰의 회원인가 (탈퇴 웹훅을 믿지 않고 확인할 때 쓴다) */
+  memberExists(memberId: string): Promise<boolean>;
 }
 
 /** 모든 상품 (페이지를 넘기며) */
@@ -286,5 +288,16 @@ export class Cafe24Api implements ShopApi {
     // VERIFY(P2): 토큰에 몰 ID가 없으면 다른 몰 회원 토큰 재사용을 서명만으로는 막지 못한다 → 클레임 이름만 남겨 PoC에서 확인
     if (!r.mallBound) console.warn(`[P2] ${this.c.mallId}: 암호화 회원 ID에 몰 ID 클레임이 없어요. 클레임: ${r.claims.join(",")}`);
     return r.memberId;
+  }
+
+  async memberExists(memberId: string) {
+    // 회원 조회(mall.read_customer, 개인정보 권한 없이 됨). VERIFY(#29): 탈퇴한 회원이면 빈 목록(또는 404)이 오는지 테스트몰에서 확인
+    try {
+      const r = await this.c.request<{ customers?: { member_id: string }[] }>("GET", "/customers", { query: { shop_no: this.shopNo, member_id: memberId } });
+      return (r.customers ?? []).some((c) => String(c.member_id) === memberId);
+    } catch (e) {
+      if ((e as { status?: number }).status === 404) return false;
+      throw e;
+    }
   }
 }
