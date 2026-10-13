@@ -48,6 +48,13 @@ export async function startCollection(db: Db, mallId: string): Promise<{ run: Ru
   return { run: toStatus(r), started: true };
 }
 
+/** 설치 직후 첫 수집 (기획서 정할 것 7). 이 몰에 수집 기록이 하나도 없을 때만 만든다 → 재설치 · 재실행 때는 새로 만들지 않는다 */
+export async function startFirstCollection(db: Db, mallId: string): Promise<RunStatus | null> {
+  if (await latestRun(db, mallId)) return null;
+  const { run, started } = await startCollection(db, mallId);
+  return started ? run : null;
+}
+
 /** 상품 하나에 카페24 호출이 최대 2번이라, 10분 3,000회(초당 5회) 한도를 넘지 않게 상품마다 이만큼 쉰다 (데모는 0) */
 const PACE_MS = 450;
 /**

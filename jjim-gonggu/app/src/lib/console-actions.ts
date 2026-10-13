@@ -8,7 +8,7 @@ import { audit, UserError } from "./engine/context";
 import { isValidOptOutNumber } from "./core/messaging";
 import { getCampaign, getMall, type Campaign } from "./engine/campaigns";
 import { buildReport } from "./engine/report";
-import { getRadar, latestRun, runCollection, startCollection } from "./radar";
+import { getRadar, latestRun, runCollection, startCollection, startFirstCollection } from "./radar";
 import { env } from "./env";
 import { digits, type SmsSender } from "./cafe24/api";
 
@@ -58,6 +58,16 @@ export async function startRadar(ctx: Ctx, mallId: string) {
     after(() => runCollection(ctx.db, api, mallId, run.id));
   }
   return { run, started };
+}
+
+/** 설치 직후 1회 자동 수집. 수집 기록이 없을 때만 만들고, 응답을 보낸 뒤에 돌린다 (시간 제한으로 멈추면 1분 정기 작업이 이어 받는다) */
+export async function startFirstRadar(ctx: Ctx, mallId: string) {
+  const run = await startFirstCollection(ctx.db, mallId);
+  if (run) {
+    const api = await ctx.shop(mallId);
+    after(() => runCollection(ctx.db, api, mallId, run.id));
+  }
+  return run;
 }
 
 /** 상품 페이지 위젯 스크립트 설치(카페24 스크립트태그). 설치 직후 실패했을 때 앱을 다시 설치하지 않고 이것만 다시 한다 */

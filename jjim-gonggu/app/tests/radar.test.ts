@@ -10,7 +10,7 @@ const demoApi = (): ShopApi => {
   seedDemoMall(w);
   return w.forMall(DEMO_MALL);
 };
-import { computeReach, getRadar, latestRun, resumeCollections, runCollection, startCollection } from "@/lib/radar";
+import { computeReach, getRadar, latestRun, resumeCollections, runCollection, startCollection, startFirstCollection } from "@/lib/radar";
 
 describe("수요 레이더", () => {
   it("수집 전에는 비어 있고, 수집 후 합계순으로 정렬, 찜·장바구니 0인 상품은 제외", async () => {
@@ -76,6 +76,16 @@ describe("수요 레이더", () => {
     const b = await startCollection(db, "m");
     expect(b.started).toBe(false);
     expect(b.run.id).toBe(a.run.id);
+  });
+
+  it("설치 직후 첫 수집은 수집 기록이 하나도 없을 때만 만든다 (재설치 · 재실행에서는 안 만든다, #27)", async () => {
+    const db = await createTestDb();
+    const first = await startFirstCollection(db, "m");
+    expect(first).toMatchObject({ status: "running", done: 0 });
+    expect(await startFirstCollection(db, "m")).toBeNull(); // 진행 중
+    await runCollection(db, demoApi(), "m", first!.id);
+    expect(await startFirstCollection(db, "m")).toBeNull(); // 끝난 수집이 있음
+    expect(await latestRun(db, "m")).toMatchObject({ id: first!.id, status: "done" });
   });
 
   it("카페24 오류가 나면 run을 failed로 남기고, 이전 완료 결과는 그대로 보여 준다", async () => {
