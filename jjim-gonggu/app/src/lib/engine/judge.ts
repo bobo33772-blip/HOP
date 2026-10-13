@@ -56,9 +56,12 @@ async function judge(ctx: Ctx, id: string, actor: string): Promise<boolean> {
   const c = await getCampaign(ctx, id);
   const total = await pledgedQty(ctx, id);
   const reached = total >= c.targetQty;
+  // 결제 기한 = 판정 + 결제 기간. 단 쿠폰 기간은 공구를 열 때 "마감 + 결제 기간 + 여유 24시간"으로 정해지므로,
+  // 판정이 늦어지면 마감 + 결제 기간에서 끊는다 (기한 안인데 쿠폰이 끝나 결제 못 하는 일을 막는다)
+  const payUntil = new Date(Math.min(now.getTime(), c.deadlineAt.getTime()) + c.payWindowHours * HOUR);
   // 상태 전이는 한 번만 일어난다 (스케줄러 중복 실행 대비)
   const changed = await ctx.db.update(schema.campaigns)
-    .set({ state: reached ? "reached" : "failed", judgedAt: now, payUntil: reached ? new Date(now.getTime() + c.payWindowHours * HOUR) : null })
+    .set({ state: reached ? "reached" : "failed", judgedAt: now, payUntil: reached ? payUntil : null })
     .where(and(eq(schema.campaigns.id, id), eq(schema.campaigns.state, "open"))).returning();
   if (!changed.length) return false;
   await audit(ctx, actor, reached ? "campaign.reached" : "campaign.failed", id, { pledged: total, target: c.targetQty }, c.mallId);

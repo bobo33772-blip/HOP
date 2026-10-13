@@ -236,6 +236,19 @@ describe("결제 집계", () => {
     expect(rep.confirmed.lateOrders).toBe(1);
   });
 
+  it("판정이 늦어져도 결제 기한은 쿠폰이 쓸 수 있는 동안으로 잡는다 (기한 직전 결제가 확정된다)", async () => {
+    const env = await setup();
+    const c = await openAndFill(env, range(1, 40));
+    env.clock.advance(DAY5 + 30 * HOUR); // 정기 작업이 30시간 멈췄다가 판정
+    await tick(env.ctx);
+    const after = await getCampaign(env.ctx, c.id);
+    expect(after.state).toBe("reached");
+    expect(after.payUntil!.getTime()).toBe(c.deadlineAt.getTime() + 72 * HOUR); // 마감 + 결제 기간
+    env.clock.set(new Date(after.payUntil!.getTime() - 60_000));
+    await env.world.placeOrder(MALL, "m1", PRODUCT, 1, after.couponNo!);
+    expect((await buildReport(env.ctx, c.id)).confirmed.qty).toBe(1);
+  });
+
   it("웹훅이 유실돼도 대사가 채우고, 고친 내역을 남긴다", async () => {
     const { env, c, cp } = await reachedCampaign();
     await env.world.placeOrder(MALL, "m8", PRODUCT, 1, cp, { silent: true });
