@@ -91,4 +91,15 @@ describe("카페24 웹훅", () => {
     await send({ "X-Trace-ID": "t-2" });
     expect(await (await send({ "X-Trace-ID": "t-2" })).json()).toMatchObject({ duplicate: true });
   });
+
+  it("회원 탈퇴 웹훅(90147)은 회원 조회로 탈퇴가 확인될 때만 회원 ID를 지운다 (#29)", async () => {
+    const demo = (await getDemo())!;
+    const post = (member: string, trace: string) => webhookRoute.POST(new Request("http://t/x", {
+      method: "POST", headers: { "Content-Type": "application/json", "X-Trace-ID": trace },
+      body: JSON.stringify({ event_no: 90147, resource: { mall_id: DEMO_MALL, member_id: member } }),
+    }));
+    expect(await (await post("m62", "t-w1")).json()).toMatchObject({ ok: true, forgotten: false }); // 아직 회원
+    demo.world.withdrawMember(DEMO_MALL, "m62");
+    expect(await (await post("m62", "t-w2")).json()).toMatchObject({ ok: true, forgotten: true });
+  });
 });

@@ -27,6 +27,8 @@ export class MockCafe24 {
   failNextSms = false;
   /** 다음 쿠폰 발급 내역 조회를 한 번 실패시킨다 (판정 뒤 카페24 오류 재시도 테스트용) */
   failNextCouponHolders = false;
+  /** 다음 회원 조회를 한 번 실패시킨다 (탈퇴 웹훅 재시도 테스트용) */
+  failNextMemberLookup = false;
   /** 개인정보 권한 여부 (false면 찜·수신 동의 조회 불가 → 장바구니 고객 공구) */
   privacy = true;
   /** 실제 카페24처럼 상품마다 조회 시간이 걸리는 것을 흉내 낸다 (첫 수집 화면 확인용) */
@@ -40,6 +42,8 @@ export class MockCafe24 {
     this.malls.set(mallId, { products, members: new Map(), wishlists: new Map(), carts: new Map(), coupons: new Map(), orders: new Map() });
   }
   addMember(mallId: string, memberId: string, sms: boolean) { this.mall(mallId).members.set(memberId, { sms }); }
+  /** 회원 탈퇴 (카페24는 이때 회원 탈퇴 웹훅 90147을 보낸다) */
+  withdrawMember(mallId: string, memberId: string) { this.mall(mallId).members.delete(memberId); }
   addWish(mallId: string, productNo: number, memberId: string) { this.bucket(this.mall(mallId).wishlists, productNo).add(memberId); }
   addCart(mallId: string, productNo: number, memberId: string) { this.bucket(this.mall(mallId).carts, productNo).add(memberId); }
   onWebhook(fn: (e: MockWebhook) => Promise<void> | void) { this.listeners.push(fn); }
@@ -149,6 +153,10 @@ export class MockCafe24 {
         if (got.length !== want.length || !timingSafeEqual(got, want)) return null;
         const [mall, id] = Buffer.from(body, "base64url").toString().split(":");
         return mall === mallId && m().members.has(id) ? id : null;
+      },
+      async memberExists(id) {
+        if (w.failNextMemberLookup) { w.failNextMemberLookup = false; throw new Error("회원 조회 실패 (모의)"); }
+        return m().members.has(id);
       },
     };
   }
