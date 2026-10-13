@@ -149,6 +149,41 @@ describe("마감 판정", () => {
     const [issue] = await env.db.select().from(schema.issues).where(eq(schema.issues.kind, "coupon_missing"));
     expect((issue.detail as { members: string[] }).members).toEqual(["m7"]);
   });
+
+  it("판정 뒤 카페24 오류로 쿠폰·결과 안내가 멈추면 확인할 일로 남기고, 다음 정기 작업에서 이어서 끝낸다", async () => {
+    const env = await setup();
+    const c = await openAndFill(env, range(1, 40));
+    env.world.failNextCouponHolders = true;
+    env.clock.advance(DAY5);
+    await expect(tick(env.ctx)).resolves.toBeTruthy(); // 정기 작업 전체가 멈추지 않는다
+    expect((await getCampaign(env.ctx, c.id)).state).toBe("reached");
+    const open = () => env.db.select().from(schema.issues).where(and(eq(schema.issues.kind, "judge_incomplete"), eq(schema.issues.resolved, false)));
+    expect(await open()).toHaveLength(1);
+    const accuracy = (await pilotScorecard(env.ctx)).rows.find((r) => r.key === "accuracy")!;
+    expect(accuracy.pass).toBe(false); // 끝나지 않은 판정은 기술 정확성에서 통과하지 않는다
+
+    await tick(env.ctx); // 재시도
+    expect(await (await env.ctx.shop(MALL)).listCouponHolders(c.couponNo!)).toHaveLength(40);
+    const [{ n }] = await env.db.select({ n: sql<number>`count(*)` }).from(schema.pledges)
+      .where(and(eq(schema.pledges.campaignId, c.id), eq(schema.pledges.state, "coupon_issued")));
+    expect(Number(n)).toBe(40);
+    expect(await open()).toHaveLength(0);
+    await tick(env.ctx); // 이미 끝났으면 결과 안내를 다시 만들지 않는다
+    const results = await env.db.select().from(schema.messages).where(and(eq(schema.messages.campaignId, c.id), eq(schema.messages.kind, "result")));
+    expect(results).toHaveLength(1);
+  });
+
+  it("운영자 수동 판정은 멈춘 공구의 쿠폰·결과 안내를 이어서 끝낸다", async () => {
+    const env = await setup();
+    const c = await openAndFill(env, range(1, 40));
+    env.world.failNextCouponHolders = true;
+    env.clock.advance(DAY5);
+    await tick(env.ctx);
+    const after = await judgeNow(env.ctx, c.id, "op");
+    expect(after.state).toBe("reached");
+    expect(await (await env.ctx.shop(MALL)).listCouponHolders(c.couponNo!)).toHaveLength(40);
+    await expect(judgeNow(env.ctx, c.id, "op")).rejects.toThrow(/이미 판정/); // 다 끝난 공구는 그대로 막는다
+  });
 });
 
 describe("결제 집계", () => {
