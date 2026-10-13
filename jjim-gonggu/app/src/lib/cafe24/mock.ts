@@ -25,6 +25,8 @@ export class MockCafe24 {
   /** 몇 번을 다시 발급해도 빠지는 회원 (영구 실패 테스트용) */
   blockIssue = new Set<string>();
   failNextSms = false;
+  /** 다음 쿠폰 발급 내역 조회를 한 번 실패시킨다 (판정 뒤 카페24 오류 재시도 테스트용) */
+  failNextCouponHolders = false;
   /** 개인정보 권한 여부 (false면 찜·수신 동의 조회 불가 → 장바구니 고객 공구) */
   privacy = true;
   /** 실제 카페24처럼 상품마다 조회 시간이 걸리는 것을 흉내 낸다 (첫 수집 화면 확인용) */
@@ -79,6 +81,20 @@ export class MockCafe24 {
     if (notify) await this.emit({ event_no: 90026, resource: { mall_id: mallId, order_id: orderId } });
   }
 
+  /** 주문의 일부 수량만 취소·반품. 카페24처럼 남은 품목과 취소된 품목이 따로 보인다 */
+  async cancelOrderQty(mallId: string, orderId: string, qty: number) {
+    const o = this.mall(mallId).orders.get(orderId);
+    if (!o) throw new Error("주문 없음");
+    const it = o.items.find((i) => !i.cancelled && i.qty >= qty);
+    if (!it) throw new Error("취소할 수량 없음");
+    const unit = it.amount / it.qty;
+    it.qty -= qty;
+    it.amount -= unit * qty;
+    o.items.push({ productNo: it.productNo, qty, amount: unit * qty, cancelled: true });
+    o.items = o.items.filter((i) => i.qty > 0);
+    await this.emit({ event_no: 90026, resource: { mall_id: mallId, order_id: orderId } });
+  }
+
   couponsOf(mallId: string, memberId: string) {
     return [...this.mall(mallId).coupons.values()].filter((c) => c.holders.has(memberId)).map((c) => ({ name: c.name, discountAmount: c.discountAmount, used: c.used.has(memberId) }));
   }
@@ -111,7 +127,10 @@ export class MockCafe24 {
           c.holders.add(id);
         }
       },
-      async listCouponHolders(no) { return [...(m().coupons.get(no)?.holders ?? [])]; },
+      async listCouponHolders(no) {
+        if (w.failNextCouponHolders) { w.failNextCouponHolders = false; throw new Error("쿠폰 발급 내역 조회 실패 (모의)"); }
+        return [...(m().coupons.get(no)?.holders ?? [])];
+      },
       async sendSms(spec: SmsSpec) {
         if (w.failNextSms) { w.failNextSms = false; throw new Error("SMS 발송 실패 (모의)"); }
         const ids = spec.memberIds.filter((id) => m().members.get(id)?.sms); // 카페24의 수신거부자 자동 제외
