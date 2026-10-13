@@ -7,7 +7,7 @@ import { HOUR } from "@/lib/time";
 import { getCampaign, openCampaign, previewCampaign, recordProductionDecision } from "@/lib/engine/campaigns";
 import { cancelPledge, createPledge, myPledge } from "@/lib/engine/pledges";
 import { judgeNow } from "@/lib/engine/judge";
-import { handleOrderWebhook, reconcileCampaign } from "@/lib/engine/payments";
+import { handleOrderWebhook, reconcileCampaign, reconcileRecent } from "@/lib/engine/payments";
 import { buildReport, pilotScorecard } from "@/lib/engine/report";
 import { tick } from "@/lib/engine/scheduler";
 import { purgeExpired } from "@/lib/engine/retention";
@@ -283,6 +283,17 @@ describe("결제 집계", () => {
     expect((await buildReport(env.ctx, c.id)).confirmed.qty).toBe(1);
     const fixed = await env.db.select().from(schema.issues).where(eq(schema.issues.kind, "reconcile_fixed"));
     expect(fixed).toHaveLength(1);
+  });
+
+  it("매일 대사는 판정 후 14일과 예상 출고일 후 14일 중 늦은 날까지 본다 (출고 뒤 반품까지)", async () => {
+    const { env, c, cp } = await reachedCampaign(); // 10/17 판정, 예상 출고 2026-11-06
+    const o = await env.world.placeOrder(MALL, "m8", PRODUCT, 1, cp);
+    env.clock.set(new Date("2026-11-05T01:00:00Z")); // 판정 19일 뒤, 출고 전날
+    await env.world.cancelOrder(MALL, o.orderId, false); // 웹훅 없이 취소
+    expect(await reconcileRecent(env.ctx)).toBe(1);
+    expect((await buildReport(env.ctx, c.id)).confirmed.qty).toBe(0);
+    env.clock.set(new Date("2026-11-21T01:00:00Z")); // 출고 후 15일
+    expect(await reconcileRecent(env.ctx)).toBe(0);
   });
 });
 

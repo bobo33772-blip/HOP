@@ -1,6 +1,6 @@
 // 결제 집계 (F9): 주문 웹훅 + 야간 대사 → 확정 수량. 확정 수량 = 결제 기간 안에 공구 쿠폰으로 결제된 수량.
 
-import { and, eq, gte, inArray, lte, ne } from "drizzle-orm";
+import { and, eq, inArray, lte, ne } from "drizzle-orm";
 import { schema } from "@/db";
 import type { OrderInfo } from "../cafe24/api";
 import { DAY } from "../time";
@@ -92,13 +92,21 @@ export async function reconcileCampaign(ctx: Ctx, campaignId: string, actor = "s
   return { checked: orders.length };
 }
 
-/** 최근 14일 안에 판정한 공구 전체 대사 (매일 03:00 KST) */
+/** 매일 대사(03:00 KST)를 이어 가는 기간: 판정 후 14일과 예상 출고일 후 14일 중 늦은 날까지 (받은 뒤 7일 반품 + 배송 여유) */
+const RECONCILE_AFTER_DAYS = 14;
+
+/** 아직 대사 기간 안인 공구 전체 대사 (매일 03:00 KST) */
 export async function reconcileRecent(ctx: Ctx) {
-  const since = new Date(ctx.clock.now().getTime() - 14 * DAY);
-  const rows = await ctx.db.select({ id: schema.campaigns.id }).from(schema.campaigns)
-    .where(and(inArray(schema.campaigns.state, ["reached", "settled"]), gte(schema.campaigns.judgedAt, since)));
-  for (const r of rows) await reconcileCampaign(ctx, r.id);
-  return rows.length;
+  const now = ctx.clock.now().getTime();
+  const rows = await ctx.db.select({ id: schema.campaigns.id, judgedAt: schema.campaigns.judgedAt, shipEta: schema.campaigns.shipEta }).from(schema.campaigns)
+    .where(inArray(schema.campaigns.state, ["reached", "settled"]));
+  const due = rows.filter((r) => {
+    const ship = new Date(`${r.shipEta}T23:59:59+09:00`).getTime(); // 예상 출고일(KST) 끝
+    const from = Math.max(r.judgedAt?.getTime() ?? 0, Number.isNaN(ship) ? 0 : ship);
+    return now <= from + RECONCILE_AFTER_DAYS * DAY;
+  });
+  for (const r of due) await reconcileCampaign(ctx, r.id);
+  return due.length;
 }
 
 /** 결제 기간 중인 공구만 대사한다. 주문 웹훅을 못 받는 몰(개발 단계 앱 등)에서도 결제가 1시간 안에 반영되게 한다 */
