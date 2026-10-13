@@ -1,6 +1,7 @@
 /* 찜꽁 상품 페이지 위젯 (의존성 없음). 쇼핑몰 상품 상세에 스크립트 태그로 들어간다.
  * 설치 시 서버가 카페24 스크립트태그로 넣는다: <script src="https://APP/widget.js?mall=MALL_ID&client_id=CLIENT_ID"></script>
- * 고객 화면에는 진행률과 '결제 없는 참여 신청'만 보여 주고, 기존 구매 버튼은 건드리지 않는다. */
+ * 고객 화면에는 진행률과 '결제 없는 참여 신청'만 보여 주고, 기존 구매 버튼은 건드리지 않는다.
+ * 진행 중인 공구가 없으면 '공구 열리면 알림 받기'를 보여 준다 (카페24 찜 조회 권한 없이 수요를 모으는 경로). */
 (function () {
   'use strict';
   var script = document.currentScript;
@@ -67,7 +68,9 @@
   else if (actions) actions.parentNode.insertBefore(root, actions.nextSibling);
   else script.parentNode.insertBefore(root, script.nextSibling);
 
-  var state = { c: null, mine: null, qty: 1, step: 'view', err: '', busy: false, idem: null };
+  // a: '공구 열리면 알림 받기' (진행 중 공구가 없거나 지난 공구가 끝난 상품). 카페24 찜 대신 고객이 직접 신청한다
+  var state = { c: null, mine: null, qty: 1, step: 'view', err: '', busy: false, idem: null, a: null };
+  var ALERTS = '/api/public/malls/' + encodeURIComponent(MALL) + '/products/' + productNo + '/alerts';
 
   function el(tag, attrs, kids) {
     var e = document.createElement(tag);
@@ -80,17 +83,50 @@
       .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw j; return j; }); });
   }
 
+  var alertable = function () { return !state.c || state.c.state === 'failed' || state.c.state === 'settled'; };
+
   function load() {
     return api('GET', '/api/public/malls/' + encodeURIComponent(MALL) + '/products/' + productNo + '/campaign')
-      .then(function (j) { state.c = j.campaign; return memberToken(); })
-      .then(function (t) { if (!t || !state.c) return null; return api('POST', '/api/public/campaigns/' + state.c.id + '/pledges/mine', { member_token: t }).then(function (j) { state.mine = j.pledge; }).catch(function () { }); })
+      .then(function (j) { state.c = j.campaign; }, function (e) { if (!e || e.error !== 'none') throw e; state.c = null; })
+      .then(function () { return alertable() ? api('GET', ALERTS).then(function (j) { state.a = { waiting: j.waiting, mine: false }; }) : null; })
+      .then(memberToken)
+      .then(function (t) {
+        if (!t) return null;
+        if (state.a) return api('POST', ALERTS + '/mine', { member_token: t }).then(function (j) { state.a = { waiting: j.waiting, mine: !!j.alert }; }).catch(function () { });
+        return api('POST', '/api/public/campaigns/' + state.c.id + '/pledges/mine', { member_token: t }).then(function (j) { state.mine = j.pledge; }).catch(function () { });
+      })
       .then(render)
       .catch(function () { root.remove(); });
   }
 
+  // 공구 알림: 진행 중 공구가 없으면 이것만, 지난 공구가 끝났으면 결과 아래에 '다음 공구' 알림으로 붙인다
+  function renderAlert(after) {
+    var a = state.a;
+    if (!after) {
+      var badge = el('span', { class: 'jjg-badge' }, ['공구 알림']); badge.insertAdjacentHTML('afterbegin', HEART);
+      root.appendChild(el('div', { class: 'jjg-top' }, [badge, a.waiting ? el('span', { class: 'jjg-muted' }, [a.waiting + '명이 기다리고 있어요']) : null]));
+      root.appendChild(el('div', null, [el('b', null, ['이 상품, 공동구매 할인가로 사고 싶다면'])]));
+    }
+    root.appendChild(el('div', { class: 'jjg-muted' }, [(after ? '다음 공동구매가 열리면' : '알림을 신청해 두면 공동구매가 열릴 때') + ' 할인가와 마감일을 문자로 알려 드려요. 지금 결제하지 않아요.']));
+    if (a.mine) {
+      root.appendChild(el('div', { class: 'jjg-row' }, [el('b', null, ['알림 신청 완료']), el('button', { class: 'jjg-btn ghost', style: 'width:auto;padding:0 14px', onclick: alertOff }, ['신청 취소'])]));
+      root.appendChild(el('div', { class: 'jjg-muted' }, ['쇼핑몰 문자 수신을 거부해 두셨다면 알림을 받지 못할 수 있어요.']));
+    } else if (state.step === 'login') {
+      root.appendChild(el('div', null, ['회원만 신청할 수 있어요. ', el('a', { href: '/member/login.html?returnUrl=' + encodeURIComponent(location.pathname + location.search) }, ['로그인하고 계속하기'])]));
+    } else {
+      root.appendChild(el('button', { class: 'jjg-btn' + (after ? ' ghost' : ''), onclick: alertOn, disabled: state.busy ? '' : null }, [state.busy ? '신청 중…' : after ? '다음 공구 알림 받기' : '공구 열리면 알림 받기']));
+    }
+  }
+
   function render() {
     var c = state.c; root.textContent = '';
-    if (!c) { root.remove(); return; }
+    if (!c && !state.a) { root.remove(); return; }
+    if (!c) {
+      renderAlert(false);
+      if (state.err) root.appendChild(el('div', { class: 'jjg-err', role: 'alert' }, [state.err]));
+      root.appendChild(el('div', { class: 'jjg-foot' }, ['찜꽁 예약 공동구매']));
+      return;
+    }
     var ok = c.pledgedQty >= c.targetQty;
     var bar = el('div', { class: 'jjg-bar' + (ok ? ' ok' : ''), role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': String(c.targetQty), 'aria-valuenow': String(c.pledgedQty) }, [el('i', { style: 'width:' + Math.min(100, c.pledgedQty / c.targetQty * 100) + '%' })]);
     var label = { open: ['공동구매 진행 중', ''], reached: ['목표 달성', 'ok'], settled: ['공동구매 종료', 'ok'], failed: ['진행 안 됨', 'no'] }[c.state];
@@ -125,6 +161,7 @@
     } else {
       root.appendChild(el('div', null, ['공동구매가 끝났어요. 참여해 주셔서 감사합니다.']));
     }
+    if (state.a) renderAlert(true);
     if (state.err) root.appendChild(el('div', { class: 'jjg-err', role: 'alert' }, [state.err]));
     root.appendChild(el('div', { class: 'jjg-foot' }, ['찜꽁 예약 공동구매']));
   }
@@ -143,6 +180,22 @@
   function cancel() {
     memberToken().then(function (t) { return api('DELETE', '/api/public/campaigns/' + state.c.id + '/pledges/mine', { member_token: t }); })
       .then(function (j) { state.c = j.campaign; state.mine = null; state.step = 'view'; })
+      .catch(function (e) { state.err = (e && e.message) || '취소하지 못했어요.'; })
+      .then(render);
+  }
+
+  function alertOn() {
+    if (state.busy) return;
+    state.busy = true; state.err = ''; render();
+    memberToken().then(function (t) {
+      if (!t) { state.step = 'login'; return; }
+      return api('POST', ALERTS, { member_token: t }).then(function (j) { state.a = { waiting: j.waiting, mine: !!j.alert }; state.step = 'view'; });
+    }).catch(function (e) { state.err = (e && e.message) || '신청하지 못했어요. 다시 시도해 주세요.'; })
+      .then(function () { state.busy = false; render(); });
+  }
+  function alertOff() {
+    memberToken().then(function (t) { return api('DELETE', ALERTS + '/mine', { member_token: t }); })
+      .then(function (j) { state.a = { waiting: j.waiting, mine: false }; })
       .catch(function (e) { state.err = (e && e.message) || '취소하지 못했어요.'; })
       .then(render);
   }

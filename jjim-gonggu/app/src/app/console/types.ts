@@ -14,9 +14,9 @@ export interface Detail {
   messages: { id: string; kind: string; recipients: number; content: string; status: "scheduled" | "sending" | "sent" | "failed"; sendAfter: string; sentAt: string | null; error: string | null }[];
   issues: { id: number; at: string; kind: string; detail: unknown }[];
 }
-export interface RadarRow { productNo: number; name: string; price: number; soldOut: boolean; wishlist: number; cart: number }
+export interface RadarRow { productNo: number; name: string; price: number; soldOut: boolean; alert: number; wishlist: number; cart: number }
 export interface Run { status: "running" | "done" | "failed"; total: number; done: number; finishedAt: string | null; startedAt: string }
 export interface Preview {
   errors: string[]; warnings: string[]; message: string; sendAt: string; marginPerUnit: number | null;
-  audience: { wishlist: number; cart: number; unique: number; reachable: number; consentChecked: boolean };
+  audience: { alert: number; wishlist: number; cart: number; unique: number; reachable: number; consentChecked: boolean };
 }

@@ -9,6 +9,8 @@ import type { Ctx } from "./context";
 export const RETENTION = {
   /** 공구가 끝난(실패 판정 또는 결제 기간 종료) 뒤 고객 회원 ID를 지우기까지 */
   campaignDays: 180,
+  /** 공구가 열리지 않은 '공구 알림' 신청을 지우기까지 (열리면 초대와 함께 바로 지운다) */
+  alertDays: 180,
   /** 앱 삭제 뒤 그 몰의 모든 데이터를 지우기까지 */
   uninstalledDays: 30,
   /** 받은 웹훅 원문 */
@@ -52,6 +54,7 @@ export async function purgeExpired(ctx: Ctx) {
       await ctx.db.delete(schema.issues).where(inArray(schema.issues.campaignId, cs));
       await ctx.db.delete(C).where(eq(C.mallId, mallId));
     }
+    await ctx.db.delete(schema.productAlerts).where(eq(schema.productAlerts.mallId, mallId));
     await ctx.db.delete(schema.demandSnapshots).where(eq(schema.demandSnapshots.mallId, mallId));
     await ctx.db.delete(schema.collectionRuns).where(eq(schema.collectionRuns.mallId, mallId));
     await ctx.db.delete(schema.oauthStates).where(eq(schema.oauthStates.mallId, mallId));
@@ -61,7 +64,10 @@ export async function purgeExpired(ctx: Ctx) {
     mallsDeleted++;
   }
 
-  // 3) 오래된 웹훅 원문·감사 기록
+  // 3) 오래 기다려도 공구가 열리지 않은 알림 신청
+  await ctx.db.delete(schema.productAlerts).where(lt(schema.productAlerts.createdAt, before(RETENTION.alertDays)));
+
+  // 4) 오래된 웹훅 원문·감사 기록
   await ctx.db.delete(schema.webhookEvents).where(lt(schema.webhookEvents.receivedAt, before(RETENTION.webhookDays)));
   await ctx.db.delete(schema.auditLogs).where(lt(schema.auditLogs.at, before(RETENTION.auditDays)));
   // 고객 회원 ID가 actor에 남는 감사 기록은 공구 보관 기간에 맞춘다

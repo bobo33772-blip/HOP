@@ -49,7 +49,7 @@ describe("초대 문자", () => {
   it("찜 ∪ 장바구니에서 중복을 빼고 수신 동의자에게만, (광고)·수신거부 문구를 붙여 보낸다", async () => {
     const env = await setup();
     const pv = await previewCampaign(env.ctx, MALL, baseInput(env.clock));
-    expect(pv.audience).toEqual({ wishlist: 100, cart: 40, unique: 139, reachable: 69, consentChecked: true }); // 찜 목록은 실제 API처럼 100명에서 끊긴다 (P8)
+    expect(pv.audience).toEqual({ alert: 0, wishlist: 100, cart: 40, unique: 139, reachable: 69, consentChecked: true }); // 찜 목록은 실제 API처럼 100명에서 끊긴다 (P8)
     const { campaign, invited } = await openCampaign(env.ctx, "op", MALL, baseInput(env.clock));
     expect(invited).toBe(69);
     expect(campaign.couponNo).toBeTruthy();
@@ -240,7 +240,7 @@ describe("개인정보 권한 없는 몰 (장바구니 고객 공구)", () => {
     const env = await setup();
     env.world.privacy = false;
     const pv = await previewCampaign(env.ctx, MALL, baseInput(env.clock));
-    expect(pv.audience).toEqual({ wishlist: 0, cart: 40, unique: 40, reachable: 40, consentChecked: false });
+    expect(pv.audience).toEqual({ alert: 0, wishlist: 0, cart: 40, unique: 40, reachable: 40, consentChecked: false });
     const { invited } = await openCampaign(env.ctx, "op", MALL, baseInput(env.clock));
     expect(invited).toBe(40);
     await tick(env.ctx);
