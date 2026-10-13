@@ -54,16 +54,23 @@ export async function isIncomplete(ctx: Ctx, campaignId: string) {
 async function judge(ctx: Ctx, id: string, actor: string): Promise<boolean> {
   const now = ctx.clock.now();
   const c = await getCampaign(ctx, id);
-  const total = await pledgedQty(ctx, id);
-  const reached = total >= c.targetQty;
   // 결제 기한 = 판정 + 결제 기간. 단 쿠폰 기간은 공구를 열 때 "마감 + 결제 기간 + 여유 24시간"으로 정해지므로,
   // 판정이 늦어지면 마감 + 결제 기간에서 끊는다 (기한 안인데 쿠폰이 끝나 결제 못 하는 일을 막는다)
   const payUntil = new Date(Math.min(now.getTime(), c.deadlineAt.getTime()) + c.payWindowHours * HOUR);
+  // 공구 줄을 잠그고 신청 수량을 센 뒤 상태를 바꾼다. 신청·취소도 같은 줄을 잠그므로 판정과 엇갈리지 않는다.
   // 상태 전이는 한 번만 일어난다 (스케줄러 중복 실행 대비)
-  const changed = await ctx.db.update(schema.campaigns)
-    .set({ state: reached ? "reached" : "failed", judgedAt: now, payUntil: reached ? payUntil : null })
-    .where(and(eq(schema.campaigns.id, id), eq(schema.campaigns.state, "open"))).returning();
+  let total = 0;
+  const changed = await ctx.db.transaction(async (tx) => {
+    const [row] = await tx.select({ state: schema.campaigns.state }).from(schema.campaigns).where(eq(schema.campaigns.id, id)).for("update");
+    if (row?.state !== "open") return [];
+    total = await pledgedQty(ctx, id, tx);
+    const reached = total >= c.targetQty;
+    return tx.update(schema.campaigns)
+      .set({ state: reached ? "reached" : "failed", judgedAt: now, payUntil: reached ? payUntil : null })
+      .where(and(eq(schema.campaigns.id, id), eq(schema.campaigns.state, "open"))).returning();
+  });
   if (!changed.length) return false;
+  const reached = changed[0].state === "reached";
   await audit(ctx, actor, reached ? "campaign.reached" : "campaign.failed", id, { pledged: total, target: c.targetQty }, c.mallId);
   if (!reached) {
     await ctx.db.update(schema.pledges).set({ state: "not_reached", updatedAt: now }).where(and(eq(schema.pledges.campaignId, id), eq(schema.pledges.state, "pledged")));

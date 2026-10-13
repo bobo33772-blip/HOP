@@ -2,7 +2,7 @@
 
 import { randomBytes } from "node:crypto";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
-import { schema } from "@/db";
+import { schema, type Db } from "@/db";
 import { allProducts } from "../cafe24/api";
 import { errorMessages, proceedInfo, validateCampaignInput, type CampaignInput, type CampaignState, type ProceedInfo } from "../core/campaign";
 import { COUNTED_PLEDGE_STATES } from "../core/pledge";
@@ -30,9 +30,9 @@ export async function getCampaign(ctx: Ctx, id: string): Promise<Campaign> {
   return c;
 }
 
-/** 진행률에 들어가는 신청 수량 (취소·미달 제외) */
-export async function pledgedQty(ctx: Ctx, campaignId: string): Promise<number> {
-  const [r] = await ctx.db
+/** 진행률에 들어가는 신청 수량 (취소·미달 제외). db: 트랜잭션 안에서 셀 때 넘긴다 */
+export async function pledgedQty(ctx: Ctx, campaignId: string, db: Pick<Db, "select"> = ctx.db): Promise<number> {
+  const [r] = await db
     .select({ q: sql<number>`coalesce(sum(${schema.pledges.qty}), 0)` })
     .from(schema.pledges)
     .where(and(eq(schema.pledges.campaignId, campaignId), inArray(schema.pledges.state, COUNTED_PLEDGE_STATES)));

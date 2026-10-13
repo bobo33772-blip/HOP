@@ -3,7 +3,7 @@
 import { describe, expect, it } from "vitest";
 import { and, eq, sql } from "drizzle-orm";
 import { schema } from "@/db";
-import { HOUR } from "@/lib/time";
+import { HOUR, manualClock } from "@/lib/time";
 import { getCampaign, openCampaign, previewCampaign, recordProductionDecision } from "@/lib/engine/campaigns";
 import { cancelPledge, createPledge, myPledge } from "@/lib/engine/pledges";
 import { judgeNow } from "@/lib/engine/judge";
@@ -120,6 +120,34 @@ describe("신청", () => {
     env.clock.advance(DAY5 + 1);
     await expect(pledge(env, campaign.id, "m4", 1)).rejects.toThrow(/마감/);
     await expect(cancelPledge(ctx, campaign.id, { member_token: world.encryptMember(MALL, "m2") })).rejects.toThrow(/마감/);
+  });
+
+  // 서버 두 대: 신청을 받는 서버는 아직 마감 1초 전이고, 그 사이 다른 서버의 정기 작업이 판정을 끝낸다
+  async function judgedMidRequest() {
+    const env = await setup();
+    const c = await openAndFill(env, range(1, 40));
+    const judgeCtx = { ...env.ctx, clock: manualClock(new Date(c.deadlineAt.getTime() + 1000)) };
+    env.clock.set(new Date(c.deadlineAt.getTime() - 1000));
+    const realShop = env.ctx.shop;
+    const ctx = { ...env.ctx, shop: async (m: string) => {
+      const api = await realShop(m);
+      return { ...api, verifyMember: async (t: string) => { await judgeNow(judgeCtx, c.id, "scheduler"); return api.verifyMember(t); } };
+    } };
+    return { env, c, ctx };
+  }
+
+  it("신청 처리 중에 판정이 끝나면 그 신청은 받지 않는다 (판정된 공구에 쿠폰 없는 신청이 남지 않게)", async () => {
+    const { env, c, ctx } = await judgedMidRequest();
+    await expect(createPledge(ctx, c.id, { member_token: env.world.encryptMember(MALL, "m50"), qty: 1 }, "late")).rejects.toThrow(/마감/);
+    const rows = await env.db.select().from(schema.pledges).where(and(eq(schema.pledges.campaignId, c.id), eq(schema.pledges.memberId, "m50")));
+    expect(rows).toHaveLength(0);
+  });
+
+  it("취소 처리 중에 판정이 끝나면 취소하지 않는다 (판정에 센 신청과 쿠폰이 어긋나지 않게)", async () => {
+    const { env, c, ctx } = await judgedMidRequest();
+    await expect(cancelPledge(ctx, c.id, { member_token: env.world.encryptMember(MALL, "m1") })).rejects.toThrow(/마감/);
+    const [p] = await env.db.select().from(schema.pledges).where(and(eq(schema.pledges.campaignId, c.id), eq(schema.pledges.memberId, "m1")));
+    expect(p.state).toBe("coupon_issued");
   });
 });
 
