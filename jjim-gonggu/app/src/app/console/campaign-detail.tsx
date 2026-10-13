@@ -12,6 +12,7 @@ const MSG_STATUS = { sent: ["발송", "ok"], failed: ["실패", "bad"], schedule
 const ISSUE_LABEL: Record<string, string> = {
   coupon_missing: "쿠폰 발급 누락", judge_incomplete: "판정 뒤 쿠폰·안내 멈춤 (자동 재시도 중)", reconcile_mismatch: "대사 불일치", reconcile_fixed: "대사로 고침", sms_failed: "문자 발송 실패",
   invite_not_sent: "초대 문자 못 보냄", ad_label_missing: "(광고) 표기 누락", orphan_coupon: "저장 안 된 쿠폰",
+  over_pledge: "신청보다 많이 구매 (넘친 수량은 확정에서 뺌)",
 };
 
 export function CampaignDetail({ id, say, onChanged }: { id: string; say: (t: string) => void; onChanged: () => void }) {
