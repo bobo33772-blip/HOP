@@ -10,7 +10,7 @@ import { CHIP, kst, pct, won } from "./format";
 
 const MSG_STATUS = { sent: ["발송", "ok"], failed: ["실패", "bad"], scheduled: ["예약", "warn"], sending: ["보내는 중", "open"] } as const;
 const ISSUE_LABEL: Record<string, string> = {
-  coupon_missing: "쿠폰 발급 누락", reconcile_mismatch: "대사 불일치", reconcile_fixed: "대사로 고침", sms_failed: "문자 발송 실패",
+  coupon_missing: "쿠폰 발급 누락", judge_incomplete: "판정 뒤 쿠폰·안내 멈춤 (자동 재시도 중)", reconcile_mismatch: "대사 불일치", reconcile_fixed: "대사로 고침", sms_failed: "문자 발송 실패",
   invite_not_sent: "초대 문자 못 보냄", ad_label_missing: "(광고) 표기 누락", orphan_coupon: "저장 안 된 쿠폰",
 };
 

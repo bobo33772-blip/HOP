@@ -25,6 +25,8 @@ export class MockCafe24 {
   /** 몇 번을 다시 발급해도 빠지는 회원 (영구 실패 테스트용) */
   blockIssue = new Set<string>();
   failNextSms = false;
+  /** 다음 쿠폰 발급 내역 조회를 한 번 실패시킨다 (판정 뒤 카페24 오류 재시도 테스트용) */
+  failNextCouponHolders = false;
   /** 개인정보 권한 여부 (false면 찜·수신 동의 조회 불가 → 장바구니 고객 공구) */
   privacy = true;
   /** 실제 카페24처럼 상품마다 조회 시간이 걸리는 것을 흉내 낸다 (첫 수집 화면 확인용) */
@@ -111,7 +113,10 @@ export class MockCafe24 {
           c.holders.add(id);
         }
       },
-      async listCouponHolders(no) { return [...(m().coupons.get(no)?.holders ?? [])]; },
+      async listCouponHolders(no) {
+        if (w.failNextCouponHolders) { w.failNextCouponHolders = false; throw new Error("쿠폰 발급 내역 조회 실패 (모의)"); }
+        return [...(m().coupons.get(no)?.holders ?? [])];
+      },
       async sendSms(spec: SmsSpec) {
         if (w.failNextSms) { w.failNextSms = false; throw new Error("SMS 발송 실패 (모의)"); }
         const ids = spec.memberIds.filter((id) => m().members.get(id)?.sms); // 카페24의 수신거부자 자동 제외
