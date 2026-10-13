@@ -45,6 +45,7 @@ export async function requestAlert(ctx: Ctx, mallId: string, no: unknown, body: 
 }
 
 export async function cancelAlert(ctx: Ctx, mallId: string, no: unknown, body: { member_token?: unknown }) {
+  await getMall(ctx, mallId); // 연결된 몰만 (앱을 삭제한 몰의 위젯이 불러도 404로 끝낸다)
   const productNo = productNoOf(no);
   const memberId = await memberOf(ctx, mallId, body.member_token);
   await ctx.db.delete(A).where(and(of(mallId, productNo), eq(A.memberId, memberId)));
@@ -52,6 +53,7 @@ export async function cancelAlert(ctx: Ctx, mallId: string, no: unknown, body: {
 }
 
 export async function myAlert(ctx: Ctx, mallId: string, no: unknown, body: { member_token?: unknown }) {
+  await getMall(ctx, mallId);
   const productNo = productNoOf(no);
   const memberId = await memberOf(ctx, mallId, body.member_token);
   return { alert: await mine(ctx, mallId, productNo, memberId), waiting: await waitingCount(ctx, mallId, productNo) };
