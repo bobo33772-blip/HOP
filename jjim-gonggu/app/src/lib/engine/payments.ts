@@ -39,10 +39,13 @@ export async function applyOrder(ctx: Ctx, mallId: string, order: OrderInfo, sou
   for (const c of camps) {
     const items = order.items.filter((i) => i.productNo === c.productNo);
     if (!items.length) continue;
-    const qty = items.reduce((a, i) => a + i.qty, 0);
-    const amount = items.reduce((a, i) => a + i.amount, 0);
+    // 일부 취소·반품된 품목은 빼고 센다. 모두 취소됐으면 취소 주문으로 기록한다 (수량은 원래 주문 그대로)
+    const live = items.filter((i) => !i.cancelled);
+    const counted = live.length ? live : items;
+    const qty = counted.reduce((a, i) => a + i.qty, 0);
+    const amount = counted.reduce((a, i) => a + i.amount, 0);
     const late = c.payUntil != null && order.paidAt > c.payUntil;
-    const status = order.status === "cancelled" ? "cancelled" : late ? "late" : "paid";
+    const status = order.status === "cancelled" || !live.length ? "cancelled" : late ? "late" : "paid";
     const [prev] = await ctx.db.select({ status: schema.orderLinks.status }).from(schema.orderLinks).where(eq(schema.orderLinks.orderId, order.orderId));
     await ctx.db.insert(schema.orderLinks)
       .values({ orderId: order.orderId, campaignId: c.id, memberId: order.memberId, qty, amount, status, source, paidAt: order.paidAt, updatedAt: now })

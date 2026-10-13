@@ -29,7 +29,8 @@ export interface OrderInfo {
   orderId: string;
   memberId: string;
   couponNos: string[];
-  items: { productNo: number; qty: number; amount: number }[];
+  /** cancelled: 이 품목만 취소·반품됨 (주문 일부 취소). 확정 수량·매출에서 뺀다 */
+  items: { productNo: number; qty: number; amount: number; cancelled?: boolean }[];
   status: "paid" | "pending" | "cancelled"; // pending: 주문은 했지만 입금 전(무통장 등)
   paidAt: Date;
 }
@@ -86,7 +87,12 @@ function mapOrder(o: any): OrderInfo | null {
     orderId: String(o.order_id),
     memberId: String(o.member_id ?? ""),
     couponNos: (o.coupons ?? []).map((c: any) => String(c.coupon_code ?? c.coupon_no)),
-    items: (o.items ?? []).map((i: any) => ({ productNo: Number(i.product_no), qty: Number(i.quantity), amount: Math.round(Number(i.payment_amount ?? i.product_price * i.quantity)) })),
+    // 품목별 order_status: N… 정상, C… 취소, R… 반품(신청 단계 포함 — 생산 수량에 넣지 않는다), E… 교환은 그대로 센다.
+    // VERIFY: 테스트몰에서 일부 수량 취소·반품 시 품목이 나뉘어 오는지, quantity가 줄어드는지 확인 (둘 다 여기서 맞게 센다)
+    items: (o.items ?? []).map((i: any) => ({
+      productNo: Number(i.product_no), qty: Number(i.quantity), amount: Math.round(Number(i.payment_amount ?? i.product_price * i.quantity)),
+      cancelled: /^[CR]/.test(String(i.order_status ?? "")),
+    })),
     status: cancelled ? "cancelled" : o.paid === "T" ? "paid" : "pending",
     paidAt: new Date(o.payment_date ?? o.order_date),
   };

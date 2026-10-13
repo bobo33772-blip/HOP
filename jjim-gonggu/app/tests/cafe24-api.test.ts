@@ -27,6 +27,14 @@ describe("주문의 공구 쿠폰 확인", () => {
     expect(o).toMatchObject({ orderId: "O1", memberId: "m1", couponNos: ["CP9"], status: "paid", items: [{ productNo: 102, qty: 2, amount: 78000 }] });
   });
 
+  it("품목별 주문 상태가 취소(C…)·반품(R…)이면 그 품목은 취소로 표시한다", async () => {
+    const item = (st: string) => ({ product_no: 102, quantity: 1, payment_amount: "39000.00", order_status: st });
+    const { api } = fakeShop((c) => c.path === "/orders/O1" ? { json: { order: { order_id: "O1", member_id: "m1", paid: "T", canceled: "F", payment_date: "2026-10-12T10:00:00+09:00", items: [item("N40"), item("C40"), item("R00")], coupons: [{ coupon_code: "CP9" }] } } } : undefined);
+    const o = await api.getOrder("O1");
+    expect(o?.status).toBe("paid");
+    expect(o?.items.map((i) => !!i.cancelled)).toEqual([false, true, true]);
+  });
+
   it("쿠폰으로 결제된 주문은 /orders 목록 대신 쿠폰 발급 내역(used_coupon=T)의 related_order_id로 찾는다", async () => {
     const { api, calls } = fakeShop((c) => {
       if (c.path === "/coupons/CP9/issues") return { json: { issues: [{ issue_no: 1, member_id: "m1", used_coupon: "T", related_order_id: "O1" }, { issue_no: 2, member_id: "m2", used_coupon: "T", related_order_id: "O2" }] } };
