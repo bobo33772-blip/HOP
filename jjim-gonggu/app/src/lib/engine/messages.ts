@@ -1,4 +1,4 @@
-// 예약 문자 발송. 광고 문자는 21~08시에 보내지 않고, 판정 결과 문자도 같은 시간대를 피한다.
+// 예약 문자 발송. 광고 문자는 21~08시에 보내지 않고, 판정 결과·결제 마감 전 알림 문자도 같은 시간대를 피한다.
 // status: scheduled → sending(선점) → sent | scheduled(재시도) | failed
 
 import { and, asc, eq, inArray, lte } from "drizzle-orm";
@@ -31,6 +31,20 @@ export async function releaseDueMessages(ctx: Ctx): Promise<number> {
       continue;
     }
     if (m.kind === "invite_ad" && !m.content.startsWith("(광고)")) { await fail("(광고) 표기 누락으로 발송 차단", "ad_label_missing"); continue; }
+    // 결제 마감 전 알림은 보내는 시점에 아직 결제하지 않은 신청자(쿠폰 받은 상태)에게만. 아무도 없거나 이미 확정된 공구면 보내지 않고 닫는다
+    let recipients = m.recipients;
+    if (m.kind === "pay_reminder") {
+      const unpaid = c.state === "reached"
+        ? new Set((await ctx.db.select({ memberId: schema.pledges.memberId }).from(schema.pledges)
+            .where(and(eq(schema.pledges.campaignId, m.campaignId), eq(schema.pledges.state, "coupon_issued")))).map((x) => x.memberId))
+        : new Set<string>();
+      recipients = m.recipients.filter((id) => unpaid.has(id));
+      if (!recipients.length) {
+        await ctx.db.update(schema.messages).set({ status: "sent", sentAt: now, recipients: [] })
+          .where(and(eq(schema.messages.id, m.id), eq(schema.messages.status, "scheduled")));
+        continue;
+      }
+    }
 
     // 보내기 전에 선점한다 → 서버가 여러 대이거나 작업이 겹쳐도 같은 문자를 두 번 보내지 않는다
     const claimed = await ctx.db.update(schema.messages).set({ status: "sending" })
@@ -41,11 +55,11 @@ export async function releaseDueMessages(ctx: Ctx): Promise<number> {
       if (!mall?.sender) throw new Error("판매자 문자 발신번호가 등록되지 않았어요.");
       const api = await ctx.shop(c.mallId);
       const refs: string[] = [];
-      for (let i = 0; i < m.recipients.length; i += 100) {
-        const r = await api.sendSms({ senderNo: mall.sender, memberIds: m.recipients.slice(i, i + 100), content: m.content, isAd: m.kind === "invite_ad" });
+      for (let i = 0; i < recipients.length; i += 100) {
+        const r = await api.sendSms({ senderNo: mall.sender, memberIds: recipients.slice(i, i + 100), content: m.content, isAd: m.kind === "invite_ad" });
         refs.push(r.queueRef);
       }
-      await ctx.db.update(schema.messages).set({ status: "sent", sentAt: now, queueRef: refs.join(","), attempts: m.attempts + 1, error: null }).where(eq(schema.messages.id, m.id));
+      await ctx.db.update(schema.messages).set({ status: "sent", sentAt: now, recipients, queueRef: refs.join(","), attempts: m.attempts + 1, error: null }).where(eq(schema.messages.id, m.id));
       sent++;
     } catch (e) {
       const attempts = m.attempts + 1;

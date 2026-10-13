@@ -87,4 +87,17 @@ async function queueResult(ctx: Ctx, c: Campaign, pledgers: string[], total: num
     ? `[${brand}] ${c.productName} 공동구매가 목표를 달성했어요 (${total}/${c.targetQty}개). 회원님 계정에 할인 쿠폰을 넣어 드렸어요. ${fmtKst(c.payUntil)}까지 결제해 주세요.\n${ctx.productUrl(c.mallId, c.productNo)}`
     : `[${brand}] ${c.productName} 공동구매가 목표(${c.targetQty}개)에 못 미쳐 진행되지 않아요. 결제된 금액은 없어요. 신청해 주셔서 감사합니다.`;
   await ctx.db.insert(schema.messages).values({ campaignId: c.id, kind: "result", recipients: to, content, sendAfter: nextAllowedSendTime(ctx.clock.now()) });
+  if (c.state === "reached") await queueReminder(ctx, c, to, brand);
+}
+
+const REMINDER_BEFORE_MS = 24 * HOUR;
+
+/** 결제 마감 전 알림 (기획서 핵심 정책): 결제 기한 24시간 전, 야간이면 다음 08:00. 미룬 시각이 기한을 넘기면 보내지 않는다.
+ *  받는 사람은 보내는 시점에 다시 고른다 (messages.ts: 그때까지 결제하지 않은 신청자만). */
+async function queueReminder(ctx: Ctx, c: Campaign, to: string[], brand: string) {
+  if (!c.payUntil) return;
+  const sendAfter = nextAllowedSendTime(new Date(c.payUntil.getTime() - REMINDER_BEFORE_MS));
+  if (sendAfter >= c.payUntil) return;
+  const content = `[${brand}] ${c.productName} 공동구매 결제 기한이 ${fmtKst(c.payUntil)}까지예요. 넣어 드린 쿠폰으로 기한 안에 결제해야 공구가로 확정돼요.\n${ctx.productUrl(c.mallId, c.productNo)}`;
+  await ctx.db.insert(schema.messages).values({ campaignId: c.id, kind: "pay_reminder", recipients: to, content, sendAfter });
 }

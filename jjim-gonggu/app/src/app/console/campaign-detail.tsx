@@ -77,7 +77,7 @@ export function CampaignDetail({ id, say, onChanged }: { id: string; say: (t: st
         <thead><tr><th>종류</th><th>대상</th><th>상태</th><th>발송 예정·완료</th><th /></tr></thead>
         <tbody>{d.messages.map((m) => (
           <tr key={m.id}>
-            <td>{m.kind === "invite_ad" ? "초대 (광고)" : "결과 안내"}</td>
+            <td>{m.kind === "invite_ad" ? "초대 (광고)" : m.kind === "pay_reminder" ? "결제 안내" : "결과 안내"}</td>
             <td className="mono">{m.recipients}명</td>
             <td><span className={`chip ${MSG_STATUS[m.status][1]}`}>{MSG_STATUS[m.status][0]}</span>{m.error && <div className="small">{m.error}</div>}</td>
             <td>{kst(m.sentAt ?? m.sendAfter)}</td>
