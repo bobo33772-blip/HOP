@@ -302,7 +302,7 @@ describe("결제 마감 전 알림 문자", () => {
 });
 
 describe("확정 리포트와 4주 판정표", () => {
-  it("확정 → 생산 결정 기록까지 끝나면 원씽을 충족한다", async () => {
+  it("확정 → 생산 결정 기록. 확정 수량이 목표에 못 미치면 기록은 되지만 원씽으로 세지 않는다", async () => {
     const env = await setup();
     const c = await openAndFill(env, range(1, 40), 1);
     await tick(env.ctx); // 초대 문자 발송
@@ -323,9 +323,26 @@ describe("확정 리포트와 4주 판정표", () => {
     expect(rep.rates.inviteToPledge).toBe(20 / 69);
     await expect(recordProductionDecision(env.ctx, "op", c.id, { qty: 25, note: " " })).rejects.toThrow(/근거/);
     await recordProductionDecision(env.ctx, "op", c.id, { qty: 26, note: "가마 10/30 · 여유 1장" });
+    expect((await getCampaign(env.ctx, c.id)).decidedAt).toBeTruthy();
     const sc = await pilotScorecard(env.ctx);
-    expect(sc.rows.find((r) => r.key === "one_thing")!.pass).toBe(true);
+    // 신청 40개로 달성했지만 결제는 25개 < 목표 30개: "목표가 차서 실제로 돈을 내고 → 그 숫자로 발주"(기획서 v2 1번)가 아니다 (검증 보고서 L-1)
+    expect(sc.rows.find((r) => r.key === "one_thing")!.pass).toBe(false);
     expect(sc.rows.find((r) => r.key === "scale")!.pass).toBe(false); // 아직 1몰 · 1건
+  });
+
+  it("확정 수량이 목표 이상인 공구로 생산을 결정하면 원씽을 충족한다", async () => {
+    const env = await setup();
+    const c = await openAndFill(env, range(1, 40), 1);
+    env.clock.advance(DAY5);
+    await tick(env.ctx);
+    const cp = (await getCampaign(env.ctx, c.id)).couponNo!;
+    for (const m of range(1, 30)) await env.world.placeOrder(MALL, m, PRODUCT, 1, cp); // 30개 = 목표
+    env.clock.advance(72 * HOUR);
+    await tick(env.ctx);
+    await recordProductionDecision(env.ctx, "op", c.id, { qty: 30, note: "가마 10/30" });
+    const row = (await pilotScorecard(env.ctx)).rows.find((r) => r.key === "one_thing")!;
+    expect(row.value).toBe(1);
+    expect(row.pass).toBe(true);
   });
 
   it("개인정보: 고객 전화번호·이름·주소를 담는 열이 없다", async () => {
