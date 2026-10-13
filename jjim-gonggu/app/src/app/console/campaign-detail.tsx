@@ -73,15 +73,16 @@ export function CampaignDetail({ id, say, onChanged }: { id: string; say: (t: st
         </div>
       )}
       <h3 style={{ fontSize: 16, margin: 0 }}>문자</h3>
-      <div className="tw"><table>
-        <thead><tr><th>종류</th><th>대상</th><th>상태</th><th>발송 예정·완료</th><th /></tr></thead>
+      {/* 휴대폰 폭에서 "85명"·"결과 안내"가 글자 중간에서 끊기지 않게 단어 단위로만 줄을 바꾼다 (#8). 마지막 칸은 운영자 '다시 보내기' 자리라 운영자에게만 그린다 */}
+      <div className="tw"><table style={{ wordBreak: "keep-all" }}>
+        <thead><tr><th>종류</th><th>대상</th><th>상태</th><th>발송 예정·완료</th>{isAdmin && <th />}</tr></thead>
         <tbody>{d.messages.map((m) => (
           <tr key={m.id}>
-            <td>{m.kind === "invite_ad" ? "초대 (광고)" : m.kind === "pay_reminder" ? "결제 안내" : "결과 안내"}</td>
-            <td className="mono">{m.recipients}명</td>
+            <td style={{ whiteSpace: "nowrap" }}>{m.kind === "invite_ad" ? "초대 (광고)" : m.kind === "pay_reminder" ? "결제 안내" : "결과 안내"}</td>
+            <td className="mono" style={{ whiteSpace: "nowrap" }}>{m.recipients}명</td>
             <td><span className={`chip ${MSG_STATUS[m.status][1]}`}>{MSG_STATUS[m.status][0]}</span>{m.error && <div className="small">{m.error}</div>}</td>
             <td>{kst(m.sentAt ?? m.sendAfter)}</td>
-            <td>{isAdmin && (m.status === "failed" || m.status === "sending") && <button className="ghost" onClick={() => act(`/api/admin/messages/${m.id}/retry`, () => "다시 보내도록 예약했어요")}>다시 보내기</button>}</td>
+            {isAdmin && <td>{(m.status === "failed" || m.status === "sending") && <button className="ghost" onClick={() => act(`/api/admin/messages/${m.id}/retry`, () => "다시 보내도록 예약했어요")}>다시 보내기</button>}</td>}
           </tr>
         ))}</tbody>
       </table></div>
