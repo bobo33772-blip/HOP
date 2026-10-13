@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { hasErrors, validateCampaignInput, type CampaignInput } from "@/lib/core/campaign";
-import { canCancel, checkPledge, expectedConfirmed } from "@/lib/core/pledge";
+import { canCancel, checkPledge, EXPECTED_PAY_RATE, expectedConfirmed, pledgesNeeded } from "@/lib/core/pledge";
 import { formatAdMessage, isNightKst, isValidOptOutNumber, nextAllowedSendTime } from "@/lib/core/messaging";
 import { canOpenAnother, successFee } from "@/lib/core/billing";
 
@@ -44,6 +44,13 @@ describe("참여 신청", () => {
   it("예상 확정 수량은 결제분과 신청×60% 중 큰 값", () => {
     expect(expectedConfirmed(100, 10)).toBe(60);
     expect(expectedConfirmed(100, 70)).toBe(70);
+  });
+  it("목표를 확정하려면 필요한 신청 수량 = 목표 ÷ 예상 결제율 60% (올림)", () => {
+    expect(EXPECTED_PAY_RATE).toBe(0.6);
+    expect(pledgesNeeded(30)).toBe(50); // 30 / 0.6 = 50.000…01 → 51이 되면 안 된다
+    expect(pledgesNeeded(31)).toBe(52);
+    expect(pledgesNeeded(1)).toBe(2);
+    expect(pledgesNeeded(0)).toBe(0);
   });
 });
 
