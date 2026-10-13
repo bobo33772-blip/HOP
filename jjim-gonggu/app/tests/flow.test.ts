@@ -44,6 +44,18 @@ describe("개설", () => {
     await openCampaign(env.ctx, "op", MALL, baseInput(env.clock));
     await expect(openCampaign(env.ctx, "op", MALL, baseInput(env.clock))).rejects.toThrow(/이미 진행 중/);
   });
+
+  it("같은 상품을 동시에 두 번 열어도 공구는 하나만 생기고, 남은 쿠폰은 확인할 일로 남는다", async () => {
+    const env = await setup();
+    const results = await Promise.allSettled([openCampaign(env.ctx, "op", MALL, baseInput(env.clock)), openCampaign(env.ctx, "op", MALL, baseInput(env.clock))]);
+    expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+    const rejected = results.find((r) => r.status === "rejected") as PromiseRejectedResult;
+    expect(String(rejected.reason)).toMatch(/이미 진행 중/);
+    const open = await env.db.select().from(schema.campaigns).where(and(eq(schema.campaigns.productNo, PRODUCT), eq(schema.campaigns.state, "open")));
+    expect(open).toHaveLength(1);
+    const orphan = await env.db.select().from(schema.issues).where(eq(schema.issues.kind, "orphan_coupon"));
+    expect(orphan).toHaveLength(1);
+  });
 });
 
 describe("초대 문자", () => {
@@ -481,6 +493,15 @@ describe("미달 뒤 그래도 진행 (#23)", () => {
     await env.db.insert(schema.issues).values({ at: env.clock.now(), campaignId: c.id, kind: "judge_incomplete", detail: {} });
     await expect(proceedCampaign(env.ctx, "op", c.id, {})).rejects.toThrow(/안내가 아직 끝나지 않았어요/);
     expect((await getCampaign(env.ctx, c.id)).state).toBe("failed");
+  });
+
+  it("같은 상품에 새 공구를 이미 열었으면 미달 공구를 그래도 진행하지 않는다 (한 상품에 진행 중 공구는 하나)", async () => {
+    const { env, c, tok } = await failedCampaign();
+    await setStillWanted(env.ctx, c.id, tok("m2"), true);
+    await openCampaign(env.ctx, "op", MALL, baseInput(env.clock));
+    await expect(proceedCampaign(env.ctx, "op", c.id, {})).rejects.toThrow(/이미 진행 중/);
+    expect((await getCampaign(env.ctx, c.id)).state).toBe("failed");
+    expect(await env.db.select().from(schema.issues).where(eq(schema.issues.kind, "orphan_coupon"))).toHaveLength(0); // 쿠폰을 만들기 전에 막는다
   });
 
   it("아무도 표시하지 않으면 진행할 수 없고, 판정 뒤 48시간이 지나면 표시도 진행도 막혀 그대로 진행 안 됨으로 끝난다", async () => {

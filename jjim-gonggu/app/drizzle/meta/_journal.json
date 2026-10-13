@@ -29,6 +29,13 @@
       "when": 1791860428075,
       "tag": "0003_proceed_anyway",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791877688987,
+      "tag": "0004_one_active_campaign",
+      "breakpoints": true
     }
   ]
 }

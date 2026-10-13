@@ -1,6 +1,7 @@
 // 핵심 엔티티. 개인정보 최소 저장: 회원 ID·신청 이력·주문번호/금액만. 고객 이름·전화번호·주소는 저장하지 않는다.
 // 문자는 카페24 SMS에 회원 ID만 넘겨 보낸다.
 
+import { sql } from "drizzle-orm";
 import { pgTable, text, integer, timestamp, boolean, jsonb, uuid, serial, uniqueIndex, index, primaryKey } from "drizzle-orm/pg-core";
 
 export const malls = pgTable("malls", {
@@ -89,6 +90,8 @@ export const campaigns = pgTable("campaigns", {
 }, (t) => [
   index("campaign_mall_idx").on(t.mallId, t.state),
   uniqueIndex("campaign_report_token_uq").on(t.reportToken),
+  // 한 상품에 진행 중(모집·결제) 공구는 하나만. 동시에 두 번 열어도 DB가 막는다
+  uniqueIndex("campaign_active_product_uq").on(t.mallId, t.productNo).where(sql`${t.state} in ('open', 'reached')`),
 ]);
 
 export const invitations = pgTable("invitations", {
