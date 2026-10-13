@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useConsole } from "./provider";
 import type { Detail } from "./types";
-import { CHIP, kst, pct, won } from "./format";
+import { chip, kst, pct, won } from "./format";
 
 const MSG_STATUS = { sent: ["발송", "ok"], failed: ["실패", "bad"], scheduled: ["예약", "warn"], sending: ["보내는 중", "open"] } as const;
 const ISSUE_LABEL: Record<string, string> = {
@@ -33,7 +33,7 @@ export function CampaignDetail({ id, say, onChanged }: { id: string; say: (t: st
   useEffect(() => { load().catch((e) => say(e.message)); }, [load, say]);
   if (!d) return <p className="muted">불러오는 중…</p>;
   const r = d.report, c = r.campaign;
-  const [label, cls] = c.proceededAt && c.state === "reached" ? ["그래도 진행 · 결제 기간", "ok"] : CHIP[c.state];
+  const [label, cls] = chip(c.state, !!c.proceededAt);
   const p = d.proceed;
   const act = async (path: string, msg: (j: Record<string, unknown>) => string, body?: unknown) => {
     try { const j = await a.call<Record<string, unknown>>("POST", path, body ?? {}); say(msg(j)); await load(); onChanged(); } catch (e) { say((e as Error).message); }
@@ -51,7 +51,8 @@ export function CampaignDetail({ id, say, onChanged }: { id: string; say: (t: st
         <div><small>초대</small><strong>{r.funnel.invited}</strong></div>
         <div><small>신청 수량</small><strong>{r.funnel.pledgedQty}</strong></div>
         <div><small>쿠폰 발급</small><strong>{r.funnel.couponIssued}</strong></div>
-        <div className="hl"><small>확정 수량</small><strong>{r.confirmed.qty}</strong></div>
+        {/* 확정 수량은 결제 기간이 끝나 확정된 뒤에만 초록으로 강조한다 (#11). 모집 중의 0개는 강조하지 않는다 */}
+        <div className={c.state === "settled" ? "hl confirmed" : undefined}><small>확정 수량</small><strong>{r.confirmed.qty}</strong></div>
         <div><small>초대→신청</small><strong>{pct(r.rates.inviteToPledge)}</strong></div>
         <div><small>신청→결제</small><strong>{pct(r.rates.pledgeToPaid)}</strong></div>
       </div>
