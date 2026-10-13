@@ -3,6 +3,8 @@
 import { and, eq, inArray, lte } from "drizzle-orm";
 import { schema } from "@/db";
 import { nextAllowedSendTime } from "../core/messaging";
+import { proceedInfo } from "../core/campaign";
+import type { PledgeState } from "../core/pledge";
 import { HOUR, fmtKst } from "../time";
 import { audit, recordIssue, UserError, type Ctx } from "./context";
 import { getCampaign, getMall, pledgedQty, type Campaign } from "./campaigns";
@@ -43,7 +45,7 @@ export async function judgeNow(ctx: Ctx, campaignId: string, actor: string) {
   return getCampaign(ctx, campaignId);
 }
 
-async function isIncomplete(ctx: Ctx, campaignId: string) {
+export async function isIncomplete(ctx: Ctx, campaignId: string) {
   const [row] = await ctx.db.select({ id: schema.issues.id }).from(schema.issues)
     .where(and(eq(schema.issues.campaignId, campaignId), eq(schema.issues.kind, JUDGE_INCOMPLETE), eq(schema.issues.resolved, false))).limit(1);
   return !!row;
@@ -71,7 +73,8 @@ async function judge(ctx: Ctx, id: string, actor: string): Promise<boolean> {
  *  카페24 오류로 멈추면 확인할 일(judge_incomplete)로 남기고, 정기 작업이나 운영자 수동 판정이 다시 시도한다 */
 async function finishJudged(ctx: Ctx, c: Campaign): Promise<boolean> {
   try {
-    const states = c.state === "reached" ? ["pledged", "coupon_issued", "paid"] : ["not_reached"];
+    // 미달이면 결과 안내가 늦어지는 사이 '그래도 살래요'를 누른 신청자(still_wanted)도 안내를 받는다
+    const states = c.state === "reached" ? ["pledged", "coupon_issued", "paid"] : ["not_reached", "still_wanted"];
     const rows = await ctx.db.select({ memberId: schema.pledges.memberId, state: schema.pledges.state }).from(schema.pledges)
       .where(and(eq(schema.pledges.campaignId, c.id), inArray(schema.pledges.state, states)));
     if (c.state === "reached") await issueCoupons(ctx, c, rows.filter((r) => r.state === "pledged").map((r) => r.memberId));
@@ -89,8 +92,9 @@ async function finishJudged(ctx: Ctx, c: Campaign): Promise<boolean> {
 }
 
 /** 100명씩 나눠 발급하고, 발급 내역과 대조해 빠진 회원은 한 번 더 발급한다. 그래도 빠지면 이슈로 남긴다.
- *  이미 쿠폰을 가진 회원(앞선 시도에서 발급됨)에게는 다시 발급하지 않는다 */
-async function issueCoupons(ctx: Ctx, c: Campaign, memberIds: string[]) {
+ *  이미 쿠폰을 가진 회원(앞선 시도에서 발급됨)에게는 다시 발급하지 않는다.
+ *  from: 쿠폰을 받으면 coupon_issued로 바꿀 신청 상태 (판정 때는 pledged, 미달 뒤 그래도 진행할 때는 still_wanted) */
+export async function issueCoupons(ctx: Ctx, c: Campaign, memberIds: string[], from: PledgeState = "pledged") {
   if (!memberIds.length) return;
   const now = ctx.clock.now();
   const api = await ctx.shop(c.mallId);
@@ -112,7 +116,7 @@ async function issueCoupons(ctx: Ctx, c: Campaign, memberIds: string[]) {
   for (const m of memberIds) {
     if (!holders.has(m)) continue;
     await ctx.db.update(schema.pledges).set({ state: "coupon_issued", updatedAt: now })
-      .where(and(eq(schema.pledges.campaignId, c.id), eq(schema.pledges.memberId, m), eq(schema.pledges.state, "pledged")));
+      .where(and(eq(schema.pledges.campaignId, c.id), eq(schema.pledges.memberId, m), eq(schema.pledges.state, from)));
   }
   if (missing.length) await recordIssue(ctx, c.id, "coupon_missing", { count: missing.length, members: missing });
 }
@@ -128,7 +132,7 @@ async function queueResult(ctx: Ctx, c: Campaign, pledgers: string[], total: num
   const brand = mall.brandName || mall.mallId;
   const content = c.state === "reached"
     ? `[${brand}] ${c.productName} 공동구매가 목표를 달성했어요 (${total}/${c.targetQty}개). 회원님 계정에 할인 쿠폰을 넣어 드렸어요. ${fmtKst(c.payUntil)}까지 결제해 주세요.\n${ctx.productUrl(c.mallId, c.productNo)}`
-    : `[${brand}] ${c.productName} 공동구매가 목표(${c.targetQty}개)에 못 미쳐 진행되지 않아요. 결제된 금액은 없어요. 신청해 주셔서 감사합니다.`;
+    : `[${brand}] ${c.productName} 공동구매가 목표(${c.targetQty}개)에 못 미쳐 진행되지 않아요. 결제된 금액은 없어요. 그래도 사고 싶으시면 ${fmtKst(proceedInfo(c, ctx.clock.now()).proceedUntil)}까지 상품 페이지에서 '그래도 살래요'를 눌러 주세요. 판매자가 보고 진행 여부를 정해요.\n${ctx.productUrl(c.mallId, c.productNo)}`;
   await ctx.db.insert(schema.messages).values({ campaignId: c.id, kind: "result", recipients: to, content, sendAfter: nextAllowedSendTime(ctx.clock.now()) });
   if (c.state === "reached") await queueReminder(ctx, c, to, brand);
 }
@@ -137,7 +141,7 @@ const REMINDER_BEFORE_MS = 24 * HOUR;
 
 /** 결제 마감 전 알림 (기획서 핵심 정책): 결제 기한 24시간 전, 야간이면 다음 08:00. 미룬 시각이 기한을 넘기면 보내지 않는다.
  *  받는 사람은 보내는 시점에 다시 고른다 (messages.ts: 그때까지 결제하지 않은 신청자만). */
-async function queueReminder(ctx: Ctx, c: Campaign, to: string[], brand: string) {
+export async function queueReminder(ctx: Ctx, c: Campaign, to: string[], brand: string) {
   if (!c.payUntil) return;
   const sendAfter = nextAllowedSendTime(new Date(c.payUntil.getTime() - REMINDER_BEFORE_MS));
   if (sendAfter >= c.payUntil) return;

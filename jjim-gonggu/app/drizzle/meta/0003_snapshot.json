@@ -1,5 +1,5 @@
 {
-  "id": "b06acc2c-b7ee-4fe6-b50b-b257060237fe",
+  "id": "e2910b71-eea8-426f-9f0f-3b77795ed283",
   "prevId": "03bafdcc-6d60-4c83-b64c-41ed1742c76e",
   "version": "7",
   "dialect": "postgresql",
@@ -197,6 +197,12 @@
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
+        },
+        "proceeded_at": {
+          "name": "proceeded_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {
@@ -232,28 +238,6 @@
             }
           ],
           "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "campaign_active_product_uq": {
-          "name": "campaign_active_product_uq",
-          "columns": [
-            {
-              "expression": "mall_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "product_no",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "where": "\"campaigns\".\"state\" in ('open', 'reached')",
           "concurrently": false,
           "method": "btree",
           "with": {}

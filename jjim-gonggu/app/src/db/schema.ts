@@ -62,6 +62,7 @@ export const productAlerts = pgTable("product_alerts", {
 }, (t) => [primaryKey({ columns: [t.mallId, t.productNo, t.memberId] })]);
 
 // 공구. state: open → reached | failed, reached → settled (결제 기간 종료).
+// 미달(failed) 뒤 판매자가 '그래도 진행'하면 reached로 바뀌고 proceededAt이 남는다 (성사율에서는 뺀다).
 export const campaigns = pgTable("campaigns", {
   id: uuid("id").primaryKey().defaultRandom(),
   mallId: text("mall_id").notNull().references(() => malls.mallId),
@@ -85,6 +86,7 @@ export const campaigns = pgTable("campaigns", {
   decisionQty: integer("decision_qty"), // 판매자가 확정 수량을 보고 정한 생산·발주 수량 (원씽)
   decisionNote: text("decision_note"),
   decidedAt: timestamp("decided_at", { withTimezone: true }),
+  proceededAt: timestamp("proceeded_at", { withTimezone: true }), // 미달 뒤 '그래도 진행'한 시각
 }, (t) => [
   index("campaign_mall_idx").on(t.mallId, t.state),
   uniqueIndex("campaign_report_token_uq").on(t.reportToken),
@@ -98,7 +100,7 @@ export const invitations = pgTable("invitations", {
   source: text("source").notNull(), // alert | wishlist | cart | both
 }, (t) => [primaryKey({ columns: [t.campaignId, t.memberId] })]);
 
-// state: pledged | cancelled | coupon_issued | paid | expired | not_reached
+// state: pledged | cancelled | coupon_issued | paid | expired | not_reached | still_wanted(미달 뒤 '그래도 살래요')
 export const pledges = pgTable("pledges", {
   id: uuid("id").primaryKey().defaultRandom(),
   campaignId: uuid("campaign_id").notNull().references(() => campaigns.id),

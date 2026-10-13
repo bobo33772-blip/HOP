@@ -1,0 +1,1 @@
+ALTER TABLE "campaigns" ADD COLUMN "proceeded_at" timestamp with time zone;

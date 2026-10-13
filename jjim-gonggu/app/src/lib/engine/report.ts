@@ -44,6 +44,7 @@ export async function buildReport(ctx: Ctx, campaignId: string) {
       listPrice: c.listPrice, dealPrice: c.dealPrice, targetQty: c.targetQty, deadlineAt: c.deadlineAt,
       payUntil: c.payUntil, shipEta: c.shipEta, settledAt: c.settledAt,
       decision: c.decidedAt ? { qty: c.decisionQty, note: c.decisionNote, at: c.decidedAt } : null,
+      proceededAt: c.proceededAt, // 미달 뒤 그래도 진행한 시각 (성사로 세지 않는다)
     },
     funnel: { invited, invitedSent, pledgers: n(pl.v), invitedPledgers: n(invPl.v), pledgedQty: pledged, couponIssued, paidMembers },
     confirmed: {
@@ -55,7 +56,7 @@ export async function buildReport(ctx: Ctx, campaignId: string) {
     rates: {
       inviteToPledge: rate(n(invPl.v), invitedSent),
       pledgeToPaid: rate(paidMembers, couponIssued),
-      reached: state === "open" ? null : state !== "failed",
+      reached: state === "open" ? null : state !== "failed" && !c.proceededAt,
     },
     openIssues: n(issues.v),
     final: state === "settled" || state === "failed",
@@ -66,14 +67,17 @@ export type Report = Awaited<ReturnType<typeof buildReport>>;
 
 /** 4주 성공 기준 판정표 (기획서 '4주 MVP · 목표'와 같은 기준). 결과를 보기 전에 정해 둔 기준으로만 판정한다 */
 export async function pilotScorecard(ctx: Ctx) {
-  const camps = await ctx.db.select({ id: schema.campaigns.id, mallId: schema.campaigns.mallId, state: schema.campaigns.state }).from(schema.campaigns);
+  const camps = await ctx.db.select({ id: schema.campaigns.id, mallId: schema.campaigns.mallId, state: schema.campaigns.state, proceededAt: schema.campaigns.proceededAt }).from(schema.campaigns);
   const malls = new Set(camps.map((c) => c.mallId)).size;
   const judged = camps.filter((c) => c.state !== "open");
-  const reached = judged.filter((c) => c.state !== "failed").length;
+  // 미달 뒤 그래도 진행한 공구는 성사가 아니다. 쿠폰도 원하는 사람만 받아 결제율이 높게 나오니 신청→결제에서도 뺀다
+  const reached = judged.filter((c) => c.state !== "failed" && !c.proceededAt).length;
+  const proceeded = camps.filter((c) => c.proceededAt).length;
   const reps = await Promise.all(camps.map((c) => buildReport(ctx, c.id)));
-  const sum = (f: (r: Report) => number) => reps.reduce((a, r) => a + f(r), 0);
+  const sum = (f: (r: Report) => number, rs = reps) => rs.reduce((a, r) => a + f(r), 0);
   const sent = sum((r) => r.funnel.invitedSent), invP = sum((r) => r.funnel.invitedPledgers);
-  const issued = sum((r) => r.funnel.couponIssued), paid = sum((r) => r.funnel.paidMembers);
+  const notProceeded = reps.filter((r) => !r.campaign.proceededAt);
+  const issued = sum((r) => r.funnel.couponIssued, notProceeded), paid = sum((r) => r.funnel.paidMembers, notProceeded);
   const [acc] = await ctx.db.select({ v: count() }).from(schema.issues)
     .where(and(inArray(schema.issues.kind, ["coupon_missing", "reconcile_mismatch", "judge_incomplete"]), eq(schema.issues.resolved, false)));
   const [decided] = await ctx.db.select({ v: sql<number>`count(distinct ${schema.campaigns.mallId})` }).from(schema.campaigns).where(isNotNull(schema.campaigns.decidedAt));
@@ -90,5 +94,5 @@ export async function pilotScorecard(ctx: Ctx) {
   const allLowPledge = judged.length >= 3 && reps.filter((x) => x.campaign.state !== "open").every((x) => (x.rates.inviteToPledge ?? 0) < 0.02);
   const others = rows.filter((x) => x.key !== "pledge_to_paid").every((x) => x.pass);
   const verdict = rows.every((x) => x.pass) ? "go" : allLowPledge ? "rethink" : others ? "iterate" : "in_progress";
-  return { rows, verdict };
+  return { rows, verdict, proceeded };
 }
