@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useConsole } from "./provider";
 import type { Detail } from "./types";
 import { chip, kst, pct, won } from "./format";
+import { DECISION_CONFIRM_RATIO, decisionNeedsConfirm } from "@/lib/core/campaign";
 
 const MSG_STATUS = { sent: ["발송", "ok"], failed: ["실패", "bad"], scheduled: ["예약", "warn"], sending: ["보내는 중", "open"] } as const;
 const ISSUE_LABEL: Record<string, string> = {
@@ -22,6 +23,7 @@ export function CampaignDetail({ id, say, onChanged }: { id: string; say: (t: st
   const [now, setNow] = useState<number>(0);
   const [dq, setDq] = useState("");
   const [dn, setDn] = useState("");
+  const [bigOk, setBigOk] = useState(false);
   const [priceMode, setPriceMode] = useState<"same" | "new">("same");
   const [newPrice, setNewPrice] = useState("");
   const [belowCost, setBelowCost] = useState(false);
@@ -36,6 +38,7 @@ export function CampaignDetail({ id, say, onChanged }: { id: string; say: (t: st
   const r = d.report, c = r.campaign;
   const [label, cls] = chip(c.state, !!c.proceededAt);
   const p = d.proceed;
+  const big = decisionNeedsConfirm(Number(dq), r.confirmed.qty);
   const act = async (path: string, msg: (j: Record<string, unknown>) => string, body?: unknown) => {
     try { const j = await a.call<Record<string, unknown>>("POST", path, body ?? {}); say(msg(j)); await load(); onChanged(); } catch (e) { say((e as Error).message); }
   };
@@ -93,10 +96,17 @@ export function CampaignDetail({ id, say, onChanged }: { id: string; say: (t: st
           {c.decision ? <p style={{ margin: 0 }}>기록됨: {c.decision.qty}개 · {c.decision.note} <span className="small">({kst(c.decision.at)})</span></p> : (
             <>
               <div className="form">
-                <label>생산·발주 수량<input type="number" min={1} value={dq} onChange={(e) => setDq(e.target.value)} /></label>
+                {/* 확정 수량이 미리 채워져 있어 누르면 전체 선택: 이어 치면 29 → 2930이 되는 실수를 막는다 */}
+                <label>생산·발주 수량<input type="number" min={1} value={dq} onFocus={(e) => e.currentTarget.select()} onChange={(e) => { setDq(e.target.value); setBigOk(false); }} /></label>
                 <label>확인 근거 (발주서 번호, 가마 일정 등)<input maxLength={300} value={dn} onChange={(e) => setDn(e.target.value)} /></label>
               </div>
-              <div><button className="btn" onClick={() => act(`${a.campaignBase}/${id}/decision`, () => "생산 결정을 기록했어요", { qty: Number(dq), note: dn })}>결정 기록</button></div>
+              {big && bigOk && <p className="small" role="alert">확정 수량({r.confirmed.qty}개)의 {DECISION_CONFIRM_RATIO}배가 넘어요. 최소 생산 단위 때문이라면 그대로 기록하고, 잘못 쳤다면 수량을 고쳐 주세요.</p>}
+              <div>
+                <button className="btn" onClick={() => {
+                  if (big && !bigOk) { setBigOk(true); return; }
+                  act(`${a.campaignBase}/${id}/decision`, () => "생산 결정을 기록했어요", { qty: Number(dq), note: dn, confirmLarge: big });
+                }}>{big && bigOk ? `${Number(dq).toLocaleString("ko-KR")}개가 맞아요 · 기록` : "결정 기록"}</button>
+              </div>
             </>
           )}
         </div>

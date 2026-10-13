@@ -62,6 +62,10 @@ export function validateCampaignInput(input: CampaignInput, listPrice: number, n
   return issues;
 }
 
+/** 생산 결정 수량이 확정 수량의 이 배수를 넘으면 한 번 더 확인받는다 (입력 실수 방지, 큰 최소 생산 단위는 확인 후 기록) */
+export const DECISION_CONFIRM_RATIO = 3;
+export const decisionNeedsConfirm = (qty: number, settledQty: number) => qty > Math.max(settledQty, 0) * DECISION_CONFIRM_RATIO;
+
 /** 미달 판정 뒤 신청자가 '그래도 살래요'를 표시하고 판매자가 '그래도 진행'을 정할 수 있는 시간 */
 export const PROCEED_WINDOW_HOURS = 48;
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { hasErrors, validateCampaignInput, type CampaignInput } from "@/lib/core/campaign";
+import { decisionNeedsConfirm, hasErrors, validateCampaignInput, type CampaignInput } from "@/lib/core/campaign";
 import { canCancel, checkPledge, EXPECTED_PAY_RATE, expectedConfirmed, pledgesNeeded } from "@/lib/core/pledge";
 import { formatAdMessage, isNightKst, isValidOptOutNumber, nextAllowedSendTime } from "@/lib/core/messaging";
 import { canOpenAnother, successFee } from "@/lib/core/billing";
@@ -12,6 +12,15 @@ const base: CampaignInput = {
   productNo: 101, targetQty: 100, dealPrice: 40_000, costPrice: 25_000,
   deadlineAt: h(72), payWindowHours: 72, perMemberLimit: 2, shipEta: "2026-10-30",
 };
+
+describe("생산 결정 수량", () => {
+  it("확정 수량의 3배를 넘으면 한 번 더 확인받는다 (확정 0개면 1개부터)", () => {
+    expect(decisionNeedsConfirm(87, 29)).toBe(false); // 정확히 3배는 그대로
+    expect(decisionNeedsConfirm(88, 29)).toBe(true);
+    expect(decisionNeedsConfirm(2930, 29)).toBe(true);
+    expect(decisionNeedsConfirm(1, 0)).toBe(true);
+  });
+});
 
 describe("공구 개설 검증", () => {
   it("정상 입력은 통과", () => expect(validateCampaignInput(base, LIST, now)).toEqual([]));
