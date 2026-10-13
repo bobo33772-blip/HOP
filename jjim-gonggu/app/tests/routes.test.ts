@@ -46,12 +46,13 @@ describe("운영자 쿠키", () => {
 });
 
 describe("공개 API (위젯)", () => {
-  it("공구 정보는 CORS가 열려 있고, 쿠폰 번호·원가는 내보내지 않는다", async () => {
+  it("공구 정보는 CORS가 열려 있고, 결제 기간은 주되 쿠폰 번호·원가는 내보내지 않는다", async () => {
     const r = await campaignRoute.GET(new Request("http://t/x"), params({ mall: DEMO_MALL, no: "102" }));
     expect(r.status).toBe(200);
     expect(r.headers.get("access-control-allow-origin")).toBe("*");
     const text = await r.text();
     expect(JSON.parse(text).campaign.id).toBe(campaignId);
+    expect(JSON.parse(text).campaign.payWindowHours).toBe(72);
     expect(text).not.toMatch(/couponNo|costPrice|reportToken/);
     const none = await campaignRoute.GET(new Request("http://t/x"), params({ mall: DEMO_MALL, no: "999" }));
     expect(none.status).toBe(404);
