@@ -1,6 +1,6 @@
 /* 찜꽁 상품 페이지 위젯 (의존성 없음). 쇼핑몰 상품 상세에 스크립트 태그로 들어간다.
  * 설치 시 서버가 카페24 스크립트태그로 넣는다: <script src="https://APP/widget.js?mall=MALL_ID&client_id=CLIENT_ID"></script>
- * 고객 화면에는 진행률과 '결제 없는 참여 신청'만 보여 주고, 기존 구매 버튼은 건드리지 않는다.
+ * 고객 화면에는 진행률과 '결제 없는 참여 신청'만 보여 주고, 기존 구매 버튼은 바꾸지 않는다 (쿠폰 받은 회원을 그 버튼으로 안내만 한다).
  * 진행 중인 공구가 없으면 '공구 열리면 알림 받기'를 보여 준다 (카페24 찜 조회 권한 없이 수요를 모으는 경로). */
 (function () {
   'use strict';
@@ -14,10 +14,12 @@
   if (!MALL || !productNo) return;
 
   var won = function (n) { return Math.round(n).toLocaleString('ko-KR') + '원'; };
+  // 한국 시간 '10/17(토) 14:00' (DESIGN.md #34, 앱의 lib/time.ts fmtKst와 같은 모양)
   var when = function (iso) {
     if (!iso) return '';
-    var d = new Date(iso);
-    return new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false }).format(d);
+    var k = new Date(new Date(iso).getTime() + 9 * 3600000);
+    var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+    return (k.getUTCMonth() + 1) + '/' + k.getUTCDate() + '(' + '일월화수목금토'.charAt(k.getUTCDay()) + ') ' + pad(k.getUTCHours()) + ':' + pad(k.getUTCMinutes());
   };
 
   // 로그인 회원의 암호화 회원 ID(JWT). 카페24 Front SDK: CAFE24API.init({client_id, version}) → getEncryptedMemberId(client_id, cb).
@@ -55,7 +57,9 @@
     '.jjg-row{display:flex;justify-content:space-between;align-items:center;gap:8px}.jjg-step{display:flex;border:1px solid #E6E3DD;border-radius:10px;overflow:hidden;background:#fff}' +
     '.jjg-step button{font:inherit;font-size:18px;width:42px;height:40px;border:0;background:#F6F5F2;cursor:pointer;color:#17171C}.jjg-step span{width:44px;display:grid;place-items:center;font-weight:700}' +
     '.jjg-list{margin:0;padding:10px 12px 10px 28px;background:#F6F5F2;border-radius:12px;font-size:13px;color:#55535C;display:grid;gap:2px}.jjg-err{color:#D4380D;font-size:13px}' +
-    '.jjg-foot{font-size:11px;color:#6B6973;text-align:right}.jjg a{color:#E0245E;font-weight:600}';
+    '.jjg-foot{font-size:11px;color:#6B6973;text-align:right}.jjg a{color:#E0245E;font-weight:600}' +
+    '.jjg-due{background:#FDEAF0;color:#B8164A;border-radius:12px;padding:10px 12px;font-weight:700}' +
+    '.jjg-pulse{outline:3px solid #E0245E!important;outline-offset:3px;border-radius:6px}';
   var HEART = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21c-.4 0-.7-.1-1-.4C7.4 17.5 3 14 3 9.5 3 6.9 5 5 7.4 5c1.8 0 3.3 1 4.1 2.3h1C13.3 6 14.8 5 16.6 5 19 5 21 6.9 21 9.5 21 14 16.6 17.5 13 20.6c-.3.3-.6.4-1 .4z"/></svg>';
   var style = document.createElement('style'); style.textContent = css; document.head.appendChild(style);
 
@@ -138,7 +142,9 @@
     // 공동구매 종료 — 고객 입장의 말로 '확정 완료' 대신 / 그래도 진행 — 미달 뒤 판매자가 진행한 공구(#24)
     var label = c.proceeded && c.state === 'reached' ? ['그래도 진행', 'ok'] : { open: ['공동구매 모집 중', ''], reached: ['목표 달성', 'ok'], settled: ['공동구매 종료', 'ok'], failed: ['진행 안 됨', 'no'] }[c.state];
     var badge = el('span', { class: 'jjg-badge ' + label[1] }, [label[0]]); badge.insertAdjacentHTML('afterbegin', HEART);
-    root.appendChild(el('div', { class: 'jjg-top' }, [badge, el('span', { class: 'jjg-muted' }, [when(c.deadlineAt) + ' 마감'])]));
+    // 결제 기간에는 이미 지난 모집 마감 대신 결제 마감을 보여 준다
+    var paying = c.state === 'reached' && c.payUntil;
+    root.appendChild(el('div', { class: 'jjg-top' }, [badge, el('span', { class: 'jjg-muted' }, [paying ? '결제 마감 ' + when(c.payUntil) : when(c.deadlineAt) + ' 마감'])]));
     root.appendChild(el('div', { class: 'jjg-row' }, [el('div', { class: 'jjg-cnt' }, [String(c.pledgedQty), el('small', null, [' / ' + c.targetQty + '개 모였어요'])]),
       el('div', { class: 'jjg-price' }, [el('s', null, [won(c.listPrice)]), el('b', null, [won(c.dealPrice)])])]));
     root.appendChild(bar);
@@ -160,9 +166,17 @@
       }
     } else if (c.state === 'reached') {
       var mine = state.mine;
-      root.appendChild(el('div', null, [mine && mine.state === 'paid' ? '결제를 마쳤어요. 예상 출고는 ' + c.shipEta + '이에요.'
-        : mine && mine.state === 'coupon_issued' ? '회원님 계정에 ' + won(c.listPrice - c.dealPrice) + ' 할인 쿠폰을 넣어 드렸어요. ' + when(c.payUntil) + '까지 결제해 주세요.'
-        : c.proceeded ? '판매자가 그래도 진행하기로 해서, 원하신 분들께 쿠폰을 드렸어요.' : '목표를 달성해 신청하신 분들께 쿠폰을 드렸어요.']));
+      if (mine && mine.state === 'coupon_issued') {
+        // 쿠폰 받은 회원: 기한을 강조하고, 쇼핑몰 구매 버튼으로 데려간다 (구매 버튼 자체는 바꾸지 않는다)
+        var buy = buyButton();
+        root.appendChild(el('div', null, ['회원님 계정에 ' + won(c.listPrice - c.dealPrice) + ' 할인 쿠폰을 넣어 드렸어요.']));
+        root.appendChild(el('div', { class: 'jjg-due' }, [when(c.payUntil) + '까지 결제해 주세요']));
+        if (buy) root.appendChild(el('button', { class: 'jjg-btn', onclick: function () { goBuy(buy); } }, ['쿠폰 쓰고 결제하러 가기']));
+        root.appendChild(el('div', { class: 'jjg-muted' }, [(buy ? '구매 버튼' : '이 페이지의 구매 버튼') + '으로 주문하고, 주문서에서 ' + won(c.listPrice - c.dealPrice) + ' 할인 쿠폰을 골라 주세요.']));
+      } else {
+        root.appendChild(el('div', null, [mine && mine.state === 'paid' ? '결제를 마쳤어요. 예상 출고는 ' + c.shipEta + '이에요.'
+          : c.proceeded ? '판매자가 그래도 진행하기로 해서, 원하신 분들께 쿠폰을 드렸어요.' : '목표를 달성해 신청하신 분들께 쿠폰을 드렸어요.']));
+      }
     } else if (c.state === 'failed') {
       root.appendChild(el('div', null, ['목표에 못 미쳐 진행되지 않았어요. 결제된 금액은 없어요.']));
       // 미달 뒤 '그래도 살래요': 이 공구에 신청했던 회원만, 판매자가 정할 수 있는 동안만
@@ -180,6 +194,24 @@
     if (state.a && !(c.state === 'failed' && c.proceedOpen && state.mine)) renderAlert(true); // '그래도 살래요'를 고르는 동안은 다음 공구 알림을 미룬다
     if (state.err) root.appendChild(el('div', { class: 'jjg-err', role: 'alert' }, [state.err]));
     root.appendChild(el('div', { class: 'jjg-foot' }, ['찜꽁 예약 공동구매']));
+  }
+
+  // 쇼핑몰 구매 버튼: 직접 표시(data-jjg-buy, 데모 · 직접 꾸민 스킨) → 카페24 기본 스킨 구매 버튼 → 구매 버튼 영역. 화면에 보이는 것만
+  // VERIFY(P2): 테스트몰 기본 스킨의 구매 버튼 id · class 확인
+  var BUY = ['[data-jjg-buy]', '#actionBuy', '.xans-product-action .btnSubmit', '.action_button .btnSubmit', '#orderFixArea .btnSubmit', '.xans-product-action', '.action_button'];
+  function buyButton() {
+    for (var i = 0; i < BUY.length; i++) {
+      var b = document.querySelector(BUY[i]);
+      if (b && !root.contains(b) && b.getClientRects().length) return b;
+    }
+    return null;
+  }
+  function goBuy(b) {
+    var still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    b.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'center' });
+    b.classList.add('jjg-pulse');
+    setTimeout(function () { b.classList.remove('jjg-pulse'); }, 2400);
+    try { b.focus({ preventScroll: true }); } catch (e) { }
   }
 
   function start() { memberToken().then(function (t) { state.step = t ? 'form' : 'login'; state.err = ''; render(); }); }
