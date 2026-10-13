@@ -7,12 +7,13 @@ import { schema } from "@/db";
 import { getCtx } from "@/lib/server";
 import { buildReport } from "@/lib/engine/report";
 import { fmtKst, won } from "@/lib/time";
+import { chip } from "@/app/console/format";
+import type { State } from "@/app/console/types";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "공구 리포트 · 찜꽁", robots: { index: false, follow: false }, referrer: "no-referrer" };
 
 const pct = (r: number | null) => (r == null ? "–" : `${(r * 100).toFixed(1)}%`);
-const LABEL = { open: ["모집 중", "open"], reached: ["목표 달성 · 결제 기간", "ok"], failed: ["진행 안 됨", "bad"], settled: ["확정 완료", "ok"] } as const;
 
 export default async function ReportPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
@@ -22,7 +23,7 @@ export default async function ReportPage({ params }: { params: Promise<{ token: 
   if (!c) notFound();
   const r = await buildReport(ctx, c.id);
   const k = r.campaign;
-  const [label, cls] = k.proceededAt && k.state === "reached" ? ["그래도 진행 · 결제 기간", "ok"] : LABEL[k.state];
+  const [label, cls] = chip(k.state as State, !!k.proceededAt); // 판매자 화면과 같은 이름표 한 곳 (#10)
 
   return (
     <main style={{ maxWidth: 720 }}>
@@ -35,7 +36,7 @@ export default async function ReportPage({ params }: { params: Promise<{ token: 
       {k.proceededAt && <p className="small">목표에 못 미쳤지만 &lsquo;그래도 살래요&rsquo;를 누른 고객에게 {fmtKst(k.proceededAt)}부터 그래도 진행했어요.</p>}
 
       {k.state === "settled" ? (
-        <div className="card" style={{ borderColor: "var(--success)" }}>
+        <div className="card confirmed">
           <span className="small">확정 수량 (결제 완료 기준)</span>
           <div className="hero-num">{r.confirmed.qty}<small> 개</small></div>
           <p className="muted">이 숫자만큼 생산·발주하면 재고가 남지 않아요.</p>
