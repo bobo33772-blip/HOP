@@ -22,6 +22,13 @@
       "when": 1791445103423,
       "tag": "0002_product_alerts",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791876741762,
+      "tag": "0003_one_active_campaign",
+      "breakpoints": true
     }
   ]
 }

@@ -43,6 +43,18 @@ describe("개설", () => {
     await openCampaign(env.ctx, "op", MALL, baseInput(env.clock));
     await expect(openCampaign(env.ctx, "op", MALL, baseInput(env.clock))).rejects.toThrow(/이미 진행 중/);
   });
+
+  it("같은 상품을 동시에 두 번 열어도 공구는 하나만 생기고, 남은 쿠폰은 확인할 일로 남는다", async () => {
+    const env = await setup();
+    const results = await Promise.allSettled([openCampaign(env.ctx, "op", MALL, baseInput(env.clock)), openCampaign(env.ctx, "op", MALL, baseInput(env.clock))]);
+    expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+    const rejected = results.find((r) => r.status === "rejected") as PromiseRejectedResult;
+    expect(String(rejected.reason)).toMatch(/이미 진행 중/);
+    const open = await env.db.select().from(schema.campaigns).where(and(eq(schema.campaigns.productNo, PRODUCT), eq(schema.campaigns.state, "open")));
+    expect(open).toHaveLength(1);
+    const orphan = await env.db.select().from(schema.issues).where(eq(schema.issues.kind, "orphan_coupon"));
+    expect(orphan).toHaveLength(1);
+  });
 });
 
 describe("초대 문자", () => {
