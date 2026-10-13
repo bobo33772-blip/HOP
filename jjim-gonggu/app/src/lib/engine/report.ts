@@ -94,7 +94,9 @@ export async function pilotScorecard(ctx: Ctx) {
     { key: "accuracy", label: "쿠폰 누락 · 대사 불일치", value: accuracy, kind: "count", goal: "0건", pass: accuracy === 0 },
   ];
   const allLowPledge = judged.length >= 3 && reps.filter((x) => x.campaign.state !== "open").every((x) => (x.rates.inviteToPledge ?? 0) < 0.02);
-  const others = rows.filter((x) => x.key !== "pledge_to_paid").every((x) => x.pass);
-  const verdict = rows.every((x) => x.pass) ? "go" : allLowPledge ? "rethink" : others ? "iterate" : "in_progress";
+  // 보완 (기획서 v2 7번): 성사율과 신청 전환은 됐는데 결제 전환이 50% 미만. 우리 쪽 오류(쿠폰 누락 등)가 없을 때만 고객 반응으로 본다
+  const pass = (k: string) => rows.find((x) => x.key === k)!.pass;
+  const payOnlyLow = pass("reach_rate") && pass("invite_to_pledge") && pass("accuracy") && !pass("pledge_to_paid");
+  const verdict = rows.every((x) => x.pass) ? "go" : allLowPledge ? "rethink" : payOnlyLow ? "iterate" : "in_progress";
   return { rows, verdict, proceeded };
 }

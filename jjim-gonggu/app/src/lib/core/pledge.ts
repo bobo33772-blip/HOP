@@ -30,7 +30,16 @@ export function canCancel(state: PledgeState, campaignState: CampaignState, dead
   return state === "pledged" && campaignState === "open" && now.getTime() < deadlineAt.getTime();
 }
 
-/** 결제 기간 중 판매자에게 보여 줄 '예상 확정 수량'. 예상 결제율 기본 60% (기획서 가정, 파일럿으로 보정). */
-export function expectedConfirmed(pledged: number, paid: number, expectedPayRate = 0.6): number {
+/** 예상 결제율: 쿠폰을 받은 신청 중 결제까지 가는 비율. 기획서 가정 60%, 파일럿 실측으로 보정한다 */
+export const EXPECTED_PAY_RATE = 0.6;
+
+/** 결제 기간 중 판매자에게 보여 줄 '예상 확정 수량' = 결제분과 신청×예상 결제율 중 큰 값 */
+export function expectedConfirmed(pledged: number, paid: number, expectedPayRate = EXPECTED_PAY_RATE): number {
   return Math.max(paid, Math.round(pledged * expectedPayRate));
+}
+
+/** 목표 수량을 결제로 채우려면 모여야 하는 신청 수량 (공구 조건 화면 안내). 30 / 0.6 같은 소수 오차로 하나 더 올라가지 않게 다듬는다 */
+export function pledgesNeeded(targetQty: number, expectedPayRate = EXPECTED_PAY_RATE): number {
+  if (!(targetQty > 0)) return 0;
+  return Math.ceil(Number((targetQty / expectedPayRate).toFixed(6)));
 }

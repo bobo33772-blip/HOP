@@ -10,10 +10,11 @@ import { getSession } from "@/lib/session";
 import { getCtx } from "@/lib/server";
 import { listCampaigns } from "@/lib/engine/campaigns";
 import { requestedScopes } from "@/lib/cafe24/scopes";
+import { CHIP } from "./console/format";
+import type { State } from "./console/types";
 
 export const dynamic = "force-dynamic";
 
-const STATE: Record<string, [string, string]> = { open: ["모집 중", "open"], reached: ["달성 · 결제 기간", "ok"], failed: ["진행 안 됨", "bad"], settled: ["확정 완료", "ok"] };
 
 export default async function Home() {
   const session = await getSession();
@@ -89,7 +90,7 @@ export default async function Home() {
         ) : (
           <div className="camps">
             {camps.map((c) => {
-              const [label, cls] = STATE[c.state] ?? [c.state, ""];
+              const [label, cls] = CHIP[c.state as State] ?? [c.state, ""];
               const ratio = Math.min(1, c.pledgedQty / c.targetQty);
               return (
                 <a key={c.id} className="card camp" href={`/campaigns?open=${c.id}`}>

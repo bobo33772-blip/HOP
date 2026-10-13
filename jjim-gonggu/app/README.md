@@ -38,7 +38,7 @@ corepack pnpm typecheck
 | 고객 | `/widget.js` | 쇼핑몰 상품 페이지에 스크립트 태그로 붙는 진행률 + 결제 없는 신청 위젯 |
 | 위젯 API | `/api/public/…` | 공구 정보, 신청(Idempotency-Key), 내 신청, 취소. CORS 열림, 쿠키 없음 |
 | 카페24 | `/api/cafe24/launch` · `callback` · `install` · `webhooks` | 앱 실행(HMAC 검증), OAuth, 운영팀 직접 설치, 웹훅 |
-| 크론 | `POST /api/cron/tick` | 외부 크론용 정기 작업 (`CRON_SECRET` 필요) |
+| 크론 | `POST /api/cron/tick` | 외부 크론용 정기 작업 (`CRON_SECRET` 필요). 운영은 Supabase pg_cron 1분 → [설정·확인](docs/CRON_SETUP.md) |
 
 ## 공구 엔진이 지키는 규칙
 

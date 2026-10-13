@@ -2,14 +2,14 @@
 // 원래 공구가 또는 새 가격으로 진행한다. 쿠폰은 표시한 회원에게만 주고, 진행한 시각부터 결제 기간을 센다.
 // 4주 판정표의 공구 성사율 · 신청→결제에서는 빼고 따로 센다 (campaigns.proceededAt).
 
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { schema } from "@/db";
 import { proceedInfo } from "../core/campaign";
 import { nextAllowedSendTime } from "../core/messaging";
 import type { PledgeState } from "../core/pledge";
 import { HOUR, fmtKst, won } from "../time";
 import { audit, recordIssue, UserError, type Ctx } from "./context";
-import { COUPON_GRACE_HOURS, getCampaign, getMall, publicView, type Campaign } from "./campaigns";
+import { COUPON_GRACE_HOURS, getCampaign, getMall, isActiveProductConflict, publicView, type Campaign } from "./campaigns";
 import { isIncomplete, issueCoupons, queueReminder } from "./judge";
 import { memberOf } from "./pledges";
 
@@ -54,6 +54,10 @@ export async function proceedCampaign(ctx: Ctx, actor: string, campaignId: strin
   }
   const members = (await ctx.db.select({ memberId: P.memberId }).from(P).where(and(eq(P.campaignId, c.id), eq(P.state, "still_wanted")))).map((x) => x.memberId);
   if (!members.length) throw new UserError("no_one_wants", "'그래도 살래요'를 표시한 고객이 없어요.", 409);
+  // 한 상품에 진행 중 공구는 하나 (campaign_active_product_uq). 그 사이 같은 상품에 새 공구를 열었으면 쿠폰을 만들기 전에 막는다
+  const [active] = await ctx.db.select({ id: schema.campaigns.id }).from(schema.campaigns)
+    .where(and(eq(schema.campaigns.mallId, c.mallId), eq(schema.campaigns.productNo, c.productNo), inArray(schema.campaigns.state, ["open", "reached"])));
+  if (active) throw new UserError("duplicate", "이 상품은 이미 진행 중인 공구가 있어요. 그 공구가 끝난 뒤에 진행할 수 있어요.", 409);
 
   // 처음 만든 쿠폰은 '마감 + 결제 기간 + 24시간'까지라 모자랄 수 있어, 진행한 시각부터 쓸 수 있는 쿠폰을 새로 만든다
   const now = ctx.clock.now();
@@ -63,8 +67,15 @@ export async function proceedCampaign(ctx: Ctx, actor: string, campaignId: strin
     availableFrom: now, availableUntil: new Date(payUntil.getTime() + COUPON_GRACE_HOURS * HOUR),
   });
   // 상태 전이는 한 번만 (두 번 눌러도 쿠폰을 두 번 주지 않는다)
-  const [done] = await ctx.db.update(schema.campaigns).set({ state: "reached", proceededAt: now, payUntil, dealPrice: price, couponNo })
-    .where(and(eq(schema.campaigns.id, c.id), eq(schema.campaigns.state, "failed"), isNull(schema.campaigns.proceededAt))).returning();
+  let done: Campaign | undefined;
+  try {
+    [done] = await ctx.db.update(schema.campaigns).set({ state: "reached", proceededAt: now, payUntil, dealPrice: price, couponNo })
+      .where(and(eq(schema.campaigns.id, c.id), eq(schema.campaigns.state, "failed"), isNull(schema.campaigns.proceededAt))).returning();
+  } catch (e) {
+    if (!isActiveProductConflict(e)) throw e;
+    await recordIssue(ctx, c.id, "orphan_coupon", { mallId: c.mallId, couponNo, error: String(e) });
+    throw new UserError("duplicate", "이 상품은 이미 진행 중인 공구가 있어요. 그 공구가 끝난 뒤에 진행할 수 있어요.", 409);
+  }
   if (!done) {
     await recordIssue(ctx, c.id, "orphan_coupon", { mallId: c.mallId, couponNo, error: "already_proceeded" });
     throw new UserError("already_proceeded", "이미 진행한 공구예요.", 409);

@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "campaign_active_product_uq" ON "campaigns" USING btree ("mall_id","product_no") WHERE "campaigns"."state" in ('open', 'reached');

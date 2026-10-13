@@ -145,6 +145,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .kpi { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .kpi div { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: grid; gap: 2px; background: var(--surface); }
 .kpi div.hl { border-color: color-mix(in srgb, var(--brand) 45%, var(--line)); background: var(--brand-soft); }
+/* 확정 수량 강조 (#11): 상세 칸과 리포트 카드가 같은 초록. 확정(settled) 뒤에만 쓴다 */
+.kpi div.hl.confirmed { border-color: color-mix(in srgb, var(--success) 55%, var(--line)); background: color-mix(in srgb, var(--success) 12%, var(--surface)); }
+.card.confirmed { border-color: var(--success); }
 .kpi small { color: var(--fg2); font-size: 12px; }
 .kpi strong { font-size: 21px; font-weight: 750; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
 .kpi.many { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
