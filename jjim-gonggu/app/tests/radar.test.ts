@@ -10,7 +10,7 @@ const demoApi = (): ShopApi => {
   seedDemoMall(w);
   return w.forMall(DEMO_MALL);
 };
-import { computeReach, getRadar, latestRun, resumeCollections, runCollection, startCollection } from "@/lib/radar";
+import { computeReach, getRadar, latestRun, resumeCollections, runCollection, startCollection, startFirstCollection } from "@/lib/radar";
 
 describe("수요 레이더", () => {
   it("수집 전에는 비어 있고, 수집 후 합계순으로 정렬, 찜·장바구니 0인 상품은 제외", async () => {
@@ -56,6 +56,28 @@ describe("수요 레이더", () => {
     expect(after.rows.map((r) => r.productNo)).not.toContain(999);
   });
 
+  it("알림 상품을 채울 때 상품 전체 목록을 받지 않고, 수집 중에는 채우지 않는다 (#21)", async () => {
+    const db = await createTestDb();
+    const base = demoApi();
+    const calls = { list: 0, one: 0 };
+    const api: ShopApi = { ...base, listProducts: async (o, l) => { calls.list++; return base.listProducts(o, l); }, getProduct: async (n) => { calls.one++; return base.getProduct(n); } };
+    const at = new Date();
+    await db.insert(schema.productAlerts).values([
+      { mallId: "m", productNo: 103, memberId: "a1", createdAt: at },
+      { mallId: "m", productNo: 999, memberId: "a2", createdAt: at },
+    ]);
+    await startCollection(db, "m"); // 첫 수집이 진행 중 (화면은 1.5초마다 다시 부른다)
+    for (let i = 0; i < 5; i++) await getRadar(db, "m", "total", 50, api);
+    expect(calls).toEqual({ list: 0, one: 0 });
+
+    const run = (await latestRun(db, "m", "running"))!;
+    await runCollection(db, base, "m", run.id);
+    await db.delete(schema.demandSnapshots).where(eq(schema.demandSnapshots.productNo, 103)); // 수집 뒤 추가된 상품처럼
+    const r = await getRadar(db, "m", "alert", 50, api);
+    expect(r.rows[0]).toMatchObject({ productNo: 103, alert: 1 });
+    expect(calls).toEqual({ list: 0, one: 2 }); // 빠진 상품 둘만 하나씩
+  });
+
   it("시간 제한(서버리스)으로 멈추면 진행 중으로 남고, 정기 작업이 이어서 끝낸다", async () => {
     const db = await createTestDb();
     const api = demoApi();
@@ -76,6 +98,16 @@ describe("수요 레이더", () => {
     const b = await startCollection(db, "m");
     expect(b.started).toBe(false);
     expect(b.run.id).toBe(a.run.id);
+  });
+
+  it("설치 직후 첫 수집은 수집 기록이 하나도 없을 때만 만든다 (재설치 · 재실행에서는 안 만든다, #27)", async () => {
+    const db = await createTestDb();
+    const first = await startFirstCollection(db, "m");
+    expect(first).toMatchObject({ status: "running", done: 0 });
+    expect(await startFirstCollection(db, "m")).toBeNull(); // 진행 중
+    await runCollection(db, demoApi(), "m", first!.id);
+    expect(await startFirstCollection(db, "m")).toBeNull(); // 끝난 수집이 있음
+    expect(await latestRun(db, "m")).toMatchObject({ id: first!.id, status: "done" });
   });
 
   it("카페24 오류가 나면 run을 failed로 남기고, 이전 완료 결과는 그대로 보여 준다", async () => {

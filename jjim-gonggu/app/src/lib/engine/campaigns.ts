@@ -159,7 +159,7 @@ export async function openCampaign(ctx: Ctx, actor: string, mallId: string, inpu
 
 export interface PublicCampaign extends ProceedInfo {
   id: string; state: CampaignState; productNo: number; productName: string; listPrice: number; dealPrice: number;
-  targetQty: number; pledgedQty: number; perMemberLimit: number; deadlineAt: Date; payUntil: Date | null; shipEta: string;
+  targetQty: number; pledgedQty: number; perMemberLimit: number; deadlineAt: Date; payWindowHours: number; payUntil: Date | null; shipEta: string;
 }
 
 /** 위젯·문자에 보여 줄 공개 정보 (쿠폰 번호·원가·개인정보 없음) */
@@ -168,7 +168,7 @@ export async function publicView(ctx: Ctx, c: Campaign): Promise<PublicCampaign>
     ...proceedInfo(c, ctx.clock.now()),
     id: c.id, state: c.state as CampaignState, productNo: c.productNo, productName: c.productName,
     listPrice: c.listPrice, dealPrice: c.dealPrice, targetQty: c.targetQty, pledgedQty: await pledgedQty(ctx, c.id),
-    perMemberLimit: c.perMemberLimit, deadlineAt: c.deadlineAt, payUntil: c.payUntil, shipEta: c.shipEta,
+    perMemberLimit: c.perMemberLimit, deadlineAt: c.deadlineAt, payWindowHours: c.payWindowHours, payUntil: c.payUntil, shipEta: c.shipEta,
   };
 }
 

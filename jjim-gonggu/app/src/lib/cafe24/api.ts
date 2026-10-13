@@ -29,7 +29,8 @@ export interface OrderInfo {
   orderId: string;
   memberId: string;
   couponNos: string[];
-  items: { productNo: number; qty: number; amount: number }[];
+  /** cancelled: 이 품목만 취소·반품됨 (주문 일부 취소). 확정 수량·매출에서 뺀다 */
+  items: { productNo: number; qty: number; amount: number; cancelled?: boolean }[];
   status: "paid" | "pending" | "cancelled"; // pending: 주문은 했지만 입금 전(무통장 등)
   paidAt: Date;
 }
@@ -38,6 +39,8 @@ export interface ShopApi {
   /** 개인정보(mall.read_privacy) 권한이 있는가. 없으면 찜 회원·수신 동의를 조회할 수 없다 → 장바구니 고객 + 카페24 수신거부 자동 제외로 동작 */
   readonly privacy: boolean;
   listProducts(offset: number, limit: number): Promise<Product[]>;
+  /** 상품 하나. 몰에 없는 번호면 null */
+  getProduct(productNo: number): Promise<Product | null>;
   wishlistCount(productNo: number): Promise<number>;
   wishlistMembers(productNo: number): Promise<string[]>;
   cartCount(productNo: number): Promise<number>;
@@ -84,7 +87,12 @@ function mapOrder(o: any): OrderInfo | null {
     orderId: String(o.order_id),
     memberId: String(o.member_id ?? ""),
     couponNos: (o.coupons ?? []).map((c: any) => String(c.coupon_code ?? c.coupon_no)),
-    items: (o.items ?? []).map((i: any) => ({ productNo: Number(i.product_no), qty: Number(i.quantity), amount: Math.round(Number(i.payment_amount ?? i.product_price * i.quantity)) })),
+    // 품목별 order_status: N… 정상, C… 취소, R… 반품(신청 단계 포함 — 생산 수량에 넣지 않는다), E… 교환은 그대로 센다.
+    // VERIFY: 테스트몰에서 일부 수량 취소·반품 시 품목이 나뉘어 오는지, quantity가 줄어드는지 확인 (둘 다 여기서 맞게 센다)
+    items: (o.items ?? []).map((i: any) => ({
+      productNo: Number(i.product_no), qty: Number(i.quantity), amount: Math.round(Number(i.payment_amount ?? i.product_price * i.quantity)),
+      cancelled: /^[CR]/.test(String(i.order_status ?? "")),
+    })),
     status: cancelled ? "cancelled" : o.paid === "T" ? "paid" : "pending",
     paidAt: new Date(o.payment_date ?? o.order_date),
   };
@@ -98,6 +106,19 @@ export class Cafe24Api implements ShopApi {
       query: { shop_no: this.shopNo, offset, limit, fields: "product_no,product_name,price,sold_out,list_image" },
     });
     return r.products.map((p) => ({ productNo: Number(p.product_no), name: p.product_name, price: Math.round(Number(p.price)), soldOut: p.sold_out === "T", imageUrl: p.list_image }));
+  }
+
+  async getProduct(productNo: number) {
+    try {
+      const r = await this.c.request<{ product: { product_no: number; product_name: string; price: string; sold_out?: "T" | "F"; list_image?: string } }>("GET", `/products/${productNo}`, {
+        query: { shop_no: this.shopNo, fields: "product_no,product_name,price,sold_out,list_image" },
+      });
+      const p = r.product;
+      return p ? { productNo: Number(p.product_no), name: p.product_name, price: Math.round(Number(p.price)), soldOut: p.sold_out === "T", imageUrl: p.list_image } : null;
+    } catch (e) {
+      if ((e as { status?: number }).status === 404) return null;
+      throw e;
+    }
   }
 
   async wishlistCount(productNo: number) {

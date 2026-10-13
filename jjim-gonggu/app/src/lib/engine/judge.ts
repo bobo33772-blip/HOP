@@ -1,6 +1,6 @@
 // 마감 판정 → 쿠폰 발급 → 결과 안내 (F7·F8). 실제 마감 시각 이후에만, 한 번만 판정한다.
 
-import { and, eq, lte } from "drizzle-orm";
+import { and, eq, inArray, lte } from "drizzle-orm";
 import { schema } from "@/db";
 import { nextAllowedSendTime } from "../core/messaging";
 import { proceedInfo } from "../core/campaign";
@@ -9,22 +9,46 @@ import { HOUR, fmtKst } from "../time";
 import { audit, recordIssue, UserError, type Ctx } from "./context";
 import { getCampaign, getMall, pledgedQty, type Campaign } from "./campaigns";
 
-/** 마감 시각이 지난 진행 중 공구를 모두 판정한다 */
+/** 판정은 됐지만 쿠폰 발급·결과 안내가 카페24 오류로 끝나지 않은 공구. 끝날 때까지 다시 시도하고, 그동안 판정표 기술 정확성에 잡힌다 */
+export const JUDGE_INCOMPLETE = "judge_incomplete";
+
+/** 마감 시각이 지난 진행 중 공구를 모두 판정하고, 멈춘 판정 뒤처리를 이어서 끝낸다. 한 공구가 실패해도 나머지는 계속한다 */
 export async function judgeDue(ctx: Ctx): Promise<string[]> {
   const rows = await ctx.db.select({ id: schema.campaigns.id }).from(schema.campaigns)
     .where(and(eq(schema.campaigns.state, "open"), lte(schema.campaigns.deadlineAt, ctx.clock.now())));
   const done: string[] = [];
-  for (const r of rows) if (await judge(ctx, r.id, "scheduler")) done.push(r.id);
+  for (const r of rows) {
+    try { if (await judge(ctx, r.id, "scheduler")) done.push(r.id); }
+    catch (e) { ctx.log("마감 판정 실패", { campaign: r.id, error: String(e) }); }
+  }
+  const stuck = await ctx.db.selectDistinct({ id: schema.issues.campaignId }).from(schema.issues)
+    .where(and(eq(schema.issues.kind, JUDGE_INCOMPLETE), eq(schema.issues.resolved, false)));
+  for (const s of stuck) {
+    if (!s.id || done.includes(s.id)) continue;
+    const c = await getCampaign(ctx, s.id);
+    if (c.state === "reached" || c.state === "failed") await finishJudged(ctx, c);
+  }
   return done;
 }
 
-/** 운영자 수동 실행용. 마감 전에는 판정하지 않는다 (가짜 마감 금지) */
+/** 운영자 수동 실행용. 마감 전에는 판정하지 않는다 (가짜 마감 금지). 뒤처리가 멈춘 공구는 이어서 끝낸다 */
 export async function judgeNow(ctx: Ctx, campaignId: string, actor: string) {
   const c = await getCampaign(ctx, campaignId);
   if (ctx.clock.now() < c.deadlineAt) throw new UserError("before_deadline", "마감 시각 전에는 판정할 수 없어요.", 409);
-  if (c.state !== "open") throw new UserError("already_judged", "이미 판정한 공구예요.", 409);
+  if (c.state !== "open") {
+    if (!(await isIncomplete(ctx, c.id)) || (c.state !== "reached" && c.state !== "failed")) throw new UserError("already_judged", "이미 판정한 공구예요.", 409);
+    await audit(ctx, actor, "campaign.judge_retry", c.id, undefined, c.mallId);
+    await finishJudged(ctx, c);
+    return getCampaign(ctx, campaignId);
+  }
   await judge(ctx, campaignId, actor);
   return getCampaign(ctx, campaignId);
+}
+
+export async function isIncomplete(ctx: Ctx, campaignId: string) {
+  const [row] = await ctx.db.select({ id: schema.issues.id }).from(schema.issues)
+    .where(and(eq(schema.issues.campaignId, campaignId), eq(schema.issues.kind, JUDGE_INCOMPLETE), eq(schema.issues.resolved, false))).limit(1);
+  return !!row;
 }
 
 async function judge(ctx: Ctx, id: string, actor: string): Promise<boolean> {
@@ -38,21 +62,40 @@ async function judge(ctx: Ctx, id: string, actor: string): Promise<boolean> {
     .where(and(eq(schema.campaigns.id, id), eq(schema.campaigns.state, "open"))).returning();
   if (!changed.length) return false;
   await audit(ctx, actor, reached ? "campaign.reached" : "campaign.failed", id, { pledged: total, target: c.targetQty }, c.mallId);
-
-  const pledgers = (await ctx.db.select({ memberId: schema.pledges.memberId }).from(schema.pledges)
-    .where(and(eq(schema.pledges.campaignId, id), eq(schema.pledges.state, "pledged")))).map((x) => x.memberId);
-  if (reached) {
-    await issueCoupons(ctx, changed[0], pledgers);
-  } else {
+  if (!reached) {
     await ctx.db.update(schema.pledges).set({ state: "not_reached", updatedAt: now }).where(and(eq(schema.pledges.campaignId, id), eq(schema.pledges.state, "pledged")));
   }
-  await queueResult(ctx, changed[0], pledgers, total);
+  await finishJudged(ctx, changed[0]);
   return true;
 }
 
+/** 판정 뒤처리: 달성이면 쿠폰 발급, 그리고 결과·결제 마감 전 안내 예약. 여러 번 실행해도 결과가 같다.
+ *  카페24 오류로 멈추면 확인할 일(judge_incomplete)로 남기고, 정기 작업이나 운영자 수동 판정이 다시 시도한다 */
+async function finishJudged(ctx: Ctx, c: Campaign): Promise<boolean> {
+  try {
+    // 미달이면 결과 안내가 늦어지는 사이 '그래도 살래요'를 누른 신청자(still_wanted)도 안내를 받는다
+    const states = c.state === "reached" ? ["pledged", "coupon_issued", "paid"] : ["not_reached", "still_wanted"];
+    const rows = await ctx.db.select({ memberId: schema.pledges.memberId, state: schema.pledges.state }).from(schema.pledges)
+      .where(and(eq(schema.pledges.campaignId, c.id), inArray(schema.pledges.state, states)));
+    if (c.state === "reached") await issueCoupons(ctx, c, rows.filter((r) => r.state === "pledged").map((r) => r.memberId));
+    const [queued] = await ctx.db.select({ id: schema.messages.id }).from(schema.messages)
+      .where(and(eq(schema.messages.campaignId, c.id), eq(schema.messages.kind, "result"))).limit(1);
+    if (!queued) await queueResult(ctx, c, rows.map((r) => r.memberId), await pledgedQty(ctx, c.id));
+    await ctx.db.update(schema.issues).set({ resolved: true })
+      .where(and(eq(schema.issues.campaignId, c.id), eq(schema.issues.kind, JUDGE_INCOMPLETE), eq(schema.issues.resolved, false)));
+    return true;
+  } catch (e) {
+    ctx.log("판정 뒤처리 실패", { campaign: c.id, error: String(e) });
+    if (!(await isIncomplete(ctx, c.id))) await recordIssue(ctx, c.id, JUDGE_INCOMPLETE, { state: c.state, error: String(e) });
+    return false;
+  }
+}
+
 /** 100명씩 나눠 발급하고, 발급 내역과 대조해 빠진 회원은 한 번 더 발급한다. 그래도 빠지면 이슈로 남긴다.
+ *  이미 쿠폰을 가진 회원(앞선 시도에서 발급됨)에게는 다시 발급하지 않는다.
  *  from: 쿠폰을 받으면 coupon_issued로 바꿀 신청 상태 (판정 때는 pledged, 미달 뒤 그래도 진행할 때는 still_wanted) */
 export async function issueCoupons(ctx: Ctx, c: Campaign, memberIds: string[], from: PledgeState = "pledged") {
+  if (!memberIds.length) return;
   const now = ctx.clock.now();
   const api = await ctx.shop(c.mallId);
   const issue = async (ids: string[]) => {
@@ -61,8 +104,9 @@ export async function issueCoupons(ctx: Ctx, c: Campaign, memberIds: string[], f
       catch (e) { ctx.log("쿠폰 발급 묶음 실패", { campaign: c.id, error: String(e) }); }
     }
   };
-  await issue(memberIds);
   let holders = new Set(await api.listCouponHolders(c.couponNo!));
+  await issue(memberIds.filter((m) => !holders.has(m)));
+  holders = new Set(await api.listCouponHolders(c.couponNo!));
   let missing = memberIds.filter((m) => !holders.has(m));
   if (missing.length) {
     await issue(missing);

@@ -79,7 +79,7 @@ export async function pilotScorecard(ctx: Ctx) {
   const notProceeded = reps.filter((r) => !r.campaign.proceededAt);
   const issued = sum((r) => r.funnel.couponIssued, notProceeded), paid = sum((r) => r.funnel.paidMembers, notProceeded);
   const [acc] = await ctx.db.select({ v: count() }).from(schema.issues)
-    .where(and(inArray(schema.issues.kind, ["coupon_missing", "reconcile_mismatch"]), eq(schema.issues.resolved, false)));
+    .where(and(inArray(schema.issues.kind, ["coupon_missing", "reconcile_mismatch", "judge_incomplete"]), eq(schema.issues.resolved, false)));
   const [decided] = await ctx.db.select({ v: sql<number>`count(distinct ${schema.campaigns.mallId})` }).from(schema.campaigns).where(isNotNull(schema.campaigns.decidedAt));
   const r = (a: number, b: number) => (b ? a / b : null);
   const accuracy = n(acc.v), oneThing = n(decided.v);

@@ -10,7 +10,7 @@ import type { PledgeState } from "../core/pledge";
 import { HOUR, fmtKst, won } from "../time";
 import { audit, recordIssue, UserError, type Ctx } from "./context";
 import { COUPON_GRACE_HOURS, getCampaign, getMall, publicView, type Campaign } from "./campaigns";
-import { issueCoupons, queueReminder } from "./judge";
+import { isIncomplete, issueCoupons, queueReminder } from "./judge";
 import { memberOf } from "./pledges";
 
 const P = schema.pledges;
@@ -44,6 +44,8 @@ export async function stillWanted(ctx: Ctx, campaignId: string) {
 export async function proceedCampaign(ctx: Ctx, actor: string, campaignId: string, body: { price?: unknown; confirmBelowCost?: unknown }) {
   const c = await getCampaign(ctx, campaignId);
   assertProceedOpen(ctx, c);
+  // 미달 결과 안내가 카페24 오류로 아직 멈춰 있으면(정기 작업이 다시 시도 중) 먼저 끝난 뒤에 진행한다
+  if (await isIncomplete(ctx, c.id)) throw new UserError("judge_incomplete", "판정 결과 안내가 아직 끝나지 않았어요. 잠시 뒤 다시 해 주세요.", 409);
   const price = body.price === "" || body.price == null ? c.dealPrice : Number(body.price);
   if (!Number.isInteger(price) || price <= 0) throw new UserError("bad_price", "진행할 가격을 확인해 주세요.");
   if (price >= c.listPrice) throw new UserError("bad_price", `가격은 정가(${won(c.listPrice)})보다 낮아야 해요.`);
