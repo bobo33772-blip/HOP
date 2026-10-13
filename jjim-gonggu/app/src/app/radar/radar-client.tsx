@@ -4,6 +4,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import AppBar from "../components/app-bar";
+import { fmtKst } from "@/lib/time";
 
 type Sort = "total" | "alert" | "wishlist" | "cart";
 interface Row { productNo: number; name: string; price: number; alert: number; wishlist: number; cart: number }
@@ -12,7 +13,7 @@ interface Radar { run: Run | null; current: Run | null; rows: Row[] }
 interface Reach { productNo: number; interested: number; reachable: number; wishlistCapped: boolean }
 
 const won = (n: number) => `${n.toLocaleString("ko-KR")}원`;
-const when = (s: string) => new Date(s).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+const when = (s: string) => fmtKst(s); // 한국 시간 고정, 다른 화면과 같은 모양 (#12)
 const SORTS: [Sort, string][] = [["total", "전체"], ["alert", "알림 신청"], ["wishlist", "찜"], ["cart", "장바구니"]];
 /** 찜 수는 카페24 개인정보 권한이 있을 때만 모인다. 없으면 찜 숫자·정렬을 숨긴다 */
 const counts = (r: Row, wish: boolean) => `알림 신청 ${r.alert}${wish ? ` · 찜 ${r.wishlist}` : ""} · 장바구니 ${r.cart}`;
