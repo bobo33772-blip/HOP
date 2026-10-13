@@ -86,20 +86,45 @@
 
   var alertable = function () { return !state.c || state.c.state === 'failed' || state.c.state === 'settled'; };
 
+  // 로그인하고 돌아오면 하던 신청을 이어서 한다 (#15). 로그인 링크를 누를 때 같은 탭의 sessionStorage에 남기고, 돌아와 한 번 읽으면 지운다.
+  // 카페24 로그인 페이지는 같은 쇼핑몰 주소라 같은 탭이면 남아 있다. 저장소가 막힌 브라우저에서는 지금처럼 처음 화면부터 보여 준다
+  var RESUME = 'jjg-resume';
+  function loginLink(what) {
+    return el('a', { href: '/member/login.html?returnUrl=' + encodeURIComponent(location.pathname + location.search), onclick: function () {
+      try { sessionStorage.setItem(RESUME, JSON.stringify({ mall: MALL, no: productNo, what: what, at: Date.now() })); } catch (e) { }
+    } }, ['로그인하고 계속하기']);
+  }
+  function takeResume() {
+    try {
+      var r = JSON.parse(sessionStorage.getItem(RESUME) || 'null');
+      sessionStorage.removeItem(RESUME);
+      return r && r.mall === MALL && r.no === productNo && Date.now() - r.at < 30 * 60000 ? r.what : null;
+    } catch (e) { return null; }
+  }
+
   function load() {
     return api('GET', '/api/public/malls/' + encodeURIComponent(MALL) + '/products/' + productNo + '/campaign')
       .then(function (j) { state.c = j.campaign; }, function (e) { if (!e || e.error !== 'none') throw e; state.c = null; })
       .then(function () { return alertable() ? api('GET', ALERTS).then(function (j) { state.a = { waiting: j.waiting, mine: false }; }) : null; })
       .then(memberToken)
       .then(function (t) {
+        var resume = takeResume();
         if (!t) return null;
         var jobs = [];
         if (state.a) jobs.push(api('POST', ALERTS + '/mine', { member_token: t }).then(function (j) { state.a = { waiting: j.waiting, mine: !!j.alert }; }).catch(function () { }));
         // 미달 공구도 '그래도 살래요'를 정할 수 있는 동안은 내 신청을 읽는다
         if (state.c && (!state.a || state.c.proceedOpen)) jobs.push(api('POST', '/api/public/campaigns/' + state.c.id + '/pledges/mine', { member_token: t }).then(function (j) { state.mine = j.pledge; }).catch(function () { }));
-        return Promise.all(jobs);
+        return Promise.all(jobs).then(function () { return resume; });
       })
-      .then(render)
+      .then(function (resume) {
+        // 이어서 하기: 아직 모집 중이고 신청 전이면 수량 폼을, 알림은 아직 신청 전이면 바로 신청한다. 이미 했거나 마감됐으면 상태만 보여 준다
+        var form = resume === 'pledge' && state.c && state.c.state === 'open' && !(state.mine && state.mine.state === 'pledged');
+        var notify = resume === 'alert' && state.a && !state.a.mine;
+        if (form) state.step = 'form';
+        render();
+        if (notify) alertOn();
+        if (form || notify) root.scrollIntoView({ block: 'center' });
+      })
       .catch(function () { root.remove(); });
   }
 
@@ -116,7 +141,7 @@
       root.appendChild(el('div', { class: 'jjg-row' }, [el('b', null, ['알림 신청 완료']), el('button', { class: 'jjg-btn ghost', style: 'width:auto;padding:0 14px', onclick: alertOff }, ['신청 취소'])]));
       root.appendChild(el('div', { class: 'jjg-muted' }, ['쇼핑몰 문자 수신을 거부해 두셨다면 알림을 받지 못할 수 있어요.']));
     } else if (state.step === 'login') {
-      root.appendChild(el('div', null, ['회원만 신청할 수 있어요. ', el('a', { href: '/member/login.html?returnUrl=' + encodeURIComponent(location.pathname + location.search) }, ['로그인하고 계속하기'])]));
+      root.appendChild(el('div', null, ['회원만 신청할 수 있어요. ', loginLink('alert')]));
     } else {
       root.appendChild(el('button', { class: 'jjg-btn' + (after ? ' ghost' : ''), onclick: alertOn, disabled: state.busy ? '' : null }, [state.busy ? '신청 중…' : after ? '다음 공구 알림 받기' : '공구 열리면 알림 받기']));
     }
@@ -149,7 +174,7 @@
         root.appendChild(el('div', { class: 'jjg-row' }, [el('b', null, ['신청 완료 · ' + state.mine.qty + '개']), el('button', { class: 'jjg-btn ghost', style: 'width:auto;padding:0 14px', onclick: cancel }, ['신청 취소'])]));
         root.appendChild(el('div', { class: 'jjg-muted' }, ['마감 후 결과를 알려 드려요. 마감 전까지 언제든 취소할 수 있어요.']));
       } else if (state.step === 'login') {
-        root.appendChild(el('div', null, ['회원만 참여할 수 있어요. ', el('a', { href: '/member/login.html?returnUrl=' + encodeURIComponent(location.pathname + location.search) }, ['로그인하고 계속하기'])]));
+        root.appendChild(el('div', null, ['회원만 참여할 수 있어요. ', loginLink('pledge')]));
       } else if (state.step === 'form') {
         root.appendChild(el('div', { class: 'jjg-row' }, [el('span', { class: 'jjg-muted' }, ['수량 (1인 최대 ' + c.perMemberLimit + '개)']),
           el('div', { class: 'jjg-step' }, [el('button', { 'aria-label': '수량 줄이기', onclick: function () { state.qty = Math.max(1, state.qty - 1); render(); } }, ['−']), el('span', null, [String(state.qty)]), el('button', { 'aria-label': '수량 늘리기', onclick: function () { state.qty = Math.min(c.perMemberLimit, state.qty + 1); render(); } }, ['+'])])]));
