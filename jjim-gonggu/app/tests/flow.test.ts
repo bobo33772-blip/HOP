@@ -367,6 +367,22 @@ describe("확정 리포트와 4주 판정표", () => {
     expect(sc.rows.find((r) => r.key === "scale")!.pass).toBe(false); // 아직 1몰 · 1건
   });
 
+  it("성사율·초대→신청은 됐는데 결제 전환만 50% 미만이면 '보완' (기획서 v2 7번)", async () => {
+    const env = await setup();
+    const c = await openAndFill(env, range(1, 40), 1);
+    await tick(env.ctx); // 초대 문자 발송
+    env.clock.advance(DAY5);
+    await tick(env.ctx);
+    const cp = (await getCampaign(env.ctx, c.id)).couponNo!;
+    for (const m of range(1, 10)) await env.world.placeOrder(MALL, m, PRODUCT, 1, cp); // 10/40 = 25%
+    env.clock.advance(72 * HOUR);
+    await tick(env.ctx);
+    const sc = await pilotScorecard(env.ctx);
+    expect(sc.rows.find((r) => r.key === "pledge_to_paid")!.pass).toBe(false);
+    expect(sc.rows.find((r) => r.key === "one_thing")!.pass).toBe(false); // 원씽·규모가 없어도 보완 판정은 나온다
+    expect(sc.verdict).toBe("iterate");
+  });
+
   it("개인정보: 고객 전화번호·이름·주소를 담는 열이 없다", async () => {
     const env = await setup();
     const res = await env.db.execute(sql`select table_name, column_name from information_schema.columns where table_schema = 'public'`);
