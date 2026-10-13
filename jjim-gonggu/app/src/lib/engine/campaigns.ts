@@ -4,7 +4,7 @@ import { randomBytes } from "node:crypto";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { schema, type Db } from "@/db";
 import { allProducts } from "../cafe24/api";
-import { errorMessages, validateCampaignInput, type CampaignInput, type CampaignState } from "../core/campaign";
+import { errorMessages, proceedInfo, validateCampaignInput, type CampaignInput, type CampaignState, type ProceedInfo } from "../core/campaign";
 import { COUNTED_PLEDGE_STATES } from "../core/pledge";
 import { formatAdMessage, isValidOptOutNumber, nextAllowedSendTime } from "../core/messaging";
 import { HOUR, fmtKst, won } from "../time";
@@ -15,7 +15,7 @@ export type Campaign = typeof schema.campaigns.$inferSelect;
 export type Mall = typeof schema.malls.$inferSelect;
 
 /** 결제 기간이 끝난 뒤에도 판정 지연에 대비해 쿠폰을 하루 더 열어 둔다 (기한 뒤 결제는 late로 따로 센다) */
-const COUPON_GRACE_HOURS = 24;
+export const COUPON_GRACE_HOURS = 24;
 
 export async function getMall(ctx: Ctx, mallId: string): Promise<Mall> {
   const [m] = await ctx.db.select().from(schema.malls).where(eq(schema.malls.mallId, mallId));
@@ -103,6 +103,14 @@ export async function previewCampaign(ctx: Ctx, mallId: string, input: CampaignI
   };
 }
 
+/** Postgres 유일 키 위반(23505) 중 "상품당 진행 중 공구 하나" 제약인가. drizzle은 원래 오류를 cause에 담는다 */
+export function isActiveProductConflict(e: unknown): boolean {
+  for (let x = e as { code?: unknown; cause?: unknown; message?: unknown } | undefined, i = 0; x && i < 3; x = x.cause as typeof x, i++) {
+    if (x.code === "23505" && String(x.message ?? "").includes("campaign_active_product_uq")) return true;
+  }
+  return false;
+}
+
 /** 공구 열기: 쿠폰을 먼저 만들고(실패하면 아무것도 저장하지 않음), 초대 대상과 초대 문자를 예약한다 */
 export async function openCampaign(ctx: Ctx, actor: string, mallId: string, input: CampaignInput) {
   const pv = await prepare(ctx, mallId, input);
@@ -152,12 +160,14 @@ export async function openCampaign(ctx: Ctx, actor: string, mallId: string, inpu
     });
   } catch (e) {
     await recordIssue(ctx, null, "orphan_coupon", { mallId, couponNo, error: String(e) });
+    // 같은 상품을 동시에 연 요청: 앞선 요청이 이미 공구를 만들었다 (campaign_active_product_uq)
+    if (isActiveProductConflict(e)) throw new UserError("duplicate", "이 상품은 이미 진행 중인 공구가 있어요.", 409);
     throw e;
   }
   return { campaign, invited: pv.aud.members.length, sendAt };
 }
 
-export interface PublicCampaign {
+export interface PublicCampaign extends ProceedInfo {
   id: string; state: CampaignState; productNo: number; productName: string; listPrice: number; dealPrice: number;
   targetQty: number; pledgedQty: number; perMemberLimit: number; deadlineAt: Date; payWindowHours: number; payUntil: Date | null; shipEta: string;
 }
@@ -165,6 +175,7 @@ export interface PublicCampaign {
 /** 위젯·문자에 보여 줄 공개 정보 (쿠폰 번호·원가·개인정보 없음) */
 export async function publicView(ctx: Ctx, c: Campaign): Promise<PublicCampaign> {
   return {
+    ...proceedInfo(c, ctx.clock.now()),
     id: c.id, state: c.state as CampaignState, productNo: c.productNo, productName: c.productName,
     listPrice: c.listPrice, dealPrice: c.dealPrice, targetQty: c.targetQty, pledgedQty: await pledgedQty(ctx, c.id),
     perMemberLimit: c.perMemberLimit, deadlineAt: c.deadlineAt, payWindowHours: c.payWindowHours, payUntil: c.payUntil, shipEta: c.shipEta,

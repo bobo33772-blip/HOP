@@ -1,6 +1,7 @@
 // 핵심 엔티티. 개인정보 최소 저장: 회원 ID·신청 이력·주문번호/금액만. 고객 이름·전화번호·주소는 저장하지 않는다.
 // 문자는 카페24 SMS에 회원 ID만 넘겨 보낸다.
 
+import { sql } from "drizzle-orm";
 import { pgTable, text, integer, timestamp, boolean, jsonb, uuid, serial, uniqueIndex, index, primaryKey } from "drizzle-orm/pg-core";
 
 export const malls = pgTable("malls", {
@@ -61,6 +62,7 @@ export const productAlerts = pgTable("product_alerts", {
 }, (t) => [primaryKey({ columns: [t.mallId, t.productNo, t.memberId] })]);
 
 // 공구. state: open → reached | failed, reached → settled (결제 기간 종료).
+// 미달(failed) 뒤 판매자가 '그래도 진행'하면 reached로 바뀌고 proceededAt이 남는다 (성사율에서는 뺀다).
 export const campaigns = pgTable("campaigns", {
   id: uuid("id").primaryKey().defaultRandom(),
   mallId: text("mall_id").notNull().references(() => malls.mallId),
@@ -84,9 +86,12 @@ export const campaigns = pgTable("campaigns", {
   decisionQty: integer("decision_qty"), // 판매자가 확정 수량을 보고 정한 생산·발주 수량 (원씽)
   decisionNote: text("decision_note"),
   decidedAt: timestamp("decided_at", { withTimezone: true }),
+  proceededAt: timestamp("proceeded_at", { withTimezone: true }), // 미달 뒤 '그래도 진행'한 시각
 }, (t) => [
   index("campaign_mall_idx").on(t.mallId, t.state),
   uniqueIndex("campaign_report_token_uq").on(t.reportToken),
+  // 한 상품에 진행 중(모집·결제) 공구는 하나만. 동시에 두 번 열어도 DB가 막는다
+  uniqueIndex("campaign_active_product_uq").on(t.mallId, t.productNo).where(sql`${t.state} in ('open', 'reached')`),
 ]);
 
 export const invitations = pgTable("invitations", {
@@ -95,7 +100,7 @@ export const invitations = pgTable("invitations", {
   source: text("source").notNull(), // alert | wishlist | cart | both
 }, (t) => [primaryKey({ columns: [t.campaignId, t.memberId] })]);
 
-// state: pledged | cancelled | coupon_issued | paid | expired | not_reached
+// state: pledged | cancelled | coupon_issued | paid | expired | not_reached | still_wanted(미달 뒤 '그래도 살래요')
 export const pledges = pgTable("pledges", {
   id: uuid("id").primaryKey().defaultRandom(),
   campaignId: uuid("campaign_id").notNull().references(() => campaigns.id),

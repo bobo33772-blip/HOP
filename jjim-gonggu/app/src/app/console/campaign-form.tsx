@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useConsole } from "./provider";
 import type { Preview, RadarRow } from "./types";
 import { kst, won } from "./format";
+import { EXPECTED_PAY_RATE, pledgesNeeded } from "@/lib/core/pledge";
 
 const kstDay = (ms: number) => new Date(ms + 9 * 3_600_000).toISOString().slice(0, 10);
 
@@ -27,6 +28,10 @@ export function CampaignForm({ mall, p, say, onOpened }: { mall: string; p: Rada
     productNo: p.productNo, targetQty: f.targetQty, dealPrice: f.dealPrice, costPrice: f.costPrice, perMemberLimit: f.perMemberLimit,
     deadlineAt: f.deadline ? new Date(`${f.deadline}:00+09:00`).toISOString() : "", payWindowHours: f.payWindowHours, shipEta: f.shipEta, confirmBelowCost: f.confirmBelowCost,
   });
+  // 신청은 결제가 아니다: 목표만큼 확정하려면 예상 결제율로 나눈 만큼 신청이 모여야 한다 (검증 보고서 L-1)
+  const target = Number(f.targetQty);
+  const need = Number.isInteger(target) && target > 0 ? pledgesNeeded(target) : 0;
+  const payPct = Math.round(EXPECTED_PAY_RATE * 100);
   const preview = async () => { setErr(null); try { setPv(await a.call<Preview>("POST", `${a.mallBase}/campaigns/preview`, input())); } catch (e) { setErr((e as Error).message); } };
   const open = async () => {
     setBusy(true);
@@ -37,7 +42,7 @@ export function CampaignForm({ mall, p, say, onOpened }: { mall: string; p: Rada
     <div className="card">
       <h2 className="step-title"><span className="n">2</span>조건 정하기 <span className="small">{p.name} · 정가 {won(p.price)}</span></h2>
       <div className="form">
-        <label>목표 수량<input type="number" min={1} value={String(f.targetQty)} onChange={set("targetQty")} /><span className="hint">가마 1회분·원단 1롤처럼 생산이 가능한 최소 수량</span></label>
+        <label>목표 수량<input type="number" min={1} value={String(f.targetQty)} onChange={set("targetQty")} /><span className="hint">가마 1회분·원단 1롤처럼 생산이 가능한 최소 수량</span>{need > 0 && <span className="hint">결제율 {payPct}%로 보면 신청 {need}개가 모여야 {target}개가 확정돼요. 신청은 결제가 아니라서 목표만큼 모여도 일부는 결제하지 않아요</span>}</label>
         <label>공구가 (원)<input type="number" min={0} step={500} value={String(f.dealPrice)} onChange={set("dealPrice")} /><span className="hint">정가보다 낮아야 해요{Number(f.dealPrice) > 0 && Number(f.dealPrice) < p.price ? ` · ${Math.round((1 - Number(f.dealPrice) / p.price) * 100)}% 할인` : ""}</span></label>
         <label>원가 (원)<input type="number" min={0} step={500} value={String(f.costPrice)} onChange={set("costPrice")} /><span className="hint">고객에게 보이지 않아요. 마진 계산에만 써요</span></label>
         <label>1인 최대 수량<input type="number" min={1} max={5} value={String(f.perMemberLimit)} onChange={set("perMemberLimit")} /></label>
@@ -57,6 +62,7 @@ export function CampaignForm({ mall, p, say, onOpened }: { mall: string; p: Rada
             <div><small>중복 제외</small><strong>{pv.audience.unique}</strong></div>
             <div className="hl"><small>{pv.audience.consentChecked ? "문자 발송 대상 (수신 동의)" : "초대 대상 (최대)"}</small><strong>{pv.audience.reachable}</strong></div>
           </div>
+          {need > 0 && <p className="small">목표 {target}개를 결제로 채우려면 신청 약 {need}개가 필요해요 (결제율 {payPct}% 가정). 초대 대상 {pv.audience.reachable}명이 1인 최대 {Number(f.perMemberLimit) || 1}개까지 신청할 수 있어요.</p>}
           {!pv.audience.consentChecked && <p className="small">문자 수신을 거부한 고객은 카페24가 발송할 때 자동으로 빼요. 실제 받는 사람은 이보다 적을 수 있어요.</p>}
           {pv.marginPerUnit != null && <p className="muted">개당 마진 {won(pv.marginPerUnit)}</p>}
           <p className="muted">초대 문자 발송: {kst(pv.sendAt)} (밤 9시~오전 8시는 자동으로 미뤄요)</p>

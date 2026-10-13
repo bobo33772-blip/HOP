@@ -1,6 +1,6 @@
 // 결제 집계 (F9): 주문 웹훅 + 야간 대사 → 확정 수량. 확정 수량 = 결제 기간 안에 공구 쿠폰으로 결제된 수량.
 
-import { and, eq, gte, inArray, lte, ne } from "drizzle-orm";
+import { and, eq, inArray, lte, ne } from "drizzle-orm";
 import { schema } from "@/db";
 import type { OrderInfo } from "../cafe24/api";
 import { DAY } from "../time";
@@ -42,11 +42,19 @@ export async function applyOrder(ctx: Ctx, mallId: string, order: OrderInfo, sou
     // 일부 취소·반품된 품목은 빼고 센다. 모두 취소됐으면 취소 주문으로 기록한다 (수량은 원래 주문 그대로)
     const live = items.filter((i) => !i.cancelled);
     const counted = live.length ? live : items;
-    const qty = counted.reduce((a, i) => a + i.qty, 0);
-    const amount = counted.reduce((a, i) => a + i.amount, 0);
+    const ordered = counted.reduce((a, i) => a + i.qty, 0);
+    const orderedAmount = counted.reduce((a, i) => a + i.amount, 0);
+    // 확정 수량은 그 회원이 신청한 수량까지만. 넘친 수량은 공구가 아닌 추가 구매라 생산 결정 숫자에 넣지 않는다
+    const [pl] = await ctx.db.select({ qty: schema.pledges.qty }).from(schema.pledges)
+      .where(and(eq(schema.pledges.campaignId, c.id), eq(schema.pledges.memberId, order.memberId)));
+    const qty = Math.min(ordered, pl?.qty ?? c.perMemberLimit);
+    const amount = ordered ? Math.round((orderedAmount * qty) / ordered) : 0;
     const late = c.payUntil != null && order.paidAt > c.payUntil;
     const status = order.status === "cancelled" || !live.length ? "cancelled" : late ? "late" : "paid";
     const [prev] = await ctx.db.select({ status: schema.orderLinks.status }).from(schema.orderLinks).where(eq(schema.orderLinks.orderId, order.orderId));
+    if (!prev && qty < ordered) {
+      await recordIssue(ctx, c.id, "over_pledge", { orderId: order.orderId, pledged: qty, ordered, extraAmount: orderedAmount - amount });
+    }
     await ctx.db.insert(schema.orderLinks)
       .values({ orderId: order.orderId, campaignId: c.id, memberId: order.memberId, qty, amount, status, source, paidAt: order.paidAt, updatedAt: now })
       .onConflictDoUpdate({ target: schema.orderLinks.orderId, set: { status, qty, amount, updatedAt: now } });
@@ -84,13 +92,21 @@ export async function reconcileCampaign(ctx: Ctx, campaignId: string, actor = "s
   return { checked: orders.length };
 }
 
-/** 최근 14일 안에 판정한 공구 전체 대사 (매일 03:00 KST) */
+/** 매일 대사(03:00 KST)를 이어 가는 기간: 판정 후 14일과 예상 출고일 후 14일 중 늦은 날까지 (받은 뒤 7일 반품 + 배송 여유) */
+const RECONCILE_AFTER_DAYS = 14;
+
+/** 아직 대사 기간 안인 공구 전체 대사 (매일 03:00 KST) */
 export async function reconcileRecent(ctx: Ctx) {
-  const since = new Date(ctx.clock.now().getTime() - 14 * DAY);
-  const rows = await ctx.db.select({ id: schema.campaigns.id }).from(schema.campaigns)
-    .where(and(inArray(schema.campaigns.state, ["reached", "settled"]), gte(schema.campaigns.judgedAt, since)));
-  for (const r of rows) await reconcileCampaign(ctx, r.id);
-  return rows.length;
+  const now = ctx.clock.now().getTime();
+  const rows = await ctx.db.select({ id: schema.campaigns.id, judgedAt: schema.campaigns.judgedAt, shipEta: schema.campaigns.shipEta }).from(schema.campaigns)
+    .where(inArray(schema.campaigns.state, ["reached", "settled"]));
+  const due = rows.filter((r) => {
+    const ship = new Date(`${r.shipEta}T23:59:59+09:00`).getTime(); // 예상 출고일(KST) 끝
+    const from = Math.max(r.judgedAt?.getTime() ?? 0, Number.isNaN(ship) ? 0 : ship);
+    return now <= from + RECONCILE_AFTER_DAYS * DAY;
+  });
+  for (const r of due) await reconcileCampaign(ctx, r.id);
+  return due.length;
 }
 
 /** 결제 기간 중인 공구만 대사한다. 주문 웹훅을 못 받는 몰(개발 단계 앱 등)에서도 결제가 1시간 안에 반영되게 한다 */

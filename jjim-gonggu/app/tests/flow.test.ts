@@ -7,10 +7,11 @@ import { HOUR, manualClock } from "@/lib/time";
 import { getCampaign, openCampaign, previewCampaign, recordProductionDecision } from "@/lib/engine/campaigns";
 import { cancelPledge, createPledge, myPledge } from "@/lib/engine/pledges";
 import { judgeNow } from "@/lib/engine/judge";
-import { handleOrderWebhook, reconcileCampaign } from "@/lib/engine/payments";
+import { handleOrderWebhook, reconcileCampaign, reconcileRecent } from "@/lib/engine/payments";
 import { buildReport, pilotScorecard } from "@/lib/engine/report";
 import { tick } from "@/lib/engine/scheduler";
 import { purgeExpired } from "@/lib/engine/retention";
+import { proceedCampaign, setStillWanted, stillWanted } from "@/lib/engine/proceed";
 import { MALL, PRODUCT, baseInput, openAndFill, pledge, range, setup } from "./helpers";
 
 const DAY5 = 5 * 24 * HOUR;
@@ -42,6 +43,18 @@ describe("개설", () => {
     await env.db.update(schema.malls).set({ smsSender: "02-000-0000" }).where(eq(schema.malls.mallId, MALL));
     await openCampaign(env.ctx, "op", MALL, baseInput(env.clock));
     await expect(openCampaign(env.ctx, "op", MALL, baseInput(env.clock))).rejects.toThrow(/이미 진행 중/);
+  });
+
+  it("같은 상품을 동시에 두 번 열어도 공구는 하나만 생기고, 남은 쿠폰은 확인할 일로 남는다", async () => {
+    const env = await setup();
+    const results = await Promise.allSettled([openCampaign(env.ctx, "op", MALL, baseInput(env.clock)), openCampaign(env.ctx, "op", MALL, baseInput(env.clock))]);
+    expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+    const rejected = results.find((r) => r.status === "rejected") as PromiseRejectedResult;
+    expect(String(rejected.reason)).toMatch(/이미 진행 중/);
+    const open = await env.db.select().from(schema.campaigns).where(and(eq(schema.campaigns.productNo, PRODUCT), eq(schema.campaigns.state, "open")));
+    expect(open).toHaveLength(1);
+    const orphan = await env.db.select().from(schema.issues).where(eq(schema.issues.kind, "orphan_coupon"));
+    expect(orphan).toHaveLength(1);
   });
 });
 
@@ -215,9 +228,9 @@ describe("마감 판정", () => {
 });
 
 describe("결제 집계", () => {
-  async function reachedCampaign() {
+  async function reachedCampaign(qty = 1) {
     const env = await setup();
-    const c = await openAndFill(env, range(1, 40), 1);
+    const c = await openAndFill(env, range(1, 40), qty);
     env.clock.advance(DAY5);
     await tick(env.ctx);
     return { env, c, cp: (await getCampaign(env.ctx, c.id)).couponNo! };
@@ -240,7 +253,7 @@ describe("결제 집계", () => {
   });
 
   it("주문 일부만 취소·반품하면 남은 수량만 확정하고, 전부 취소되면 취소 주문으로 센다", async () => {
-    const { env, c, cp } = await reachedCampaign();
+    const { env, c, cp } = await reachedCampaign(2);
     const o = await env.world.placeOrder(MALL, "m1", PRODUCT, 2, cp);
     expect((await buildReport(env.ctx, c.id)).confirmed.qty).toBe(2);
     await env.world.cancelOrderQty(MALL, o.orderId, 1);
@@ -251,6 +264,20 @@ describe("결제 집계", () => {
     rep = await buildReport(env.ctx, c.id);
     expect(rep.confirmed.qty).toBe(0);
     expect(rep.confirmed.cancelledOrders).toBe(1);
+  });
+
+  it("신청보다 많이 사면 신청 수량까지만 확정하고, 넘친 수량은 확인할 일로 남긴다", async () => {
+    const { env, c, cp } = await reachedCampaign(1);
+    const o = await env.world.placeOrder(MALL, "m1", PRODUCT, 3, cp);
+    const rep = await buildReport(env.ctx, c.id);
+    expect(rep.confirmed.qty).toBe(1);
+    expect(rep.confirmed.revenue).toBe(39000);
+    await reconcileCampaign(env.ctx, c.id); // 다시 읽어도 같은 결과, 확인할 일은 한 번만
+    const over = await env.db.select().from(schema.issues).where(eq(schema.issues.kind, "over_pledge"));
+    expect(over).toHaveLength(1);
+    expect(over[0].detail).toMatchObject({ orderId: o.orderId, pledged: 1, ordered: 3 });
+    const accuracy = (await pilotScorecard(env.ctx)).rows.find((r) => r.key === "accuracy")!;
+    expect(accuracy.value).toBe(0); // 고객 행동이라 기술 정확성에는 넣지 않는다
   });
 
   it("기한 뒤 결제(쿠폰 여유 시간 안)는 late로 기록하고 확정 수량에서 뺀다", async () => {
@@ -284,6 +311,17 @@ describe("결제 집계", () => {
     expect((await buildReport(env.ctx, c.id)).confirmed.qty).toBe(1);
     const fixed = await env.db.select().from(schema.issues).where(eq(schema.issues.kind, "reconcile_fixed"));
     expect(fixed).toHaveLength(1);
+  });
+
+  it("매일 대사는 판정 후 14일과 예상 출고일 후 14일 중 늦은 날까지 본다 (출고 뒤 반품까지)", async () => {
+    const { env, c, cp } = await reachedCampaign(); // 10/17 판정, 예상 출고 2026-11-06
+    const o = await env.world.placeOrder(MALL, "m8", PRODUCT, 1, cp);
+    env.clock.set(new Date("2026-11-05T01:00:00Z")); // 판정 19일 뒤, 출고 전날
+    await env.world.cancelOrder(MALL, o.orderId, false); // 웹훅 없이 취소
+    expect(await reconcileRecent(env.ctx)).toBe(1);
+    expect((await buildReport(env.ctx, c.id)).confirmed.qty).toBe(0);
+    env.clock.set(new Date("2026-11-21T01:00:00Z")); // 출고 후 15일
+    expect(await reconcileRecent(env.ctx)).toBe(0);
   });
 });
 
@@ -368,14 +406,34 @@ describe("확정 리포트와 4주 판정표", () => {
     expect(sc.rows.find((r) => r.key === "scale")!.pass).toBe(false); // 아직 1몰 · 1건
   });
 
+  it("성사율·초대→신청은 됐는데 결제 전환만 50% 미만이면 '보완' (기획서 v2 7번)", async () => {
+    const env = await setup();
+    const c = await openAndFill(env, range(1, 40), 1);
+    await tick(env.ctx); // 초대 문자 발송
+    env.clock.advance(DAY5);
+    await tick(env.ctx);
+    const cp = (await getCampaign(env.ctx, c.id)).couponNo!;
+    for (const m of range(1, 10)) await env.world.placeOrder(MALL, m, PRODUCT, 1, cp); // 10/40 = 25%
+    env.clock.advance(72 * HOUR);
+    await tick(env.ctx);
+    const sc = await pilotScorecard(env.ctx);
+    expect(sc.rows.find((r) => r.key === "pledge_to_paid")!.pass).toBe(false);
+    expect(sc.rows.find((r) => r.key === "one_thing")!.pass).toBe(false); // 원씽·규모가 없어도 보완 판정은 나온다
+    expect(sc.verdict).toBe("iterate");
+  });
+
   it("개인정보: 고객 전화번호·이름·주소를 담는 열이 없다", async () => {
     const env = await setup();
     const res = await env.db.execute(sql`select table_name, column_name from information_schema.columns where table_schema = 'public'`);
     const rows = ((res as unknown as { rows?: { table_name: string; column_name: string }[] }).rows ?? (res as unknown as { table_name: string; column_name: string }[]));
     const cols = rows.map((r) => `${r.table_name}.${r.column_name}`);
     expect(cols.length).toBeGreaterThan(50);
-    const bad = cols.filter((c) => /phone|cellphone|mobile|email|address|customer_name|member_name/i.test(c));
-    expect(bad).toEqual([]);
+    // 이름·연락처·주소처럼 보이는 열은 모두 잡고, 개인정보가 아닌 걸 확인한 열만 예외로 둔다 (새 열은 여기서 먼저 걸린다)
+    // messages.recipients: 받는 회원 ID 목록 (전화번호 아님, 문자는 카페24가 회원 ID로 보낸다)
+    const NOT_PERSONAL = new Set(["malls.brand_name", "campaigns.product_name", "demand_snapshots.product_name", "messages.recipients"]);
+    const personal = (cs: string[]) => cs.filter((c) => !NOT_PERSONAL.has(c) && /name|phone|mobile|tel|email|addr|birth|zip|postal|recipient|receiver/i.test(c.split(".")[1]));
+    expect(personal(["members.name", "orders.receiver_cellphone", "pledges.zipcode", "malls.brand_name"])).toEqual(["members.name", "orders.receiver_cellphone", "pledges.zipcode"]);
+    expect(personal(cols)).toEqual([]);
   });
 });
 
@@ -423,5 +481,96 @@ describe("보관 기간 파기", () => {
     expect(await env.db.select().from(schema.campaigns).where(eq(schema.campaigns.mallId, MALL))).toHaveLength(0);
     expect(await env.db.select().from(schema.pledges)).toHaveLength(0);
     expect(await env.db.select().from(schema.malls).where(eq(schema.malls.mallId, MALL))).toHaveLength(0);
+  });
+});
+
+describe("미달 뒤 그래도 진행 (#23)", () => {
+  /** m1~m10이 1개씩 신청 → 10개 < 목표 30개 → 10/17(토) 10:00 KST 미달 판정 */
+  async function failedCampaign() {
+    const env = await setup();
+    const c = await openAndFill(env, range(1, 10), 1);
+    env.clock.advance(DAY5);
+    await tick(env.ctx);
+    const tok = (m: string) => ({ member_token: env.world.encryptMember(MALL, m) });
+    return { env, c, tok };
+  }
+  const proceedSms = (env: Awaited<ReturnType<typeof setup>>) => env.world.smsLog.find((s) => /그래도 진행하기로/.test(s.content));
+
+  it("신청자만 '그래도 살래요'를 표시 · 취소하고, 원래 공구가로 진행하면 표시한 회원에게만 쿠폰과 안내가 가고 성사율에서 빠진다", async () => {
+    const { env, c, tok } = await failedCampaign();
+    expect(env.world.smsLog.find((s) => !s.isAd)!.content).toMatch(/10\/19\(월\) 10:00까지 상품 페이지에서 '그래도 살래요'/);
+    await expect(setStillWanted(env.ctx, c.id, tok("m50"), true)).rejects.toThrow(/신청했던 회원만/);
+    const first = await setStillWanted(env.ctx, c.id, tok("m2"), true);
+    expect(first.pledge.state).toBe("still_wanted");
+    expect(first.campaign.proceedOpen).toBe(true);
+    await setStillWanted(env.ctx, c.id, tok("m2"), true); // 다시 눌러도 같다
+    await setStillWanted(env.ctx, c.id, tok("m4"), true);
+    await setStillWanted(env.ctx, c.id, tok("m6"), true);
+    await setStillWanted(env.ctx, c.id, tok("m6"), false);
+    expect(await stillWanted(env.ctx, c.id)).toEqual({ members: 2, qty: 2 });
+
+    const done = await proceedCampaign(env.ctx, "op", c.id, {});
+    expect(done).toMatchObject({ state: "reached", dealPrice: 39000 });
+    expect(done.proceededAt).toBeTruthy();
+    expect(done.couponNo).not.toBe(c.couponNo); // 진행 시각부터 쓸 수 있는 새 쿠폰
+    expect((await (await env.ctx.shop(MALL)).listCouponHolders(done.couponNo!)).sort()).toEqual(["m2", "m4"]);
+    await tick(env.ctx);
+    const sms = proceedSms(env)!;
+    expect(sms.isAd).toBe(false);
+    expect([...sms.memberIds].sort()).toEqual(["m2", "m4"]);
+    expect(sms.content).not.toMatch(/바뀌었어요/);
+
+    await env.world.placeOrder(MALL, "m2", PRODUCT, 1, done.couponNo!);
+    env.clock.advance(72 * HOUR + 60_000);
+    await tick(env.ctx);
+    expect((await getCampaign(env.ctx, c.id)).state).toBe("settled");
+    const rep = await buildReport(env.ctx, c.id);
+    expect(rep.confirmed.qty).toBe(1);
+    expect(rep.rates.reached).toBe(false);
+    const score = await pilotScorecard(env.ctx);
+    expect(score.proceeded).toBe(1);
+    expect(score.rows.find((r) => r.key === "reach_rate")!.value).toBe(0);
+    expect(score.rows.find((r) => r.key === "pledge_to_paid")!.value).toBeNull();
+  });
+
+  it("새 가격으로 진행하면 쿠폰 할인액과 안내 문자가 새 가격 기준이고, 정가 이상 · 원가 미만(확인 없이)은 막는다", async () => {
+    const { env, c, tok } = await failedCampaign();
+    await setStillWanted(env.ctx, c.id, tok("m2"), true);
+    await expect(proceedCampaign(env.ctx, "op", c.id, { price: 52000 })).rejects.toThrow(/정가/);
+    await expect(proceedCampaign(env.ctx, "op", c.id, { price: 25000 })).rejects.toThrow(/원가/);
+    const done = await proceedCampaign(env.ctx, "op", c.id, { price: 45000 });
+    expect(done.dealPrice).toBe(45000);
+    expect(env.world.couponsOf(MALL, "m2")).toContainEqual(expect.objectContaining({ discountAmount: 7000 }));
+    await expect(proceedCampaign(env.ctx, "op", c.id, {})).rejects.toThrow(/목표에 못 미친 공구만/);
+    await tick(env.ctx);
+    expect(proceedSms(env)!.content).toMatch(/공구가가 39,000원에서 45,000원으로 바뀌었어요/);
+  });
+
+  it("미달 결과 안내가 카페24 오류로 아직 멈춰 있으면(판정 뒤처리 재시도 중) 그래도 진행을 막는다", async () => {
+    const { env, c, tok } = await failedCampaign();
+    await setStillWanted(env.ctx, c.id, tok("m2"), true);
+    await env.db.insert(schema.issues).values({ at: env.clock.now(), campaignId: c.id, kind: "judge_incomplete", detail: {} });
+    await expect(proceedCampaign(env.ctx, "op", c.id, {})).rejects.toThrow(/안내가 아직 끝나지 않았어요/);
+    expect((await getCampaign(env.ctx, c.id)).state).toBe("failed");
+  });
+
+  it("같은 상품에 새 공구를 이미 열었으면 미달 공구를 그래도 진행하지 않는다 (한 상품에 진행 중 공구는 하나)", async () => {
+    const { env, c, tok } = await failedCampaign();
+    await setStillWanted(env.ctx, c.id, tok("m2"), true);
+    await openCampaign(env.ctx, "op", MALL, baseInput(env.clock));
+    await expect(proceedCampaign(env.ctx, "op", c.id, {})).rejects.toThrow(/이미 진행 중/);
+    expect((await getCampaign(env.ctx, c.id)).state).toBe("failed");
+    expect(await env.db.select().from(schema.issues).where(eq(schema.issues.kind, "orphan_coupon"))).toHaveLength(0); // 쿠폰을 만들기 전에 막는다
+  });
+
+  it("아무도 표시하지 않으면 진행할 수 없고, 판정 뒤 48시간이 지나면 표시도 진행도 막혀 그대로 진행 안 됨으로 끝난다", async () => {
+    const { env, c, tok } = await failedCampaign();
+    await expect(proceedCampaign(env.ctx, "op", c.id, {})).rejects.toThrow(/표시한 고객이 없어요/);
+    await setStillWanted(env.ctx, c.id, tok("m2"), true);
+    env.clock.advance(48 * HOUR);
+    await expect(setStillWanted(env.ctx, c.id, tok("m4"), true)).rejects.toThrow(/기간이 지났어요/);
+    await expect(proceedCampaign(env.ctx, "op", c.id, {})).rejects.toThrow(/기간이 지났어요/);
+    expect((await getCampaign(env.ctx, c.id)).state).toBe("failed");
+    expect((await myPledge(env.ctx, c.id, tok("m2"))).campaign.proceedOpen).toBe(false);
   });
 });

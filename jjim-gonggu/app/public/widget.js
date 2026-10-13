@@ -93,8 +93,11 @@
       .then(memberToken)
       .then(function (t) {
         if (!t) return null;
-        if (state.a) return api('POST', ALERTS + '/mine', { member_token: t }).then(function (j) { state.a = { waiting: j.waiting, mine: !!j.alert }; }).catch(function () { });
-        return api('POST', '/api/public/campaigns/' + state.c.id + '/pledges/mine', { member_token: t }).then(function (j) { state.mine = j.pledge; }).catch(function () { });
+        var jobs = [];
+        if (state.a) jobs.push(api('POST', ALERTS + '/mine', { member_token: t }).then(function (j) { state.a = { waiting: j.waiting, mine: !!j.alert }; }).catch(function () { }));
+        // 미달 공구도 '그래도 살래요'를 정할 수 있는 동안은 내 신청을 읽는다
+        if (state.c && (!state.a || state.c.proceedOpen)) jobs.push(api('POST', '/api/public/campaigns/' + state.c.id + '/pledges/mine', { member_token: t }).then(function (j) { state.mine = j.pledge; }).catch(function () { }));
+        return Promise.all(jobs);
       })
       .then(render)
       .catch(function () { root.remove(); });
@@ -130,7 +133,10 @@
     }
     var ok = c.pledgedQty >= c.targetQty;
     var bar = el('div', { class: 'jjg-bar' + (ok ? ' ok' : ''), role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': String(c.targetQty), 'aria-valuenow': String(c.pledgedQty) }, [el('i', { style: 'width:' + Math.min(100, c.pledgedQty / c.targetQty * 100) + '%' })]);
-    var label = { open: ['공동구매 진행 중', ''], reached: ['목표 달성', 'ok'], settled: ['공동구매 종료', 'ok'], failed: ['진행 안 됨', 'no'] }[c.state];
+    // 상태 이름표 (#10). 위젯은 앱 코드를 불러올 수 없어 이름표를 따로 둔다. 판매자 화면과 다르게 쓰는 것:
+    // 목표 달성(초록) — 고객에게는 "쿠폰을 받았다"가 핵심이라 '달성 · 결제 기간' 대신 / 진행 안 됨(회색) — 고객을 놀라게 하지 않게 판매자 화면의 빨강 대신 /
+    // 공동구매 종료 — 고객 입장의 말로 '확정 완료' 대신 / 그래도 진행 — 미달 뒤 판매자가 진행한 공구(#24)
+    var label = c.proceeded && c.state === 'reached' ? ['그래도 진행', 'ok'] : { open: ['공동구매 모집 중', ''], reached: ['목표 달성', 'ok'], settled: ['공동구매 종료', 'ok'], failed: ['진행 안 됨', 'no'] }[c.state];
     var badge = el('span', { class: 'jjg-badge ' + label[1] }, [label[0]]); badge.insertAdjacentHTML('afterbegin', HEART);
     root.appendChild(el('div', { class: 'jjg-top' }, [badge, el('span', { class: 'jjg-muted' }, [when(c.deadlineAt) + ' 마감'])]));
     root.appendChild(el('div', { class: 'jjg-row' }, [el('div', { class: 'jjg-cnt' }, [String(c.pledgedQty), el('small', null, [' / ' + c.targetQty + '개 모였어요'])]),
@@ -156,13 +162,22 @@
       var mine = state.mine;
       root.appendChild(el('div', null, [mine && mine.state === 'paid' ? '결제를 마쳤어요. 예상 출고는 ' + c.shipEta + '이에요.'
         : mine && mine.state === 'coupon_issued' ? '회원님 계정에 ' + won(c.listPrice - c.dealPrice) + ' 할인 쿠폰을 넣어 드렸어요. ' + when(c.payUntil) + '까지 결제해 주세요.'
-        : '목표를 달성해 신청하신 분들께 쿠폰을 드렸어요.']));
+        : c.proceeded ? '판매자가 그래도 진행하기로 해서, 원하신 분들께 쿠폰을 드렸어요.' : '목표를 달성해 신청하신 분들께 쿠폰을 드렸어요.']));
     } else if (c.state === 'failed') {
       root.appendChild(el('div', null, ['목표에 못 미쳐 진행되지 않았어요. 결제된 금액은 없어요.']));
+      // 미달 뒤 '그래도 살래요': 이 공구에 신청했던 회원만, 판매자가 정할 수 있는 동안만
+      var m = state.mine;
+      if (c.proceedOpen && m && m.state === 'still_wanted') {
+        root.appendChild(el('div', { class: 'jjg-row' }, [el('b', null, ['그래도 살래요 · ' + m.qty + '개']), el('button', { class: 'jjg-btn ghost', style: 'width:auto;padding:0 14px', onclick: function () { stillWanted(false); } }, ['취소'])]));
+        root.appendChild(el('div', { class: 'jjg-muted' }, ['판매자가 ' + when(c.proceedUntil) + '까지 진행 여부를 정해요. 진행하기로 하면 문자로 알려 드려요.']));
+      } else if (c.proceedOpen && m && m.state === 'not_reached') {
+        root.appendChild(el('div', { class: 'jjg-muted' }, ['수량이 적어도 사고 싶으시면 알려 주세요. 판매자가 보고 ' + when(c.proceedUntil) + '까지 진행 여부를 정해요. 지금은 결제하지 않아요.']));
+        root.appendChild(el('button', { class: 'jjg-btn', onclick: function () { stillWanted(true); }, disabled: state.busy ? '' : null }, [state.busy ? '보내는 중…' : '그래도 살래요 · ' + m.qty + '개']));
+      }
     } else {
       root.appendChild(el('div', null, ['공동구매가 끝났어요. 참여해 주셔서 감사합니다.']));
     }
-    if (state.a) renderAlert(true);
+    if (state.a && !(c.state === 'failed' && c.proceedOpen && state.mine)) renderAlert(true); // '그래도 살래요'를 고르는 동안은 다음 공구 알림을 미룬다
     if (state.err) root.appendChild(el('div', { class: 'jjg-err', role: 'alert' }, [state.err]));
     root.appendChild(el('div', { class: 'jjg-foot' }, ['찜꽁 예약 공동구매']));
   }
@@ -183,6 +198,15 @@
       .then(function (j) { state.c = j.campaign; state.mine = null; state.step = 'view'; })
       .catch(function (e) { state.err = (e && e.message) || '취소하지 못했어요.'; })
       .then(render);
+  }
+
+  function stillWanted(want) {
+    if (state.busy) return;
+    state.busy = true; state.err = ''; render();
+    memberToken().then(function (t) { return api(want ? 'POST' : 'DELETE', '/api/public/campaigns/' + state.c.id + '/still-wanted', { member_token: t }); })
+      .then(function (j) { state.c = j.campaign; state.mine = j.pledge; })
+      .catch(function (e) { state.err = (e && e.message) || (want ? '보내지 못했어요. 다시 시도해 주세요.' : '취소하지 못했어요.'); })
+      .then(function () { state.busy = false; render(); });
   }
 
   function alertOn() {
