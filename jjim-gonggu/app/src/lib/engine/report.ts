@@ -1,6 +1,6 @@
 // 확정 리포트 (F10)와 4주 판정표. 리포트에는 회원 ID 등 개인정보를 넣지 않는다.
 
-import { and, count, countDistinct, eq, inArray, isNotNull, ne, sql, sum } from "drizzle-orm";
+import { and, count, countDistinct, eq, inArray, ne, sql, sum } from "drizzle-orm";
 import { schema } from "@/db";
 import { successFee } from "../core/billing";
 import { expectedConfirmed } from "../core/pledge";
@@ -80,11 +80,13 @@ export async function pilotScorecard(ctx: Ctx) {
   const issued = sum((r) => r.funnel.couponIssued, notProceeded), paid = sum((r) => r.funnel.paidMembers, notProceeded);
   const [acc] = await ctx.db.select({ v: count() }).from(schema.issues)
     .where(and(inArray(schema.issues.kind, ["coupon_missing", "reconcile_mismatch", "judge_incomplete"]), eq(schema.issues.resolved, false)));
-  const [decided] = await ctx.db.select({ v: sql<number>`count(distinct ${schema.campaigns.mallId})` }).from(schema.campaigns).where(isNotNull(schema.campaigns.decidedAt));
+  // 원씽: 확정 수량(결제 기간 안 쿠폰 결제)이 목표 수량 이상인 공구로 생산·발주를 결정한 판매자.
+  // 신청으로 달성했어도 결제가 목표에 못 미치면 "목표가 차서 실제로 돈을 내고 → 그 숫자로 발주"가 아니다 (기획서 v2 1번, 검증 보고서 L-1)
+  const oneThing = new Set(reps.filter((x) => x.campaign.decision && x.confirmed.qty >= x.campaign.targetQty).map((x) => x.campaign.mallId)).size;
   const r = (a: number, b: number) => (b ? a / b : null);
-  const accuracy = n(acc.v), oneThing = n(decided.v);
+  const accuracy = n(acc.v);
   const rows = [
-    { key: "one_thing", label: "확정 수량으로 생산을 결정한 판매자", value: oneThing as number | string | null, kind: "count", goal: "1곳 이상", pass: oneThing >= 1 },
+    { key: "one_thing", label: "목표 수량 이상 결제된 공구로 생산을 결정한 판매자", value: oneThing as number | string | null, kind: "count", goal: "1곳 이상", pass: oneThing >= 1 },
     { key: "scale", label: "파일럿 몰 · 연 공구", value: `${malls}몰 · ${camps.length}건`, kind: "text", goal: "3몰 · 3건 이상", pass: malls >= 3 && camps.length >= 3 },
     { key: "reach_rate", label: "공구 성사율", value: r(reached, judged.length), kind: "rate", goal: "60% 이상", pass: judged.length > 0 && reached / judged.length >= 0.6 },
     { key: "invite_to_pledge", label: "초대 → 신청", value: r(invP, sent), kind: "rate", goal: "5% 이상", pass: sent > 0 && invP / sent >= 0.05 },
