@@ -187,9 +187,9 @@ describe("마감 판정", () => {
 });
 
 describe("결제 집계", () => {
-  async function reachedCampaign() {
+  async function reachedCampaign(qty = 1) {
     const env = await setup();
-    const c = await openAndFill(env, range(1, 40), 1);
+    const c = await openAndFill(env, range(1, 40), qty);
     env.clock.advance(DAY5);
     await tick(env.ctx);
     return { env, c, cp: (await getCampaign(env.ctx, c.id)).couponNo! };
@@ -212,7 +212,7 @@ describe("결제 집계", () => {
   });
 
   it("주문 일부만 취소·반품하면 남은 수량만 확정하고, 전부 취소되면 취소 주문으로 센다", async () => {
-    const { env, c, cp } = await reachedCampaign();
+    const { env, c, cp } = await reachedCampaign(2);
     const o = await env.world.placeOrder(MALL, "m1", PRODUCT, 2, cp);
     expect((await buildReport(env.ctx, c.id)).confirmed.qty).toBe(2);
     await env.world.cancelOrderQty(MALL, o.orderId, 1);
@@ -223,6 +223,20 @@ describe("결제 집계", () => {
     rep = await buildReport(env.ctx, c.id);
     expect(rep.confirmed.qty).toBe(0);
     expect(rep.confirmed.cancelledOrders).toBe(1);
+  });
+
+  it("신청보다 많이 사면 신청 수량까지만 확정하고, 넘친 수량은 확인할 일로 남긴다", async () => {
+    const { env, c, cp } = await reachedCampaign(1);
+    const o = await env.world.placeOrder(MALL, "m1", PRODUCT, 3, cp);
+    const rep = await buildReport(env.ctx, c.id);
+    expect(rep.confirmed.qty).toBe(1);
+    expect(rep.confirmed.revenue).toBe(39000);
+    await reconcileCampaign(env.ctx, c.id); // 다시 읽어도 같은 결과, 확인할 일은 한 번만
+    const over = await env.db.select().from(schema.issues).where(eq(schema.issues.kind, "over_pledge"));
+    expect(over).toHaveLength(1);
+    expect(over[0].detail).toMatchObject({ orderId: o.orderId, pledged: 1, ordered: 3 });
+    const accuracy = (await pilotScorecard(env.ctx)).rows.find((r) => r.key === "accuracy")!;
+    expect(accuracy.value).toBe(0); // 고객 행동이라 기술 정확성에는 넣지 않는다
   });
 
   it("기한 뒤 결제(쿠폰 여유 시간 안)는 late로 기록하고 확정 수량에서 뺀다", async () => {
