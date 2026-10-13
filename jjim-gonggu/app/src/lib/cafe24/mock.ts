@@ -79,6 +79,20 @@ export class MockCafe24 {
     if (notify) await this.emit({ event_no: 90026, resource: { mall_id: mallId, order_id: orderId } });
   }
 
+  /** 주문의 일부 수량만 취소·반품. 카페24처럼 남은 품목과 취소된 품목이 따로 보인다 */
+  async cancelOrderQty(mallId: string, orderId: string, qty: number) {
+    const o = this.mall(mallId).orders.get(orderId);
+    if (!o) throw new Error("주문 없음");
+    const it = o.items.find((i) => !i.cancelled && i.qty >= qty);
+    if (!it) throw new Error("취소할 수량 없음");
+    const unit = it.amount / it.qty;
+    it.qty -= qty;
+    it.amount -= unit * qty;
+    o.items.push({ productNo: it.productNo, qty, amount: unit * qty, cancelled: true });
+    o.items = o.items.filter((i) => i.qty > 0);
+    await this.emit({ event_no: 90026, resource: { mall_id: mallId, order_id: orderId } });
+  }
+
   couponsOf(mallId: string, memberId: string) {
     return [...this.mall(mallId).coupons.values()].filter((c) => c.holders.has(memberId)).map((c) => ({ name: c.name, discountAmount: c.discountAmount, used: c.used.has(memberId) }));
   }
