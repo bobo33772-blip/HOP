@@ -22,7 +22,7 @@ export default async function ReportPage({ params }: { params: Promise<{ token: 
   if (!c) notFound();
   const r = await buildReport(ctx, c.id);
   const k = r.campaign;
-  const [label, cls] = LABEL[k.state];
+  const [label, cls] = k.proceededAt && k.state === "reached" ? ["그래도 진행 · 결제 기간", "ok"] : LABEL[k.state];
 
   return (
     <main style={{ maxWidth: 720 }}>
@@ -32,6 +32,7 @@ export default async function ReportPage({ params }: { params: Promise<{ token: 
         <span className={`chip ${cls}`}>{label}</span>
       </div>
       <p className="muted">정가 {won(k.listPrice)} → 공구가 {won(k.dealPrice)} · 목표 {k.targetQty}개 · 마감 {fmtKst(k.deadlineAt)} · 예상 출고 {k.shipEta}</p>
+      {k.proceededAt && <p className="small">목표에 못 미쳤지만 &lsquo;그래도 살래요&rsquo;를 누른 고객에게 {fmtKst(k.proceededAt)}부터 그래도 진행했어요.</p>}
 
       {k.state === "settled" ? (
         <div className="card" style={{ borderColor: "var(--success)" }}>

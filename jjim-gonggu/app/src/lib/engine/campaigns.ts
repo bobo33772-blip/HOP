@@ -4,7 +4,7 @@ import { randomBytes } from "node:crypto";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { schema } from "@/db";
 import { allProducts } from "../cafe24/api";
-import { DECISION_CONFIRM_RATIO, decisionNeedsConfirm, errorMessages, validateCampaignInput, type CampaignInput, type CampaignState } from "../core/campaign";
+import { DECISION_CONFIRM_RATIO, decisionNeedsConfirm, errorMessages, proceedInfo, validateCampaignInput, type CampaignInput, type CampaignState, type ProceedInfo } from "../core/campaign";
 import { COUNTED_PLEDGE_STATES } from "../core/pledge";
 import { formatAdMessage, isValidOptOutNumber, nextAllowedSendTime } from "../core/messaging";
 import { HOUR, fmtKst, won } from "../time";
@@ -15,7 +15,7 @@ export type Campaign = typeof schema.campaigns.$inferSelect;
 export type Mall = typeof schema.malls.$inferSelect;
 
 /** 결제 기간이 끝난 뒤에도 판정 지연에 대비해 쿠폰을 하루 더 열어 둔다 (기한 뒤 결제는 late로 따로 센다) */
-const COUPON_GRACE_HOURS = 24;
+export const COUPON_GRACE_HOURS = 24;
 
 export async function getMall(ctx: Ctx, mallId: string): Promise<Mall> {
   const [m] = await ctx.db.select().from(schema.malls).where(eq(schema.malls.mallId, mallId));
@@ -157,7 +157,7 @@ export async function openCampaign(ctx: Ctx, actor: string, mallId: string, inpu
   return { campaign, invited: pv.aud.members.length, sendAt };
 }
 
-export interface PublicCampaign {
+export interface PublicCampaign extends ProceedInfo {
   id: string; state: CampaignState; productNo: number; productName: string; listPrice: number; dealPrice: number;
   targetQty: number; pledgedQty: number; perMemberLimit: number; deadlineAt: Date; payWindowHours: number; payUntil: Date | null; shipEta: string;
 }
@@ -165,6 +165,7 @@ export interface PublicCampaign {
 /** 위젯·문자에 보여 줄 공개 정보 (쿠폰 번호·원가·개인정보 없음) */
 export async function publicView(ctx: Ctx, c: Campaign): Promise<PublicCampaign> {
   return {
+    ...proceedInfo(c, ctx.clock.now()),
     id: c.id, state: c.state as CampaignState, productNo: c.productNo, productName: c.productName,
     listPrice: c.listPrice, dealPrice: c.dealPrice, targetQty: c.targetQty, pledgedQty: await pledgedQty(ctx, c.id),
     perMemberLimit: c.perMemberLimit, deadlineAt: c.deadlineAt, payWindowHours: c.payWindowHours, payUntil: c.payUntil, shipEta: c.shipEta,

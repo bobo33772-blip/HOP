@@ -66,5 +66,19 @@ export function validateCampaignInput(input: CampaignInput, listPrice: number, n
 export const DECISION_CONFIRM_RATIO = 3;
 export const decisionNeedsConfirm = (qty: number, settledQty: number) => qty > Math.max(settledQty, 0) * DECISION_CONFIRM_RATIO;
 
+/** 미달 판정 뒤 신청자가 '그래도 살래요'를 표시하고 판매자가 '그래도 진행'을 정할 수 있는 시간 */
+export const PROCEED_WINDOW_HOURS = 48;
+
+export interface ProceedInfo {
+  proceedUntil: Date | null; // 미달 공구에서 '그래도 진행'을 정할 수 있는 마지막 시각
+  proceedOpen: boolean; // 지금 표시 · 진행할 수 있나 (위젯은 고객 시계 대신 이 값을 쓴다)
+  proceeded: boolean; // 미달 뒤 판매자가 그래도 진행한 공구 (성사율에서 뺀다)
+}
+
+export function proceedInfo(c: { state: string; judgedAt: Date | null; proceededAt: Date | null }, now: Date): ProceedInfo {
+  const until = c.state === "failed" && c.judgedAt ? new Date(c.judgedAt.getTime() + PROCEED_WINDOW_HOURS * HOUR) : null;
+  return { proceedUntil: until, proceedOpen: until != null && now.getTime() < until.getTime(), proceeded: c.proceededAt != null };
+}
+
 export const hasErrors = (issues: Issue[]) => issues.some((i) => i.level === "error");
 export const errorMessages = (issues: Issue[]) => issues.filter((i) => i.level === "error").map((i) => i.message);
