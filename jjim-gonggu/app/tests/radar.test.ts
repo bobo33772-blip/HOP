@@ -56,6 +56,28 @@ describe("수요 레이더", () => {
     expect(after.rows.map((r) => r.productNo)).not.toContain(999);
   });
 
+  it("알림 상품을 채울 때 상품 전체 목록을 받지 않고, 수집 중에는 채우지 않는다 (#21)", async () => {
+    const db = await createTestDb();
+    const base = demoApi();
+    const calls = { list: 0, one: 0 };
+    const api: ShopApi = { ...base, listProducts: async (o, l) => { calls.list++; return base.listProducts(o, l); }, getProduct: async (n) => { calls.one++; return base.getProduct(n); } };
+    const at = new Date();
+    await db.insert(schema.productAlerts).values([
+      { mallId: "m", productNo: 103, memberId: "a1", createdAt: at },
+      { mallId: "m", productNo: 999, memberId: "a2", createdAt: at },
+    ]);
+    await startCollection(db, "m"); // 첫 수집이 진행 중 (화면은 1.5초마다 다시 부른다)
+    for (let i = 0; i < 5; i++) await getRadar(db, "m", "total", 50, api);
+    expect(calls).toEqual({ list: 0, one: 0 });
+
+    const run = (await latestRun(db, "m", "running"))!;
+    await runCollection(db, base, "m", run.id);
+    await db.delete(schema.demandSnapshots).where(eq(schema.demandSnapshots.productNo, 103)); // 수집 뒤 추가된 상품처럼
+    const r = await getRadar(db, "m", "alert", 50, api);
+    expect(r.rows[0]).toMatchObject({ productNo: 103, alert: 1 });
+    expect(calls).toEqual({ list: 0, one: 2 }); // 빠진 상품 둘만 하나씩
+  });
+
   it("시간 제한(서버리스)으로 멈추면 진행 중으로 남고, 정기 작업이 이어서 끝낸다", async () => {
     const db = await createTestDb();
     const api = demoApi();

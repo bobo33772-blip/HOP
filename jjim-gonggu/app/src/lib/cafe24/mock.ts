@@ -90,6 +90,7 @@ export class MockCafe24 {
     return {
       get privacy() { return w.privacy; },
       async listProducts(offset, limit) { return m().products.slice(offset, offset + limit); },
+      async getProduct(n) { return m().products.find((p) => p.productNo === n) ?? null; },
       async wishlistCount(n) { await w.delay(); return m().wishlists.get(n)?.size ?? 0; },
       async cartCount(n) { return m().carts.get(n)?.size ?? 0; },
       async wishlistMembers(n) { return [...(m().wishlists.get(n) ?? [])].slice(0, 100); }, // 실제 API처럼 100명에서 끊긴다 (P8)

@@ -37,6 +37,8 @@ export async function requestAlert(ctx: Ctx, mallId: string, no: unknown, body: 
   await getMall(ctx, mallId);
   const productNo = productNoOf(no);
   const memberId = await memberOf(ctx, mallId, body.member_token);
+  // 몰에 없는 상품 번호는 받지 않는다 (남은 신청 때문에 레이더가 그 상품을 계속 조회하지 않게, #21). 로그인 확인 뒤에만 카페24를 부른다
+  if (!(await (await ctx.shop(mallId)).getProduct(productNo))) throw new UserError("product_not_found", "상품을 찾을 수 없어요.", 404);
   const inserted = await ctx.db.insert(A).values({ mallId, productNo, memberId, createdAt: ctx.clock.now() }).onConflictDoNothing().returning();
   if (inserted.length) await audit(ctx, `customer:${memberId}`, "alert.request", String(productNo), null, mallId);
   return { alert: await mine(ctx, mallId, productNo, memberId), waiting: await waitingCount(ctx, mallId, productNo) };
