@@ -41,12 +41,13 @@
   }
 
   // 쇼핑몰 스킨과 어울리도록 흰 바탕 · 얇은 테두리, 브랜드 로즈는 하트·진행률에만
-  var css = '.jjg{font:14px/1.55 "Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;letter-spacing:-.01em;color:#17171C;border:1px solid #E6E3DD;border-radius:16px;padding:16px;margin:14px 0;background:#fff;display:grid;gap:10px;max-width:520px;box-shadow:0 1px 2px rgba(23,23,28,.04),0 6px 20px rgba(23,23,28,.06);text-align:left}' +
+  // 작은 글씨는 바탕 대비 4.5:1 이상(WCAG AA): 보조 글씨는 #6B6973 하나, 배지 글자는 배지 바탕보다 진한 같은 계열 색. 한글은 단어 단위로 줄을 바꾼다
+  var css = '.jjg{font:14px/1.55 "Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;letter-spacing:-.01em;color:#17171C;border:1px solid #E6E3DD;border-radius:16px;padding:16px;margin:14px 0;background:#fff;display:grid;gap:10px;max-width:520px;box-shadow:0 1px 2px rgba(23,23,28,.04),0 6px 20px rgba(23,23,28,.06);text-align:left;word-break:keep-all;overflow-wrap:break-word}' +
     '.jjg *{box-sizing:border-box}.jjg-top{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:12.5px}' +
-    '.jjg-badge{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:#E0245E;background:#FDEAF0;border-radius:99px;padding:3px 10px 3px 8px}.jjg-badge svg{width:13px;height:13px}' +
-    '.jjg-badge.ok{color:#0F9F6E;background:#E3F6EE}.jjg-badge.no{color:#8A8791;background:#F0EEE9}.jjg-muted{color:#6B6973;font-size:12.5px}' +
+    '.jjg-badge{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:#B8164A;background:#FDEAF0;border-radius:99px;padding:3px 10px 3px 8px}.jjg-badge svg{width:13px;height:13px}' +
+    '.jjg-badge.ok{color:#0B7A55;background:#E3F6EE}.jjg-badge.no{color:#5F5D66;background:#F0EEE9}.jjg-muted{color:#6B6973;font-size:12.5px}' +
     '.jjg-cnt{font-size:24px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.15}.jjg-cnt small{font-size:13.5px;font-weight:500;color:#6B6973}' +
-    '.jjg-price{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.jjg-price b{font-size:17px;color:#E0245E}.jjg-price s{color:#8A8791;font-size:13px}' +
+    '.jjg-price{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.jjg-price b{font-size:17px;color:#E0245E}.jjg-price s{color:#6B6973;font-size:13px}' +
     '.jjg-bar{height:8px;border-radius:99px;background:#F0EEE9;overflow:hidden}.jjg-bar i{display:block;height:100%;min-width:8px;background:linear-gradient(90deg,#FF5C7A,#E0245E);border-radius:99px;transition:width .5s}.jjg-bar.ok i{background:#0F9F6E}' +
     '.jjg-btn{font:inherit;font-size:15px;font-weight:700;border:0;border-radius:12px;background:#17171C;color:#fff;min-height:50px;cursor:pointer;width:100%}' +
     '.jjg-btn:disabled{opacity:.45;cursor:not-allowed}.jjg-btn.ghost{background:#fff;color:#17171C;border:1px solid #E6E3DD;font-weight:600;min-height:40px;font-size:14px}' +
@@ -54,7 +55,7 @@
     '.jjg-row{display:flex;justify-content:space-between;align-items:center;gap:8px}.jjg-step{display:flex;border:1px solid #E6E3DD;border-radius:10px;overflow:hidden;background:#fff}' +
     '.jjg-step button{font:inherit;font-size:18px;width:42px;height:40px;border:0;background:#F6F5F2;cursor:pointer;color:#17171C}.jjg-step span{width:44px;display:grid;place-items:center;font-weight:700}' +
     '.jjg-list{margin:0;padding:10px 12px 10px 28px;background:#F6F5F2;border-radius:12px;font-size:13px;color:#55535C;display:grid;gap:2px}.jjg-err{color:#D4380D;font-size:13px}' +
-    '.jjg-foot{font-size:11px;color:#A3A1A9;text-align:right}.jjg a{color:#E0245E;font-weight:600}';
+    '.jjg-foot{font-size:11px;color:#6B6973;text-align:right}.jjg a{color:#E0245E;font-weight:600}';
   var HEART = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21c-.4 0-.7-.1-1-.4C7.4 17.5 3 14 3 9.5 3 6.9 5 5 7.4 5c1.8 0 3.3 1 4.1 2.3h1C13.3 6 14.8 5 16.6 5 19 5 21 6.9 21 9.5 21 14 16.6 17.5 13 20.6c-.3.3-.6.4-1 .4z"/></svg>';
   var style = document.createElement('style'); style.textContent = css; document.head.appendChild(style);
 
