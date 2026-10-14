@@ -9,6 +9,7 @@ import { openCampaign } from "@/lib/engine/campaigns";
 import { HOUR, kstDate } from "@/lib/time";
 import * as campaignRoute from "@/app/api/public/malls/[mall]/products/[no]/campaign/route";
 import * as pledgeRoute from "@/app/api/public/campaigns/[id]/pledges/route";
+import * as pledgeMineRoute from "@/app/api/public/campaigns/[id]/pledges/mine/route";
 import * as webhookRoute from "@/app/api/cafe24/webhooks/route";
 import * as demoLoginRoute from "@/app/member/login.html/route";
 import * as demoShopRoute from "@/app/demo/shop/[no]/route";
@@ -74,6 +75,18 @@ describe("공개 API (위젯)", () => {
     expect(forged.status).toBe(401);
     expect((await forged.json()).message).toMatch(/본인 확인/);
     expect(forged.headers.get("access-control-allow-origin")).toBe("*");
+  });
+
+  it("조회(내 신청)는 쓰기와 요청 제한을 따로 센다: 한 IP에서 40번 조회해도 참여 신청은 된다 (#69)", async () => {
+    const demo = (await getDemo())!;
+    const headers = { "Content-Type": "application/json", "x-forwarded-for": "10.0.0.69" };
+    const member_token = demo.world.encryptMember(DEMO_MALL, "m70");
+    for (let i = 0; i < 40; i++) {
+      const r = await pledgeMineRoute.POST(new Request("http://t/x", { method: "POST", headers, body: JSON.stringify({ member_token }) }), params({ id: campaignId }));
+      expect(r.status).toBe(200);
+    }
+    const p = await pledgeRoute.POST(new Request("http://t/x", { method: "POST", headers: { ...headers, "Idempotency-Key": "ip-69" }, body: JSON.stringify({ member_token, qty: 1 }) }), params({ id: campaignId }));
+    expect(p.status).toBe(201);
   });
 });
 

@@ -125,7 +125,7 @@
         var jobs = [];
         if (state.a) jobs.push(api('POST', ALERTS + '/mine', { member_token: t }).then(function (j) { state.a = { waiting: j.waiting, mine: !!j.alert }; }).catch(function () { }));
         // 미달 공구도 '그래도 살래요'를 정할 수 있는 동안은 내 신청을 읽는다
-        if (state.c && (!state.a || state.c.proceedOpen)) jobs.push(api('POST', '/api/public/campaigns/' + state.c.id + '/pledges/mine', { member_token: t }).then(function (j) { state.mine = j.pledge; }).catch(function () { }));
+        if (state.c && (!state.a || state.c.proceedOpen)) jobs.push(api('POST', '/api/public/campaigns/' + state.c.id + '/pledges/mine', { member_token: t }).then(function (j) { state.mine = j.pledge; state.mineFailed = false; }).catch(function () { state.mineFailed = true; }));
         return Promise.all(jobs).then(function () { return resume; });
       })
       .then(function (resume) {
@@ -208,6 +208,10 @@
       if (state.mine && state.mine.state === 'pledged') {
         root.appendChild(el('div', { class: 'jjg-row' }, [el('b', null, ['신청 완료 · ' + state.mine.qty + '개']), el('button', { class: 'jjg-btn ghost', style: 'width:auto;padding:0 14px', onclick: cancel }, ['신청 취소'])]));
         root.appendChild(el('div', { class: 'jjg-muted' }, ['마감 후 결과를 알려 드려요. 마감 전까지 언제든 취소할 수 있어요.']));
+      } else if (state.mineFailed) {
+        // 내 신청 조회가 실패하면(요청 제한 등) 신청 버튼 대신 다시 불러오기: 이미 신청한 고객에게 신청 버튼이 다시 보이지 않게 (#69)
+        root.appendChild(el('div', { class: 'jjg-muted' }, ['내 신청 내역을 불러오지 못했어요. 잠시 뒤 다시 불러와 주세요.']));
+        root.appendChild(el('button', { class: 'jjg-btn ghost', onclick: reloadMine, disabled: state.busy ? '' : null }, [state.busy ? '불러오는 중…' : '다시 불러오기']));
       } else if (state.step === 'login') {
         root.appendChild(el('div', null, ['회원만 참여할 수 있어요. ', loginLink('pledge')]));
       } else if (state.step === 'form') {
@@ -285,6 +289,14 @@
       .then(function (j) { state.c = j.campaign; state.mine = null; state.step = 'view'; })
       .catch(function (e) { state.err = (e && e.message) || '취소하지 못했어요.'; })
       .then(render);
+  }
+  function reloadMine() {
+    if (state.busy) return;
+    state.busy = true; state.err = ''; render();
+    memberToken().then(function (t) { return api('POST', '/api/public/campaigns/' + state.c.id + '/pledges/mine', { member_token: t }); })
+      .then(function (j) { state.c = j.campaign; state.mine = j.pledge; state.mineFailed = false; })
+      .catch(function (e) { state.err = (e && e.message) || '불러오지 못했어요. 잠시 뒤 다시 시도해 주세요.'; })
+      .then(function () { state.busy = false; render(); });
   }
 
   function stillWanted(want) {
