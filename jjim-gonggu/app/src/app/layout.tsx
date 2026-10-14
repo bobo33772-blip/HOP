@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = { title: "찜꽁", description: "찜·장바구니 고객과 함께 여는 결제 없는 예약 공동구매 — 카페24 판매자 앱" };
 export const viewport: Viewport = {
   width: "device-width", initialScale: 1, viewportFit: "cover",
-  themeColor: [{ media: "(prefers-color-scheme: light)", color: "#f6f5f2" }, { media: "(prefers-color-scheme: dark)", color: "#111114" }],
+  themeColor: [{ media: "(prefers-color-scheme: light)", color: "#ffffff" }, { media: "(prefers-color-scheme: dark)", color: "#141c26" }],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
