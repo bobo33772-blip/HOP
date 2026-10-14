@@ -10,6 +10,8 @@ import { HOUR, kstDate } from "@/lib/time";
 import * as campaignRoute from "@/app/api/public/malls/[mall]/products/[no]/campaign/route";
 import * as pledgeRoute from "@/app/api/public/campaigns/[id]/pledges/route";
 import * as webhookRoute from "@/app/api/cafe24/webhooks/route";
+import * as demoLoginRoute from "@/app/member/login.html/route";
+import { NextRequest } from "next/server";
 
 process.env.CAFE24_MOCK = "1";
 process.env.ADMIN_TOKEN = "test-admin-token-0123456789abcdef";
@@ -71,6 +73,20 @@ describe("공개 API (위젯)", () => {
     expect(forged.status).toBe(401);
     expect((await forged.json()).message).toMatch(/본인 확인/);
     expect(forged.headers.get("access-control-allow-origin")).toBe("*");
+  });
+});
+
+describe("데모 흉내 로그인 (#15)", () => {
+  const login = (qs: string) => demoLoginRoute.GET(new NextRequest(`http://t/member/login.html?${qs}`));
+  it("회원을 고르면 보던 데모 상품 페이지로 돌려보낸다", async () => {
+    const r = await login(`returnUrl=${encodeURIComponent("/demo/shop/102")}&member=m62`);
+    expect(r.status).toBe(303);
+    expect(r.headers.get("location")).toBe("/demo/shop/102?member=m62");
+  });
+  it("데모 상품 페이지가 아닌 주소(다른 사이트 등)로는 돌려보내지 않는다", async () => {
+    for (const bad of ["https://evil.example/demo/shop/102", "//evil.example/x", "/.//evil.example", "/admin"]) {
+      expect((await login(`returnUrl=${encodeURIComponent(bad)}&member=m62`)).headers.get("location")).toBe("/demo?member=m62");
+    }
   });
 });
 
