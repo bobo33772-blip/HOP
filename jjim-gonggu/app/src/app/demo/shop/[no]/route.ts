@@ -52,7 +52,7 @@ select{font:inherit;padding:6px 8px;border-radius:8px;border:1.5px solid var(--l
   <div class="grid"><div class="card">${PHOTO[p.productNo] ? `<img class="photo" src="${PHOTO[p.productNo].src}" alt="${esc(p.name)} 상품 사진">` : `<div class="img">${esc(p.name)}</div>`}
     <div><b style="font-size:20px">${esc(p.name)}</b>${PHOTO[p.productNo] ? `<div class="muted">${esc(PHOTO[p.productNo].spec)}</div>` : ""}<div style="font-size:18px;font-weight:700;margin-top:6px">${won(p.price)} ${p.soldOut ? '<span class="muted" style="font-weight:400">· 품절 (재생산 대기)</span>' : ""}</div></div>
     <div id="jjim-gonggu"></div>
-    <button class="btn" id="buy">${member ? "주문서로 결제 (보유 쿠폰 자동 적용)" : "정가로 구매 (로그인 필요)"}</button></div>
+    <button class="btn" id="buy" data-jjg-buy>${member ? "주문서로 결제 (보유 쿠폰 자동 적용)" : "정가로 구매 (로그인 필요)"}</button></div>
   <div class="card"><span class="muted" style="font-size:12px">시연용 · 고객 휴대폰</span><b>${member ? `${esc(member)}님 문자함` : "문자함 (회원을 고르면 보여요)"}</b><div id="inbox" class="muted">불러오는 중…</div><b>내 쿠폰</b><div id="coupons" class="muted">–</div></div></div></div>
 <script>window.JJIM_MEMBER_TOKEN=function(){return ${js(token)}||null};</script>
 <script src="/widget.js?mall=${DEMO_MALL}" data-product-no="${p.productNo}" data-anchor="#jjim-gonggu" defer></script>
