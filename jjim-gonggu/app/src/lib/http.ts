@@ -116,5 +116,8 @@ export function admin<C>(fn: (req: NextRequest, ctx: C) => Promise<Response>) {
   });
 }
 
-/** 신청 API 남용 방지: IP당 분당 30회 */
+/** 신청 API 남용 방지(쓰기: 참여 신청 · 취소, 그래도 살래요, 알림 신청 · 취소): IP당 분당 30회 */
 export const limitPledge = rateLimiter(Number(process.env.PLEDGE_PER_MINUTE ?? 30));
+/** 위젯 조회(내 신청 · 내 알림 · 다른 상품 공구): 상품 페이지가 열릴 때마다 부르므로 쓰기와 통을 나누고 넉넉하게 둔다.
+ *  같은 통을 쓰면 상품을 여러 개 둘러본 고객의 참여 신청이 막힌다 (#69). 휴대폰 통신사는 여러 고객이 같은 IP를 쓰기도 한다 */
+export const limitLookup = rateLimiter(Number(process.env.LOOKUP_PER_MINUTE ?? 120));
