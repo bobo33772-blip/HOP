@@ -2,8 +2,9 @@
 // 위쪽 데모 막대로 시간을 넘기고, 다른 고객의 신청·결제를 흉내 낼 수 있다.
 
 import type { NextRequest } from "next/server";
-import { getDemo } from "@/lib/server";
-import { DEMO_BRAND, DEMO_MALL } from "@/lib/cafe24/mock";
+import { getCtx, getDemo } from "@/lib/server";
+import { DEMO_BRAND, DEMO_MALL, DEMO_PRODUCTS } from "@/lib/cafe24/mock";
+import { activeCampaignForProduct } from "@/lib/engine/campaigns";
 import { demoProduct, isDemoMember } from "@/lib/demo";
 import { fmtKst, won } from "@/lib/time";
 
@@ -29,11 +30,22 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ no: 
     .concat(Array.from({ length: 40 }, (_, i) => option(`m${(i + 30) * 2}`)))
     .concat(CART_SHOPPERS.map((m) => option(m, `${m} · 장바구니 2개`)))
     .join("");
+  // 상품 목록 (#62): 다른 상품 페이지로 바로 가고, 공구가 열린 상품을 구분한다. 상품을 옮겨도 지금 고객은 그대로
+  const ctx = await getCtx();
+  const products = (await Promise.all(DEMO_PRODUCTS.map(async (x) => {
+    const c = await activeCampaignForProduct(ctx, DEMO_MALL, x.productNo);
+    const tag = c?.state === "open" ? '<span class="tag on">모집 중</span>' : c?.state === "reached" ? '<span class="tag on">목표 달성</span>' : x.soldOut ? '<span class="tag">품절</span>' : "";
+    const cur = x.productNo === p.productNo ? ' aria-current="page"' : "";
+    return `<a class="pitem" href="/demo/shop/${x.productNo}${member ? `?member=${member}` : ""}"${cur}><span>${esc(x.name)}</span>${tag}</a>`;
+  }))).join("");
 
   const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(p.name)} · ${esc(DEMO_BRAND)}</title><meta name="robots" content="noindex">
-<style>:root{--fg:#16233F;--fg2:#4B5671;--line:#DDE2EB;--bg:#F7F5F1;--surface:#fff;--accent:#2F5BEA}
-@media (prefers-color-scheme:dark){:root{--fg:#E6EBF5;--fg2:#AAB4C8;--line:#2A3654;--bg:#10151F;--surface:#18202E;color-scheme:dark}}
+<style>:root{--fg:#16233F;--fg2:#4B5671;--line:#DDE2EB;--bg:#F7F5F1;--surface:#fff;--accent:#2F5BEA;--hot:#B8164A}
+@media (prefers-color-scheme:dark){:root{--fg:#E6EBF5;--fg2:#AAB4C8;--line:#2A3654;--bg:#10151F;--surface:#18202E;--hot:#FF8FAB;color-scheme:dark}}
+.prods{max-width:980px;margin:0 auto;padding:12px 16px 8px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:thin}
+.pitem{flex:none;display:grid;gap:1px;max-width:190px;padding:7px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg);font-size:13px;font-weight:600;text-decoration:none;word-break:keep-all}
+.pitem[aria-current]{border-color:var(--accent)}.pitem:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.tag{font-size:11.5px;font-weight:500;color:var(--fg2)}.tag.on{color:var(--hot);font-weight:700}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 "Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}
 .wrap{max-width:980px;margin:0 auto;padding:16px 16px 60px;display:grid;gap:14px}.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:grid;gap:8px;min-width:0;align-content:start}
 .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.btn{font:inherit;font-size:14px;font-weight:600;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);border-radius:9px;padding:7px 12px;cursor:pointer;text-decoration:none}
@@ -51,8 +63,9 @@ select{font:inherit;padding:6px 8px;border-radius:8px;border:1.5px solid var(--l
   <button class="btn" id="simP">다른 고객 10명 신청</button><button class="btn" id="simPay">쿠폰 받은 고객 60% 결제</button><a class="btn" href="/admin">운영자 화면</a><a class="btn" href="/demo">데모 안내</a></div>
   <div class="bar"><label class="muted" for="member">지금 고객</label><select id="member">${options}</select><span class="muted" id="msg" role="status"></span></div></div></div>
 <div style="background:var(--surface);border-bottom:1px solid var(--line)"><div class="wrap nav" style="padding-block:14px"><div class="shop">${esc(DEMO_BRAND)}</div><span class="muted">BEDDING · TABLEWARE · STORAGE</span><span class="muted" style="margin-left:auto">${member ? `${esc(member)}님` : "로그인"} · 장바구니</span></div></div>
+<nav class="prods" aria-label="데모 상품">${products}</nav>
 <div class="wrap">
-  <div class="muted">HOME › TABLEWARE › PLATES</div>
+  <div class="muted">HOME › 전체 상품 › ${esc(p.name)}</div>
   <div class="grid"><div class="card">${PHOTO[p.productNo] ? `<img class="photo" src="${PHOTO[p.productNo].src}" alt="${esc(p.name)} 상품 사진">` : `<div class="img">${esc(p.name)}</div>`}
     <div><b style="font-size:20px">${esc(p.name)}</b>${PHOTO[p.productNo] ? `<div class="muted">${esc(PHOTO[p.productNo].spec)}</div>` : ""}<div style="font-size:18px;font-weight:700;margin-top:6px">${won(p.price)} ${p.soldOut ? '<span class="muted" style="font-weight:400">· 품절 (재생산 대기)</span>' : ""}</div></div>
     <div id="jjim-gonggu"></div>
@@ -63,6 +76,7 @@ select{font:inherit;padding:6px 8px;border-radius:8px;border:1.5px solid var(--l
 <script>
 const M=${js(member)},NO=${p.productNo};
 const say=t=>{document.getElementById('msg').textContent=t};
+{const n=document.querySelector('.prods'),a=n.querySelector('[aria-current]');if(a)n.scrollLeft+=a.getBoundingClientRect().left-n.getBoundingClientRect().left-16}
 const post=(a,b)=>fetch('/api/demo/'+a,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b||{})}).then(r=>r.json());
 document.getElementById('member').onchange=e=>{location.search='?member='+e.target.value};
 document.querySelectorAll('[data-adv]').forEach(b=>b.onclick=async()=>{b.disabled=true;say('시간을 넘기는 중…');const j=await post('advance',{to:b.dataset.adv,productNo:NO});if(j.message){say(j.message);b.disabled=false}else location.reload()});
