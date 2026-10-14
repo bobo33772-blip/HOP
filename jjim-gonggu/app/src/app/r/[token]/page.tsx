@@ -47,6 +47,11 @@ export default async function ReportPage({ params }: { params: Promise<{ token: 
           <div className="hero-num">{r.confirmed.qty}<small> 개</small></div>
           <p className="muted">예상 확정 수량은 약 {r.confirmed.expected}개예요. 결제 기간이 끝나면 확정 수량이 정해지니 아직 발주하지 마세요.</p>
         </div>
+      ) : k.state === "cancelled" ? (
+        <div className="card">
+          <b>판매자가 모집 중에 취소한 공구예요.</b>
+          <p className="muted">결제된 금액이 없고, 만든 재고도 없어요. 같은 상품으로 새 공구를 열 수 있어요.</p>
+        </div>
       ) : k.state === "failed" ? (
         <div className="card">
           <b>목표에 못 미쳐 진행되지 않았어요.</b>

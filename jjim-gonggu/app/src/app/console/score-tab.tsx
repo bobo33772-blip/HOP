@@ -8,7 +8,7 @@ import { pct } from "./format";
 
 export function ScoreTab() {
   const a = useConsole();
-  const [s, setS] = useState<{ verdict: string; proceeded: number; rows: { key: string; label: string; value: number | string | null; kind: string; goal: string; pass: boolean }[] } | null>(null);
+  const [s, setS] = useState<{ verdict: string; proceeded: number; cancelled?: number; rows: { key: string; label: string; value: number | string | null; kind: string; goal: string; pass: boolean }[] } | null>(null);
   useEffect(() => { a.call<typeof s>("GET", "/api/admin/scorecard").then(setS).catch(() => setS(null)); }, [a]);
   if (!s) return <p className="muted">불러오는 중…</p>;
   const V: Record<string, [string, string]> = { go: ["Go · 다음 단계로", "ok"], iterate: ["보완 · 결제 조건 실험 2주", "warn"], rethink: ["재검토 · 가정 다시 보기", "bad"], in_progress: ["진행 중", "open"] };
@@ -25,6 +25,8 @@ export function ScoreTab() {
         ))}</tbody>
       </table></div>
       {s.proceeded > 0 && <p className="small">미달 뒤 그래도 진행한 공구 {s.proceeded}건은 공구 성사율과 신청 → 결제에서 뺐어요.</p>}
+      {/* 취소 N건 (#66): 성사율에는 미달처럼 넣고(분모), 연 공구 수에서는 뺀다 (#65) */}
+      {(s.cancelled ?? 0) > 0 && <p className="small">판매자가 모집 중에 취소한 공구 <b>{s.cancelled}건</b>은 공구 성사율에 미달처럼 넣었고, 파일럿 연 공구 수에서는 뺐어요.</p>}
     </div>
   );
 }
