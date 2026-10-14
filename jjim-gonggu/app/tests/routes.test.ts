@@ -11,6 +11,7 @@ import * as campaignRoute from "@/app/api/public/malls/[mall]/products/[no]/camp
 import * as pledgeRoute from "@/app/api/public/campaigns/[id]/pledges/route";
 import * as webhookRoute from "@/app/api/cafe24/webhooks/route";
 import * as demoLoginRoute from "@/app/member/login.html/route";
+import * as demoShopRoute from "@/app/demo/shop/[no]/route";
 import { NextRequest } from "next/server";
 
 process.env.CAFE24_MOCK = "1";
@@ -73,6 +74,16 @@ describe("공개 API (위젯)", () => {
     expect(forged.status).toBe(401);
     expect((await forged.json()).message).toMatch(/본인 확인/);
     expect(forged.headers.get("access-control-allow-origin")).toBe("*");
+  });
+});
+
+describe("데모 상품 페이지 (#62)", () => {
+  it("다른 데모 상품으로 가는 목록이 있고, 공구가 열린 상품(102)은 '모집 중', 지금 고객은 링크에 그대로 붙는다", async () => {
+    const html = await (await demoShopRoute.GET(new NextRequest("http://t/demo/shop/101?member=m62"), params({ no: "101" }))).text();
+    for (const no of [101, 102, 103, 104, 105, 106]) expect(html).toContain(`href="/demo/shop/${no}?member=m62"`);
+    expect(html).toMatch(/href="\/demo\/shop\/101\?member=m62" aria-current="page"/);
+    expect(html).toMatch(/href="\/demo\/shop\/102\?member=m62"><span>[^<]+<\/span><span class="tag on">모집 중</);
+    expect(html).toContain("HOME › 전체 상품 › 워싱 린넨 이불 커버 (Q)");
   });
 });
 
