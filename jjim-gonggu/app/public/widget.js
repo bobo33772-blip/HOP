@@ -51,6 +51,10 @@
     '.jjg-cnt{font-size:24px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.15}.jjg-cnt small{font-size:13.5px;font-weight:500;color:#6B6973}' +
     '.jjg-price{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.jjg-price b{font-size:17px;color:#E0245E}.jjg-price s{color:#6B6973;font-size:13px}' +
     '.jjg-bar{height:8px;border-radius:99px;background:#F0EEE9;overflow:hidden}.jjg-bar i{display:block;height:100%;min-width:8px;background:linear-gradient(90deg,#FF5C7A,#E0245E);border-radius:99px;transition:width .5s}.jjg-bar.ok i{background:#0F9F6E}' +
+    '.jjg-others{border-top:1px solid #E6E3DD;padding-top:12px;display:grid;gap:8px}.jjg-others>b{font-size:13.5px}' +
+    '.jjg a.jjg-other{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #E6E3DD;border-radius:12px;color:#17171C;font-weight:600;text-decoration:none}' +
+    '.jjg a.jjg-other:focus-visible{outline:3px solid rgba(224,36,94,.35);outline-offset:2px}.jjg-other>div{flex:1;min-width:0;display:grid;gap:4px}' +
+    '.jjg-other small{color:#6B6973;font-size:12.5px;font-weight:500}.jjg-other small.due{color:#B8164A;font-weight:700}.jjg-other .jjg-bar{height:5px}.jjg-other>span{color:#6B6973;font-size:20px;font-weight:400}' +
     '.jjg-btn{font:inherit;font-size:15px;font-weight:700;border:0;border-radius:12px;background:#17171C;color:#fff;min-height:50px;cursor:pointer;width:100%}' +
     '.jjg-btn:disabled{opacity:.45;cursor:not-allowed}.jjg-btn.ghost{background:#fff;color:#17171C;border:1px solid #E6E3DD;font-weight:600;min-height:40px;font-size:14px}' +
     '.jjg-btn:focus-visible,.jjg-step button:focus-visible{outline:3px solid rgba(224,36,94,.35);outline-offset:2px}' +
@@ -74,7 +78,8 @@
   else script.parentNode.insertBefore(root, script.nextSibling);
 
   // a: '공구 열리면 알림 받기' (진행 중 공구가 없거나 지난 공구가 끝난 상품). 카페24 찜 대신 고객이 직접 신청한다
-  var state = { c: null, mine: null, qty: 1, step: 'view', err: '', busy: false, idem: null, a: null };
+  // others: 이 회원이 장바구니 · 찜 · 알림으로 초대받았거나 신청한 다른 상품의 공구 (#60)
+  var state = { c: null, mine: null, qty: 1, step: 'view', err: '', busy: false, idem: null, a: null, others: [] };
   var ALERTS = '/api/public/malls/' + encodeURIComponent(MALL) + '/products/' + productNo + '/alerts';
 
   function el(tag, attrs, kids) {
@@ -151,11 +156,30 @@
     }
   }
 
+  // 담아 둔 다른 상품의 공구 (#60): 모집 중이면 진행률 · 공구가, 쿠폰을 받았으면 결제 마감. 누르면 그 상품 페이지로
+  function renderOthers() {
+    var list = state.others;
+    if (!list.length) return;
+    var cart = list.every(function (x) { return x.source === 'cart' || x.source === 'both'; });
+    var box = el('div', { class: 'jjg-others' }, [el('b', null, [(cart ? '장바구니에 담은' : '관심 두신') + ' 다른 상품도 공구 중이에요'])]);
+    list.forEach(function (x) {
+      var coupon = x.mine && x.mine.state === 'coupon_issued', pledged = x.mine && x.mine.state === 'pledged';
+      var line = coupon ? '쿠폰 받음 · ' + when(x.payUntil) + '까지 결제'
+        : (pledged ? '신청 완료 · ' : '') + x.pledgedQty + ' / ' + x.targetQty + '개 모임 · 공구가 ' + won(x.dealPrice);
+      box.appendChild(el('a', { class: 'jjg-other', href: x.path }, [
+        el('div', null, [el('span', null, [x.productName]), el('small', { class: coupon ? 'due' : null }, [line]),
+          coupon ? null : el('div', { class: 'jjg-bar' }, [el('i', { style: 'width:' + Math.min(100, x.pledgedQty / x.targetQty * 100) + '%' })])]),
+        el('span', { 'aria-hidden': 'true' }, ['›'])]));
+    });
+    root.appendChild(box);
+  }
+
   function render() {
     var c = state.c; root.textContent = '';
     if (!c && !state.a) { root.remove(); return; }
     if (!c) {
       renderAlert(false);
+      renderOthers();
       if (state.err) root.appendChild(el('div', { class: 'jjg-err', role: 'alert' }, [state.err]));
       root.appendChild(el('div', { class: 'jjg-foot' }, ['찜꽁 예약 공동구매']));
       return;
@@ -217,6 +241,7 @@
       root.appendChild(el('div', null, ['공동구매가 끝났어요. 참여해 주셔서 감사합니다.']));
     }
     if (state.a && !(c.state === 'failed' && c.proceedOpen && state.mine)) renderAlert(true); // '그래도 살래요'를 고르는 동안은 다음 공구 알림을 미룬다
+    renderOthers();
     if (state.err) root.appendChild(el('div', { class: 'jjg-err', role: 'alert' }, [state.err]));
     root.appendChild(el('div', { class: 'jjg-foot' }, ['찜꽁 예약 공동구매']));
   }
@@ -282,7 +307,16 @@
       .then(render);
   }
 
-  load();
+  // 담아 둔 다른 상품의 공구 (#60): 위젯을 그린 뒤 로그인 회원만 한 번 묻는다. 실패하면 이 칸만 안 보인다
+  function loadOthers() {
+    return memberToken().then(function (t) {
+      if (!t || !root.isConnected) return;
+      return api('POST', '/api/public/malls/' + encodeURIComponent(MALL) + '/campaigns/mine', { member_token: t, exclude: productNo })
+        .then(function (j) { state.others = j.campaigns || []; render(); });
+    }).catch(function () { });
+  }
+
+  load().then(loadOthers);
   setInterval(function () {
     if (!state.c || state.c.state !== 'open' || state.step === 'form') return;
     api('GET', '/api/public/campaigns/' + state.c.id + '/progress').then(function (j) { state.c = j.campaign; render(); }).catch(function () { });

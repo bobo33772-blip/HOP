@@ -10,6 +10,8 @@ import { fmtKst, won } from "@/lib/time";
 const esc = (s: unknown) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 // <script> 안에 넣는 JSON: </script> 로 끊기지 않게 < 를 이스케이프한다
 const js = (v: unknown) => JSON.stringify(v).replace(/</g, "\\u003c");
+// '지금 고객'에 더하는 회원: 101 · 102를 둘 다 장바구니에 담았다 (cafe24/mock.ts의 CART 범위)
+const CART_SHOPPERS = ["m192", "m196", "m200"];
 // 시연용 실사 상품 사진과 상세 한 줄 (없는 상품은 이름 자리표시)
 const PHOTO: Record<number, { src: string; spec: string }> = {
   102: { src: "/demo/plates.jpg", spec: "핸드메이드 스톤웨어 · 지름 27cm · 4개 1세트 · 식기세척기 사용 가능" },
@@ -22,8 +24,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ no: 
   const raw = req.nextUrl.searchParams.get("member") ?? "";
   const member = isDemoMember(raw) ? raw : "";
   const token = member ? demo.world.encryptMember(DEMO_MALL, member) : "";
+  const option = (m: string, label = m) => `<option value="${m}"${m === member ? " selected" : ""}>${label}</option>`;
   const options = ['<option value="">비회원 (로그인 안 함)</option>']
-    .concat(Array.from({ length: 40 }, (_, i) => `m${(i + 30) * 2}`).map((m) => `<option value="${m}"${m === member ? " selected" : ""}>${m}</option>`))
+    .concat(Array.from({ length: 40 }, (_, i) => option(`m${(i + 30) * 2}`)))
+    .concat(CART_SHOPPERS.map((m) => option(m, `${m} · 장바구니 2개`)))
     .join("");
 
   const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
