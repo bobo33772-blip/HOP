@@ -1,7 +1,8 @@
 /* 찜꽁 상품 페이지 위젯 (의존성 없음). 쇼핑몰 상품 상세에 스크립트 태그로 들어간다.
  * 설치 시 서버가 카페24 스크립트태그로 넣는다: <script src="https://APP/widget.js?mall=MALL_ID&client_id=CLIENT_ID"></script>
  * 고객 화면에는 진행률과 '결제 없는 참여 신청'만 보여 주고, 기존 구매 버튼은 바꾸지 않는다 (쿠폰 받은 회원을 그 버튼으로 안내만 한다).
- * 진행 중인 공구가 없으면 '공구 열리면 알림 받기'를 보여 준다 (카페24 찜 조회 권한 없이 수요를 모으는 경로). */
+ * 진행 중인 공구가 없는 품절 상품에는 '재입고 · 공구 알림 받기'를 보여 준다 (카페24 찜 조회 권한 없이 수요를 모으는 경로).
+ * 재고가 있는 상품에는 알림 버튼을 두지 않는다 (#67): 지금 정가로 살 고객에게 할인을 기다리라고 권하게 된다. */
 (function () {
   'use strict';
   var script = document.currentScript;
@@ -51,7 +52,7 @@
     '.jjg-cnt{font-size:24px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.15}.jjg-cnt small{font-size:13.5px;font-weight:500;color:#6B6973}' +
     '.jjg-price{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.jjg-price b{font-size:17px;color:#E0245E}.jjg-price s{color:#6B6973;font-size:13px}' +
     '.jjg-bar{height:8px;border-radius:99px;background:#F0EEE9;overflow:hidden}.jjg-bar i{display:block;height:100%;min-width:8px;background:linear-gradient(90deg,#FF5C7A,#E0245E);border-radius:99px;transition:width .5s}.jjg-bar.ok i{background:#0F9F6E}' +
-    '.jjg-others{border-top:1px solid #E6E3DD;padding-top:12px;display:grid;gap:8px}.jjg-others>b{font-size:13.5px}' +
+    '.jjg-others{border-top:1px solid #E6E3DD;padding-top:12px;display:grid;gap:8px}.jjg-others:first-child{border-top:0;padding-top:0}.jjg-others>b{font-size:13.5px}' +
     '.jjg a.jjg-other{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #E6E3DD;border-radius:12px;color:#17171C;font-weight:600;text-decoration:none}' +
     '.jjg a.jjg-other:focus-visible{outline:3px solid rgba(224,36,94,.35);outline-offset:2px}.jjg-other>div{flex:1;min-width:0;display:grid;gap:4px}' +
     '.jjg-other small{color:#6B6973;font-size:12.5px;font-weight:500}.jjg-other small.due{color:#B8164A;font-weight:700}.jjg-other .jjg-bar{height:5px}.jjg-other>span{color:#6B6973;font-size:20px;font-weight:400}' +
@@ -77,9 +78,9 @@
   else if (actions) actions.parentNode.insertBefore(root, actions.nextSibling);
   else script.parentNode.insertBefore(root, script.nextSibling);
 
-  // a: '공구 열리면 알림 받기' (진행 중 공구가 없거나 지난 공구가 끝난 상품). 카페24 찜 대신 고객이 직접 신청한다
+  // a: '공구 열리면 알림 받기' (진행 중 공구가 없거나 지난 공구가 끝난 상품). 카페24 찜 대신 고객이 직접 신청한다. soldOut: 품절 상품만 알림 버튼 (#67)
   // others: 이 회원이 장바구니 · 찜 · 알림으로 초대받았거나 신청한 다른 상품의 공구 (#60)
-  var state = { c: null, mine: null, qty: 1, step: 'view', err: '', busy: false, idem: null, a: null, others: [] };
+  var state = { c: null, mine: null, qty: 1, step: 'view', err: '', busy: false, idem: null, a: null, soldOut: false, others: [] };
   var ALERTS = '/api/public/malls/' + encodeURIComponent(MALL) + '/products/' + productNo + '/alerts';
 
   function el(tag, attrs, kids) {
@@ -94,6 +95,8 @@
   }
 
   var alertable = function () { return !state.c || state.c.state === 'failed' || state.c.state === 'settled'; };
+  // 알림 칸을 보여 줄지: 품절 상품이거나, 재고가 다시 생겼어도 이미 신청해 둔 회원(취소할 수 있게)
+  var alertShown = function () { return !!state.a && (state.soldOut || state.a.mine); };
 
   // 로그인하고 돌아오면 하던 신청을 이어서 한다 (#15). 로그인 링크를 누를 때 같은 탭의 sessionStorage에 남기고, 돌아와 한 번 읽으면 지운다.
   // 카페24 로그인 페이지는 같은 쇼핑몰 주소라 같은 탭이면 남아 있다. 저장소가 막힌 브라우저에서는 지금처럼 처음 화면부터 보여 준다
@@ -114,7 +117,7 @@
   function load() {
     return api('GET', '/api/public/malls/' + encodeURIComponent(MALL) + '/products/' + productNo + '/campaign')
       .then(function (j) { state.c = j.campaign; }, function (e) { if (!e || e.error !== 'none') throw e; state.c = null; })
-      .then(function () { return alertable() ? api('GET', ALERTS).then(function (j) { state.a = { waiting: j.waiting, mine: false }; }) : null; })
+      .then(function () { return alertable() ? api('GET', ALERTS).then(function (j) { state.a = { waiting: j.waiting, mine: false }; state.soldOut = !!j.soldOut; }) : null; })
       .then(memberToken)
       .then(function (t) {
         var resume = takeResume();
@@ -128,7 +131,7 @@
       .then(function (resume) {
         // 이어서 하기: 아직 모집 중이고 신청 전이면 수량 폼을, 알림은 아직 신청 전이면 바로 신청한다. 이미 했거나 마감됐으면 상태만 보여 준다
         var form = resume === 'pledge' && state.c && state.c.state === 'open' && !(state.mine && state.mine.state === 'pledged');
-        var notify = resume === 'alert' && state.a && !state.a.mine;
+        var notify = resume === 'alert' && state.a && state.soldOut && !state.a.mine;
         if (form) state.step = 'form';
         render();
         if (notify) alertOn();
@@ -137,22 +140,23 @@
       .catch(function () { root.remove(); });
   }
 
-  // 공구 알림: 진행 중 공구가 없으면 이것만, 지난 공구가 끝났으면 결과 아래에 '다음 공구' 알림으로 붙인다
+  // 공구 알림: 진행 중 공구가 없으면 이것만, 지난 공구가 끝났으면 결과 아래에 '다음 공구' 알림으로 붙인다.
+  // 품절 상품에서는 재입고 알림처럼 말한다 (#67). 재고가 다시 생긴 상품은 이미 신청한 회원에게만 보인다(신청 완료 · 취소)
   function renderAlert(after) {
     var a = state.a;
     if (!after) {
       var badge = el('span', { class: 'jjg-badge' }, ['공구 알림']); badge.insertAdjacentHTML('afterbegin', HEART);
       root.appendChild(el('div', { class: 'jjg-top' }, [badge, a.waiting ? el('span', { class: 'jjg-muted' }, [a.waiting + '명이 기다리고 있어요']) : null]));
-      root.appendChild(el('div', null, [el('b', null, ['이 상품, 공동구매 할인가로 사고 싶다면'])]));
+      root.appendChild(el('div', null, [el('b', null, [state.soldOut ? '품절된 상품이에요. 다시 만들 때 알려 드릴게요' : '공구 알림을 신청해 두셨어요'])]));
     }
-    root.appendChild(el('div', { class: 'jjg-muted' }, [(after ? '다음 공동구매가 열리면' : '알림을 신청해 두면 공동구매가 열릴 때') + ' 할인가와 마감일을 문자로 알려 드려요. 지금 결제하지 않아요.']));
+    root.appendChild(el('div', { class: 'jjg-muted' }, [(after ? '다음 공동구매가 열리면' : '알림을 신청한 분이 모이면 판매자가 공동구매로 다시 만들 수 있어요. 열리면') + ' 할인가와 마감일을 문자로 알려 드려요. 지금 결제하지 않아요.']));
     if (a.mine) {
       root.appendChild(el('div', { class: 'jjg-row' }, [el('b', null, ['알림 신청 완료']), el('button', { class: 'jjg-btn ghost', style: 'width:auto;padding:0 14px', onclick: alertOff }, ['신청 취소'])]));
       root.appendChild(el('div', { class: 'jjg-muted' }, ['쇼핑몰 문자 수신을 거부해 두셨다면 알림을 받지 못할 수 있어요.']));
     } else if (state.step === 'login') {
       root.appendChild(el('div', null, ['회원만 신청할 수 있어요. ', loginLink('alert')]));
     } else {
-      root.appendChild(el('button', { class: 'jjg-btn' + (after ? ' ghost' : ''), onclick: alertOn, disabled: state.busy ? '' : null }, [state.busy ? '신청 중…' : after ? '다음 공구 알림 받기' : '공구 열리면 알림 받기']));
+      root.appendChild(el('button', { class: 'jjg-btn' + (after ? ' ghost' : ''), onclick: alertOn, disabled: state.busy ? '' : null }, [state.busy ? '신청 중…' : after ? '다음 공구 알림 받기' : '재입고 · 공구 알림 받기']));
     }
   }
 
@@ -175,10 +179,11 @@
   }
 
   function render() {
-    var c = state.c; root.textContent = '';
-    if (!c && !state.a) { root.remove(); return; }
+    var c = state.c, showAlert = alertShown(); root.textContent = ''; root.style.display = '';
     if (!c) {
-      renderAlert(false);
+      // 재고 있는 상품(공구 없음)에는 알림 버튼이 없다 (#67). 담아 둔 다른 상품의 공구가 있으면 그것만 보여 준다
+      if (!showAlert && !state.others.length) { root.style.display = 'none'; return; }
+      if (showAlert) renderAlert(false);
       renderOthers();
       if (state.err) root.appendChild(el('div', { class: 'jjg-err', role: 'alert' }, [state.err]));
       root.appendChild(el('div', { class: 'jjg-foot' }, ['찜꽁 예약 공동구매']));
@@ -240,7 +245,7 @@
     } else {
       root.appendChild(el('div', null, ['공동구매가 끝났어요. 참여해 주셔서 감사합니다.']));
     }
-    if (state.a && !(c.state === 'failed' && c.proceedOpen && state.mine)) renderAlert(true); // '그래도 살래요'를 고르는 동안은 다음 공구 알림을 미룬다
+    if (showAlert && !(c.state === 'failed' && c.proceedOpen && state.mine)) renderAlert(true); // '그래도 살래요'를 고르는 동안은 다음 공구 알림을 미룬다
     renderOthers();
     if (state.err) root.appendChild(el('div', { class: 'jjg-err', role: 'alert' }, [state.err]));
     root.appendChild(el('div', { class: 'jjg-foot' }, ['찜꽁 예약 공동구매']));

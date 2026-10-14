@@ -1,4 +1,4 @@
-// GET  /api/public/malls/:mall/products/:no/alerts — 위젯: 이 상품의 공구를 기다리는 사람 수 (숫자만)
+// GET  /api/public/malls/:mall/products/:no/alerts — 위젯: 이 상품의 공구를 기다리는 사람 수와 품절 여부 (알림 버튼은 품절 상품에만, #67)
 // POST /api/public/malls/:mall/products/:no/alerts — '공구 열리면 알림 받기' 신청 (로그인 회원, 같은 회원은 한 번만)
 
 import { CORS, handle, json, limitPledge, preflight, readJson } from "@/lib/http";
