@@ -19,15 +19,15 @@ describe("날짜·시간 표시", () => {
 });
 
 describe("공구 상태 이름표 (#10)", () => {
-  it("판매자 화면은 CHIP 한 곳의 이름을 쓴다: 모집 중 · 달성 · 결제 기간 · 진행 안 됨 · 확정 완료", async () => {
+  it("판매자 화면은 CHIP 한 곳의 이름을 쓴다: 모집 중 · 달성 · 결제 기간 · 진행 안 됨 · 확정 완료 · 취소됨(#65)", async () => {
     const { CHIP } = await import("@/app/console/format");
     expect(Object.fromEntries(Object.entries(CHIP).map(([k, v]) => [k, v[0]]))).toEqual({
-      open: "모집 중", reached: "달성 · 결제 기간", failed: "진행 안 됨", settled: "확정 완료",
+      open: "모집 중", reached: "달성 · 결제 기간", failed: "진행 안 됨", settled: "확정 완료", cancelled: "취소됨",
     });
   });
 
-  it("색: 달성 · 결제 기간은 주황(warn)이라 확정 완료(초록)와 구분된다, 진행 안 됨은 빨강", async () => {
+  it("색: 달성 · 결제 기간은 주황(warn)이라 확정 완료(초록)와 구분된다, 진행 안 됨은 빨강, 취소됨은 기본 회색", async () => {
     const { CHIP } = await import("@/app/console/format");
-    expect(Object.fromEntries(Object.entries(CHIP).map(([k, v]) => [k, v[1]]))).toEqual({ open: "open", reached: "warn", failed: "bad", settled: "ok" });
+    expect(Object.fromEntries(Object.entries(CHIP).map(([k, v]) => [k, v[1]]))).toEqual({ open: "open", reached: "warn", failed: "bad", settled: "ok", cancelled: "" });
   });
 });

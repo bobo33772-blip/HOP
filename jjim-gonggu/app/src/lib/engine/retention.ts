@@ -8,7 +8,7 @@ import type { Ctx } from "./context";
 import { MEMBER_WITHDRAWN, forgetMember } from "./withdrawal";
 
 export const RETENTION = {
-  /** 공구가 끝난(실패 판정 또는 결제 기간 종료) 뒤 고객 회원 ID를 지우기까지 */
+  /** 공구가 끝난(실패 판정, 결제 기간 종료 또는 판매자 취소) 뒤 고객 회원 ID를 지우기까지 */
   campaignDays: 180,
   /** 공구가 열리지 않은 '공구 알림' 신청을 지우기까지 (열리면 초대와 함께 바로 지운다) */
   alertDays: 180,
@@ -42,7 +42,7 @@ export async function purgeExpired(ctx: Ctx) {
 
   // 1) 끝난 지 오래된 공구: 초대 대상·문자 수신자 목록을 지우고, 신청·주문의 회원 ID를 익명 값으로 바꾼다 (수량·금액 통계만 남긴다)
   const old = await ctx.db.select({ id: C.id }).from(C).where(or(
-    and(eq(C.state, "failed"), lt(C.judgedAt, before(RETENTION.campaignDays))),
+    and(inArray(C.state, ["failed", "cancelled"]), lt(C.judgedAt, before(RETENTION.campaignDays))), // 취소한 공구는 취소 시각이 judged_at (#65)
     and(eq(C.state, "settled"), lt(C.settledAt, before(RETENTION.campaignDays))),
   ));
   if (old.length) {

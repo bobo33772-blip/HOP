@@ -94,7 +94,12 @@
       .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw j; return j; }); });
   }
 
-  var alertable = function () { return !state.c || state.c.state === 'failed' || state.c.state === 'settled'; };
+  var alertable = function () { return !state.c || state.c.state === 'failed' || state.c.state === 'settled' || state.c.state === 'cancelled'; };
+  // 판매자가 취소한 공구(#65)는 신청했던 회원에게만 취소 안내로 보여 준다. 그 밖의 고객에게는 공구가 없는 상품처럼 보인다
+  var shownCampaign = function () {
+    var c = state.c, m = state.mine;
+    return c && c.state === 'cancelled' && !(m && (m.state === 'campaign_cancelled' || m.state === 'pledged')) ? null : c;
+  };
   // 알림 칸을 보여 줄지: 품절 상품이거나, 재고가 다시 생겼어도 이미 신청해 둔 회원(취소할 수 있게)
   var alertShown = function () { return !!state.a && (state.soldOut || state.a.mine); };
 
@@ -125,7 +130,7 @@
         var jobs = [];
         if (state.a) jobs.push(api('POST', ALERTS + '/mine', { member_token: t }).then(function (j) { state.a = { waiting: j.waiting, mine: !!j.alert }; }).catch(function () { }));
         // 미달 공구도 '그래도 살래요'를 정할 수 있는 동안은 내 신청을 읽는다
-        if (state.c && (!state.a || state.c.proceedOpen)) jobs.push(api('POST', '/api/public/campaigns/' + state.c.id + '/pledges/mine', { member_token: t }).then(function (j) { state.mine = j.pledge; state.mineFailed = false; }).catch(function () { state.mineFailed = true; }));
+        if (state.c && (!state.a || state.c.proceedOpen || state.c.state === 'cancelled')) jobs.push(api('POST', '/api/public/campaigns/' + state.c.id + '/pledges/mine', { member_token: t }).then(function (j) { state.mine = j.pledge; state.mineFailed = false; }).catch(function () { state.mineFailed = true; }));
         return Promise.all(jobs).then(function () { return resume; });
       })
       .then(function (resume) {
@@ -179,7 +184,7 @@
   }
 
   function render() {
-    var c = state.c, showAlert = alertShown(); root.textContent = ''; root.style.display = '';
+    var c = shownCampaign(), showAlert = alertShown(); root.textContent = ''; root.style.display = '';
     if (!c) {
       // 재고 있는 상품(공구 없음)에는 알림 버튼이 없다 (#67). 담아 둔 다른 상품의 공구가 있으면 그것만 보여 준다
       if (!showAlert && !state.others.length) { root.style.display = 'none'; return; }
@@ -193,12 +198,21 @@
     var bar = el('div', { class: 'jjg-bar' + (ok ? ' ok' : ''), role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': String(c.targetQty), 'aria-valuenow': String(c.pledgedQty) }, [el('i', { style: 'width:' + Math.min(100, c.pledgedQty / c.targetQty * 100) + '%' })]);
     // 상태 이름표 (#10). 위젯은 앱 코드를 불러올 수 없어 이름표를 따로 둔다. 판매자 화면과 다르게 쓰는 것:
     // 목표 달성(초록) — 고객에게는 "쿠폰을 받았다"가 핵심이라 '달성 · 결제 기간' 대신 / 진행 안 됨(회색) — 고객을 놀라게 하지 않게 판매자 화면의 빨강 대신 /
-    // 공동구매 종료 — 고객 입장의 말로 '확정 완료' 대신 / 그래도 진행 — 미달 뒤 판매자가 진행한 공구(#24)
-    var label = c.proceeded && c.state === 'reached' ? ['그래도 진행', 'ok'] : { open: ['공동구매 모집 중', ''], reached: ['목표 달성', 'ok'], settled: ['공동구매 종료', 'ok'], failed: ['진행 안 됨', 'no'] }[c.state];
+    // 공동구매 종료 — 고객 입장의 말로 '확정 완료' 대신 / 그래도 진행 — 미달 뒤 판매자가 진행한 공구(#24) / 공동구매 취소(회색) — 판매자가 모집 중에 취소한 공구(#65)
+    var label = c.proceeded && c.state === 'reached' ? ['그래도 진행', 'ok'] : { open: ['공동구매 모집 중', ''], reached: ['목표 달성', 'ok'], settled: ['공동구매 종료', 'ok'], failed: ['진행 안 됨', 'no'], cancelled: ['공동구매 취소', 'no'] }[c.state];
     var badge = el('span', { class: 'jjg-badge ' + label[1] }, [label[0]]); badge.insertAdjacentHTML('afterbegin', HEART);
     // 결제 기간에는 이미 지난 모집 마감 대신 결제 마감을 보여 준다
     var paying = c.state === 'reached' && c.payUntil;
-    root.appendChild(el('div', { class: 'jjg-top' }, [badge, el('span', { class: 'jjg-muted' }, [paying ? '결제 마감 ' + when(c.payUntil) : when(c.deadlineAt) + ' 마감'])]));
+    root.appendChild(el('div', { class: 'jjg-top' }, [badge, el('span', { class: 'jjg-muted' }, [paying ? '결제 마감 ' + when(c.payUntil) : c.state === 'cancelled' ? '' : when(c.deadlineAt) + ' 마감'])]));
+    if (c.state === 'cancelled') {
+      // 취소한 공구는 진행률 · 가격 없이 안내만. 품절 상품이면 다음 공구 알림을 붙인다
+      root.appendChild(el('div', null, ['판매자 사정으로 공동구매가 취소됐어요. 결제된 금액은 없어요. 신청해 주셔서 감사해요.']));
+      if (showAlert) renderAlert(true);
+      renderOthers();
+      if (state.err) root.appendChild(el('div', { class: 'jjg-err', role: 'alert' }, [state.err]));
+      root.appendChild(el('div', { class: 'jjg-foot' }, ['찜꽁 예약 공동구매']));
+      return;
+    }
     root.appendChild(el('div', { class: 'jjg-row' }, [el('div', { class: 'jjg-cnt' }, [String(c.pledgedQty), el('small', null, [' / ' + c.targetQty + '개 모였어요'])]),
       el('div', { class: 'jjg-price' }, [el('s', null, [won(c.listPrice)]), el('b', null, [won(c.dealPrice)])])]));
     root.appendChild(bar);
