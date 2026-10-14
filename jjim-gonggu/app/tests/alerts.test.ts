@@ -31,7 +31,7 @@ describe("알림 신청", () => {
     expect(first.waiting).toBe(1);
     expect((await requestAlert(env.ctx, MALL, PRODUCT, tok(env, "m1"))).waiting).toBe(1);
     await requestAlert(env.ctx, MALL, PRODUCT, tok(env, "m2"));
-    expect(await publicAlertView(env.ctx, MALL, PRODUCT)).toEqual({ productNo: PRODUCT, waiting: 2 });
+    expect(await publicAlertView(env.ctx, MALL, PRODUCT)).toEqual({ productNo: PRODUCT, waiting: 2, soldOut: true });
 
     expect((await myAlert(env.ctx, MALL, PRODUCT, tok(env, "m2"))).alert).not.toBeNull();
     expect(await cancelAlert(env.ctx, MALL, PRODUCT, tok(env, "m2"))).toEqual({ alert: null, waiting: 1 });
@@ -47,6 +47,28 @@ describe("알림 신청", () => {
     await expect(requestAlert(env.ctx, MALL, "abc", tok(env, "m1"))).rejects.toThrow(/상품/);
     await expect(requestAlert(env.ctx, MALL, 999, tok(env, "m1"))).rejects.toThrow(/상품을 찾을 수 없어요/); // 몰에 없는 상품 (#21)
     expect((await publicAlertView(env.ctx, MALL, 999)).waiting).toBe(0);
+  });
+});
+
+describe("품절 상품만 (#67)", () => {
+  it("재고가 있는 상품은 알림을 받지 않고, 위젯에 주는 품절 여부는 상품마다 10분 동안 저장해 둔 값을 쓴다", async () => {
+    const env = await noPrivacy();
+    await expect(requestAlert(env.ctx, MALL, 103, tok(env, "m1"))).rejects.toThrow(/품절된 상품만/);
+    expect(await publicAlertView(env.ctx, MALL, 103)).toEqual({ productNo: 103, waiting: 0, soldOut: false });
+    env.world.setSoldOut(MALL, 103, true);
+    expect((await publicAlertView(env.ctx, MALL, 103)).soldOut).toBe(false); // 10분 안에는 카페24를 다시 부르지 않는다
+    env.clock.advance(10 * 60_000);
+    expect((await publicAlertView(env.ctx, MALL, 103)).soldOut).toBe(true);
+    await requestAlert(env.ctx, MALL, 103, tok(env, "m1"));
+  });
+
+  it("다시 입고돼도 이미 신청한 회원은 조회 · 취소할 수 있다 (상품 페이지에서 언제든 취소)", async () => {
+    const env = await noPrivacy();
+    env.world.setSoldOut(MALL, 103, true);
+    await requestAlert(env.ctx, MALL, 103, tok(env, "m1"));
+    env.world.setSoldOut(MALL, 103, false);
+    expect((await myAlert(env.ctx, MALL, 103, tok(env, "m1"))).alert).not.toBeNull();
+    expect((await cancelAlert(env.ctx, MALL, 103, tok(env, "m1"))).waiting).toBe(0);
   });
 });
 
@@ -82,6 +104,7 @@ describe("공구 개설과 알림 신청", () => {
 
   it("장바구니 고객이 없어도 알림 신청만으로 공구를 열 수 있다", async () => {
     const env = await noPrivacy();
+    env.world.setSoldOut(MALL, 103, true); // 알림은 품절 상품만 (#67)
     await requestAlert(env.ctx, MALL, 103, tok(env, "m4"));
     const input = { ...baseInput(env.clock), productNo: 103, dealPrice: 69000, costPrice: 50000 };
     const pv = await previewCampaign(env.ctx, MALL, input);
@@ -102,6 +125,7 @@ describe("수요 레이더와 보관 기간", () => {
     const env = await noPrivacy();
     const { run } = await startCollection(env.db, MALL);
     await runCollection(env.db, await env.ctx.shop(MALL), MALL, run.id);
+    env.world.setSoldOut(MALL, 103, true);
     for (const m of ["m1", "m2", "m3"]) await requestAlert(env.ctx, MALL, 103, tok(env, m));
     const byAlert = await getRadar(env.db, MALL, "alert");
     expect(byAlert.rows[0]).toMatchObject({ productNo: 103, alert: 3, wishlist: 0, cart: 0 });

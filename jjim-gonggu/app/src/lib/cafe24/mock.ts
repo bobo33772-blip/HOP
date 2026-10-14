@@ -46,6 +46,11 @@ export class MockCafe24 {
   withdrawMember(mallId: string, memberId: string) { this.mall(mallId).members.delete(memberId); }
   addWish(mallId: string, productNo: number, memberId: string) { this.bucket(this.mall(mallId).wishlists, productNo).add(memberId); }
   addCart(mallId: string, productNo: number, memberId: string) { this.bucket(this.mall(mallId).carts, productNo).add(memberId); }
+  /** 품절 · 재입고 (상품 목록 배열은 데모와 같이 쓰므로 고치지 않고 바꿔 끼운다) */
+  setSoldOut(mallId: string, productNo: number, soldOut: boolean) {
+    const m = this.mall(mallId);
+    m.products = m.products.map((p) => (p.productNo === productNo ? { ...p, soldOut } : p));
+  }
   onWebhook(fn: (e: MockWebhook) => Promise<void> | void) { this.listeners.push(fn); }
 
   /** 쇼핑몰 프런트(Front SDK)가 위젯에 넘겨주는 암호화 회원 ID를 흉내 낸다 */

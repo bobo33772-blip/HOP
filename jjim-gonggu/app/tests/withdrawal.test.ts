@@ -19,6 +19,7 @@ async function reachedWithM2() {
   env.clock.advance(5 * 24 * HOUR);
   await tick(env.ctx);
   await env.world.placeOrder(MALL, "m2", PRODUCT, 1, (await getCampaign(env.ctx, c.id)).couponNo!);
+  env.world.setSoldOut(MALL, 103, true); // 알림은 품절 상품만 (#67)
   await requestAlert(env.ctx, MALL, 103, { member_token: env.world.encryptMember(MALL, "m2") });
   return { env, c };
 }
