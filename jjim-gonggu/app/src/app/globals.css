@@ -6,7 +6,7 @@
    - 숫자는 고정폭(tabular)으로 정렬 */
 :root {
   --ink: #364a63; --on-ink: #fff;
-  --brand: #e94162; --brand-2: #e94162; --brand-soft: #fdecf0; --brand-ink: #cf3556;
+  --brand: #e94162; --brand-2: #e94162; --brand-soft: #fdecf0; --brand-ink: #c22d4d;
   --primary: var(--brand);
   --success: #0f9f6e; --warning: #c77700; --danger: #d4380d;
   --bg: #f5f6fa; --surface: #fff; --line: #dbdfea; --soft: #eef0f5; --fg: #364a63; --fg2: #526484; --muted: #64748b;
@@ -80,7 +80,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .shop { color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 30vw; }
 .tabs { display: flex; gap: 2px; margin-left: auto; overflow-x: auto; scrollbar-width: none; }
 .tabs a, .tabs button { border: 0; background: none; color: var(--fg2); padding: 8px 12px; border-radius: var(--r-sm); font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap; }
-.tabs a:hover, .tabs button:hover { color: var(--fg); background: var(--soft); }
+.tabs a:not([aria-current="page"]):hover, .tabs button:not([aria-selected="true"]):hover { color: var(--fg); background: var(--soft); }
 .tabs [aria-current="page"], .tabs [aria-selected="true"] { background: var(--brand-soft); color: var(--brand-ink); }
 .tabs svg { display: none; }
 @media (max-width: 560px) { .shop { display: none; } .tabs a, .tabs button { padding: 8px 9px; } }
@@ -201,8 +201,8 @@ details.card { display: block; }
 details.card > :not(summary) { margin-top: 8px; }
 
 /* 판매자 사이드바: 넓은 화면(900px 이상)에서 상단바(.appbar.side)를 왼쪽 흰 세로 메뉴로 바꾼다.
-   그보다 좁으면 위쪽 가로 메뉴 그대로. 운영자 상단바(.appbar)는 바꾸지 않는다 */
-@media (min-width: 900px) {
+   그보다 좁거나 :has()를 모르는 브라우저면 위쪽 가로 메뉴 그대로. 운영자 상단바(.appbar)는 바꾸지 않는다 */
+@media (min-width: 900px) { @supports selector(:has(a)) {
   .appbar.side { position: fixed; inset: 0 auto 0 0; width: var(--side); border-bottom: 0; border-right: 1px solid var(--line); overflow-y: auto; }
   .appbar.side .in { flex-direction: column; align-items: stretch; gap: 4px; max-width: none; padding: 22px 14px; }
   .appbar.side .logo { padding: 0 10px 16px; }
@@ -214,4 +214,4 @@ details.card > :not(summary) { margin-top: 8px; }
   body:has(.appbar.side) main { padding: 32px 28px 72px; }
   body:has(.appbar.side) main:not(.wide) { max-width: 960px; }
   body:has(.appbar.side) .toast { left: calc(50% + var(--side) / 2); }
-}
+} }
