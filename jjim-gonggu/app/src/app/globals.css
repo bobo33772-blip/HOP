@@ -104,6 +104,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .appbar:not(.side) select { flex: 0 1 auto; min-width: 0; max-width: 100%; }
   .appbar:not(.side) .small, .appbar .ghost { white-space: nowrap; }
 }
+/* 휴대폰에서는 '쇼핑몰' 글씨를 화면에서만 숨긴다(선택칸의 label이라 화면 읽기에는 남는다) */
+@media (max-width: 560px) { .appbar:not(.side) label.small { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); } }
 
 /* 홈 */
 .hello { display: grid; gap: 4px; }
