@@ -52,9 +52,10 @@ export default function SellerConsole({ mallId, initialTab, initialOpen }: { mal
             {tab === "list" && <ListTab mall={mallId} openId={openId} setOpenId={setOpenId} say={say} goNew={() => setTab("new")} />}
             {tab === "new" && <NewTab mall={mallId} say={say} onOpened={(id) => { setOpenId(id); setTab("list"); }} />}
             {tab === "profile" && <p className="note">광고 문자 맨 앞에 브랜드명이, 끝에 무료수신거부 번호가 자동으로 붙어요. 발신번호는 카페24 관리자 › SMS 발신번호 관리에 등록된 번호여야 해요.</p>}
-            {tab === "profile" && <ThemeSetting />}
           </ConsoleProvider>
         )}
+        {/* 화면 밝기 (#85): 휴대폰에서는 상단바 버튼이 없어서 여기서 바꾼다 */}
+        {tab === "profile" && <ThemeSetting />}
       </main>
       {node}
     </>
