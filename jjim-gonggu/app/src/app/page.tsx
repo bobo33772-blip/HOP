@@ -112,7 +112,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
         <a className="btn dark compact" href="/campaigns?tab=new">＋ 새 공구 열기</a>
 
         <details className="card">
-          <summary>셀러 가이드라인</summary>
+          <summary>셀러 가이드라인 자세히 보기</summary>
           <SellerGuide />
         </details>
         <nav className="legal"><a href="/privacy">개인정보 처리방침</a><a href="/terms">이용약관</a></nav>
