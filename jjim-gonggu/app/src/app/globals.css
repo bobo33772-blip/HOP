@@ -1,12 +1,12 @@
 /* 찜꽁 디자인 토큰 (DashLite풍 화이트)
    - 연회색 바탕 위 흰 카드, 얇은 테두리, 그림자 없음, 슬레이트 글자
    - 포인트색(#E94162)은 화면의 약 6%: 주 버튼 · 선택 메뉴 · 진행 막대 · 모집 중 칩에만
-   - 작은 분홍 글씨는 대비를 위해 한 단계 진한 --brand-ink를 쓴다
+   - 작은 분홍 글씨는 대비를 위해 한 단계 진한 --brand-ink를, 흰 글씨를 얹는 주 버튼은 --brand-strong을 쓴다
    - 보조 버튼은 진한 슬레이트(--ink), 성공 초록, 위험 주홍
    - 숫자는 고정폭(tabular)으로 정렬 */
 :root {
   --ink: #364a63; --on-ink: #fff;
-  --brand: #e94162; --brand-2: #e94162; --brand-soft: #fdecf0; --brand-ink: #c22d4d;
+  --brand: #e94162; --brand-2: #e94162; --brand-soft: #fdecf0; --brand-ink: #c22d4d; --brand-strong: #d63556;
   --primary: var(--brand);
   --success: #0f9f6e; --warning: #c77700; --danger: #d4380d;
   --bg: #f5f6fa; --surface: #fff; --line: #dbdfea; --soft: #eef0f5; --fg: #364a63; --fg2: #526484; --muted: #64748b;
@@ -17,7 +17,7 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --ink: #e5e9f2; --on-ink: #101924;
-    --brand: #e94162; --brand-2: #e94162; --brand-soft: #3a1f2b; --brand-ink: #f2738f;
+    --brand: #e94162; --brand-2: #e94162; --brand-soft: #3a1f2b; --brand-ink: #f2738f; --brand-strong: #d63556;
     --success: #34d399; --warning: #f5b342; --danger: #ff7a59;
     --bg: #0d141d; --surface: #141c26; --line: #26303d; --soft: #1c2532; --fg: #e5e9f2; --fg2: #a9b4c4; --muted: #8392a5;
     --shadow: none; --shadow-pop: 0 8px 24px rgba(0, 0, 0, .45);
@@ -52,8 +52,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   background: var(--ink); color: var(--on-ink); font-weight: 700; text-decoration: none; padding: 0 18px; transition: transform .08s, opacity .15s, background .15s;
 }
 .btn:active { transform: scale(.98); }
-.btn.brand { background: var(--brand); color: #fff; }
-.btn.brand:hover { background: color-mix(in srgb, var(--brand) 88%, #000); }
+.btn.brand { background: var(--brand-strong); color: #fff; }
+.btn.brand:hover { background: color-mix(in srgb, var(--brand-strong) 88%, #000); }
 .ghost {
   display: inline-flex; justify-content: center; align-items: center; gap: 6px; min-height: 40px; border: 1px solid var(--line); background: var(--surface);
   color: var(--fg); border-radius: var(--r-sm); padding: 0 14px; font-weight: 600; font-size: 14px; text-decoration: none;
@@ -127,13 +127,17 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .list li + li { border-top: 1px solid var(--line); }
 .item { width: 100%; border: 0; background: none; color: var(--fg); text-align: left; display: flex; gap: 12px; align-items: center; padding: 13px 16px; }
 .item:hover { background: var(--soft); }
-.rank { font-weight: 750; font-size: 14px; color: var(--brand-ink); width: 20px; flex: none; font-variant-numeric: tabular-nums; }
+.rank { font-weight: 750; font-size: 14px; color: var(--fg2); width: 20px; flex: none; font-variant-numeric: tabular-nums; }
 .meta { display: grid; gap: 3px; flex: 1; min-width: 0; }
 .meta b { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .meta small { color: var(--fg2); font-size: 12.5px; font-variant-numeric: tabular-nums; }
 .bars { display: flex; gap: 2px; height: 6px; margin-top: 3px; }
-.bars i, .legend i { display: block; height: 6px; border-radius: 3px; background: var(--brand); }
-.bars i.c, .legend i.c { background: color-mix(in srgb, var(--brand) 35%, var(--surface)); }
+/* 막대는 슬레이트, 1위 줄만 포인트색(포인트색 6% 유지) */
+.bars i, .legend i { display: block; height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--fg2) 70%, var(--surface)); }
+.bars i.c, .legend i.c { background: color-mix(in srgb, var(--fg2) 25%, var(--surface)); }
+.list li:first-child .rank { color: var(--brand-ink); }
+.list li:first-child .bars i { background: var(--brand); }
+.list li:first-child .bars i.c { background: color-mix(in srgb, var(--brand) 35%, var(--surface)); }
 .legend { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; color: var(--muted); font-size: 12.5px; margin: 0; }
 .legend i { width: 14px; display: inline-block; }
 .chev { color: var(--muted); font-size: 18px; }
