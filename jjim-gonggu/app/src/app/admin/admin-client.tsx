@@ -1,6 +1,6 @@
 "use client";
 
-// 운영자 화면: 공구 목록·상세 / 새 공구(찜 많은 상품 → 조건 → 미리보기 → 열기) / 4주 판정표.
+// 운영자 화면: 공구 목록·상세 / 새 공구(장바구니 · 알림 신청 많은 상품 → 조건 → 미리보기 → 열기) / 4주 판정표.
 
 import { useCallback, useEffect, useState } from "react";
 import { ConsoleProvider, useToast } from "../console/provider";

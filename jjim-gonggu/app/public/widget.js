@@ -79,7 +79,7 @@
   else script.parentNode.insertBefore(root, script.nextSibling);
 
   // a: '공구 열리면 알림 받기' (진행 중 공구가 없거나 지난 공구가 끝난 상품). 카페24 찜 대신 고객이 직접 신청한다. soldOut: 품절 상품만 알림 버튼 (#67)
-  // others: 이 회원이 장바구니 · 찜 · 알림으로 초대받았거나 신청한 다른 상품의 공구 (#60)
+  // others: 이 회원이 장바구니 · 알림으로 초대받았거나 신청한 다른 상품의 공구 (#60)
   var state = { c: null, mine: null, qty: 1, step: 'view', err: '', busy: false, idem: null, a: null, soldOut: false, others: [] };
   var ALERTS = '/api/public/malls/' + encodeURIComponent(MALL) + '/products/' + productNo + '/alerts';
 
@@ -145,6 +145,10 @@
       .catch(function () { root.remove(); });
   }
 
+  // 결제 자리 (꺼진 버튼): 공구가 열리기 전 · 모집 중에는 결제가 언제 열리는지 미리 보여 준다.
+  // 쿠폰을 받으면 같은 자리에 '쿠폰 쓰고 결제하러 가기'가 켜진다(쇼핑몰 구매 버튼으로 안내, #58). 위젯 안에서 결제하지는 않는다
+  function payLater(text) { return el('button', { class: 'jjg-btn ghost', disabled: '' }, [text]); }
+
   // 공구 알림: 진행 중 공구가 없으면 이것만, 지난 공구가 끝났으면 결과 아래에 '다음 공구' 알림으로 붙인다.
   // 품절 상품에서는 재입고 알림처럼 말한다 (#67). 재고가 다시 생긴 상품은 이미 신청한 회원에게만 보인다(신청 완료 · 취소)
   function renderAlert(after) {
@@ -163,6 +167,7 @@
     } else {
       root.appendChild(el('button', { class: 'jjg-btn' + (after ? ' ghost' : ''), onclick: alertOn, disabled: state.busy ? '' : null }, [state.busy ? '신청 중…' : after ? '다음 공구 알림 받기' : '재입고 · 공구 알림 받기']));
     }
+    if (!after) root.appendChild(payLater('결제하기 · 공구 목표를 채우면 켜져요'));
   }
 
   // 담아 둔 다른 상품의 공구 (#60): 모집 중이면 진행률 · 공구가, 쿠폰을 받았으면 결제 마감. 누르면 그 상품 페이지로
@@ -236,6 +241,7 @@
       } else {
         root.appendChild(el('button', { class: 'jjg-btn', onclick: start }, ['참여 신청 · 지금 결제 없음']));
       }
+      if (state.step !== 'form') root.appendChild(payLater('결제하기 · 목표를 채우면 마감 뒤 켜져요'));
     } else if (c.state === 'reached') {
       var mine = state.mine;
       if (mine && mine.state === 'coupon_issued') {

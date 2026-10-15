@@ -75,19 +75,19 @@ describe("품절 상품만 (#67)", () => {
 describe("공구 개설과 알림 신청", () => {
   it("알림 신청 회원이 장바구니 회원과 함께 초대되고, 겹치면 한 번만 센다", async () => {
     const env = await noPrivacy();
-    for (const m of ["m1", "m2", "m100"]) await requestAlert(env.ctx, MALL, PRODUCT, tok(env, m)); // m100은 장바구니에도 있다
+    for (const m of ["m150", "m151", "m100"]) await requestAlert(env.ctx, MALL, PRODUCT, tok(env, m)); // 장바구니는 m1~m139라 m100만 겹친다
     const pv = await previewCampaign(env.ctx, MALL, baseInput(env.clock));
-    expect(pv.audience).toEqual({ alert: 3, wishlist: 0, cart: 40, unique: 42, reachable: 42, consentChecked: false });
+    expect(pv.audience).toEqual({ alert: 3, cart: 139, unique: 141, reachable: 141, consentChecked: false });
     expect(pv.message).toMatch(/관심 가져 주신 스톤웨어/);
 
     const { campaign, invited } = await openCampaign(env.ctx, "op", MALL, baseInput(env.clock));
-    expect(invited).toBe(42);
+    expect(invited).toBe(141);
     const inv = await env.db.select().from(schema.invitations).where(eq(schema.invitations.campaignId, campaign.id));
     expect(inv.find((i) => i.memberId === "m100")?.source).toBe("alert");
     // 초대가 나갔으니 알림 신청은 비운다
     expect((await publicAlertView(env.ctx, MALL, PRODUCT)).waiting).toBe(0);
     await tick(env.ctx);
-    expect(env.world.smsLog[0].memberIds).toContain("m2");
+    expect(env.world.smsLog.flatMap((s) => s.memberIds)).toContain("m150"); // 초대 문자는 100명씩 나눠 보낸다
   });
 
   it("개인정보 권한이 있는 몰: 수신 동의가 없어 초대에서 빠진 알림 신청은 지우지 않는다", async () => {
@@ -128,8 +128,8 @@ describe("수요 레이더와 보관 기간", () => {
     env.world.setSoldOut(MALL, 103, true);
     for (const m of ["m1", "m2", "m3"]) await requestAlert(env.ctx, MALL, 103, tok(env, m));
     const byAlert = await getRadar(env.db, MALL, "alert");
-    expect(byAlert.rows[0]).toMatchObject({ productNo: 103, alert: 3, wishlist: 0, cart: 0 });
-    expect(byAlert.rows.find((r) => r.productNo === PRODUCT)).toMatchObject({ alert: 0, cart: 40 });
+    expect(byAlert.rows[0]).toMatchObject({ productNo: 103, alert: 3, cart: 0 });
+    expect(byAlert.rows.find((r) => r.productNo === PRODUCT)).toMatchObject({ alert: 0, cart: 139 });
   });
 
   it("공구가 열리지 않은 알림 신청은 180일 뒤 지운다", async () => {

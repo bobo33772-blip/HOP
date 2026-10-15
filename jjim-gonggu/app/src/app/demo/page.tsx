@@ -20,7 +20,7 @@ export default async function DemoPage() {
       <div className="card">
         <b>1. 운영자 화면에서 공구 열기</b>
         <span className="muted">운영자 토큰: <code>{env().adminToken}</code></span>
-        <span className="muted">새 공구 → 찜 데이터 모으기 → 상품 선택 → 미리보기 → 공구 열기</span>
+        <span className="muted">새 공구 → 관심 데이터 모으기 → 상품 선택 → 미리보기 → 공구 열기</span>
         <a className="btn" href="/admin" style={{ width: "max-content" }}>운영자 화면 열기</a>
       </div>
       <div className="card">

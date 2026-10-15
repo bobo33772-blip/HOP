@@ -1,4 +1,4 @@
-// 모의 카페24. 앱 등록 전에도 데모·테스트에서 전체 흐름(찜 → 초대 → 신청 → 쿠폰 → 결제)을 돌려 보기 위한 것이다.
+// 모의 카페24. 앱 등록 전에도 데모·테스트에서 전체 흐름(장바구니 → 초대 → 신청 → 쿠폰 → 결제)을 돌려 보기 위한 것이다.
 // 데이터는 모두 예시이며 실존 브랜드·회원이 아니다. 실제 카페24와 다를 수 있는 부분은 api.ts의 VERIFY 표시를 본다.
 
 import { createHmac, timingSafeEqual } from "node:crypto";
@@ -11,7 +11,6 @@ export type MockWebhook = { event_no: number; resource: { mall_id: string; order
 interface MockMall {
   products: Product[];
   members: Map<string, { sms: boolean }>;
-  wishlists: Map<number, Set<string>>;
   carts: Map<number, Set<string>>;
   coupons: Map<string, Coupon>;
   orders: Map<string, OrderInfo>;
@@ -29,7 +28,7 @@ export class MockCafe24 {
   failNextCouponHolders = false;
   /** 다음 회원 조회를 한 번 실패시킨다 (탈퇴 웹훅 재시도 테스트용) */
   failNextMemberLookup = false;
-  /** 개인정보 권한 여부 (false면 찜·수신 동의 조회 불가 → 장바구니 고객 공구) */
+  /** 개인정보 권한 여부 (false면 수신 동의 조회 불가 → 카페24 발송 단계에서 수신거부 제외) */
   privacy = true;
   /** 실제 카페24처럼 상품마다 조회 시간이 걸리는 것을 흉내 낸다 (첫 수집 화면 확인용) */
   delayMs = 0;
@@ -39,12 +38,11 @@ export class MockCafe24 {
   constructor(private clock: Clock, private secret = "mock-member-key") {}
 
   addMall(mallId: string, products: Product[]) {
-    this.malls.set(mallId, { products, members: new Map(), wishlists: new Map(), carts: new Map(), coupons: new Map(), orders: new Map() });
+    this.malls.set(mallId, { products, members: new Map(), carts: new Map(), coupons: new Map(), orders: new Map() });
   }
   addMember(mallId: string, memberId: string, sms: boolean) { this.mall(mallId).members.set(memberId, { sms }); }
   /** 회원 탈퇴 (카페24는 이때 회원 탈퇴 웹훅 90147을 보낸다) */
   withdrawMember(mallId: string, memberId: string) { this.mall(mallId).members.delete(memberId); }
-  addWish(mallId: string, productNo: number, memberId: string) { this.bucket(this.mall(mallId).wishlists, productNo).add(memberId); }
   addCart(mallId: string, productNo: number, memberId: string) { this.bucket(this.mall(mallId).carts, productNo).add(memberId); }
   /** 품절 · 재입고 (상품 목록 배열은 데모와 같이 쓰므로 고치지 않고 바꿔 끼운다) */
   setSoldOut(mallId: string, productNo: number, soldOut: boolean) {
@@ -116,9 +114,7 @@ export class MockCafe24 {
       get privacy() { return w.privacy; },
       async listProducts(offset, limit) { return m().products.slice(offset, offset + limit); },
       async getProduct(n) { return m().products.find((p) => p.productNo === n) ?? null; },
-      async wishlistCount(n) { await w.delay(); return m().wishlists.get(n)?.size ?? 0; },
       async cartCount(n) { return m().carts.get(n)?.size ?? 0; },
-      async wishlistMembers(n) { return [...(m().wishlists.get(n) ?? [])].slice(0, 100); }, // 실제 API처럼 100명에서 끊긴다 (P8)
       async cartMembers(n) { return [...(m().carts.get(n) ?? [])]; },
       async consents(ids): Promise<MemberConsent[]> { return ids.map((id) => ({ memberId: id, sms: !!m().members.get(id)?.sms })); },
       async createCoupon(spec) {
@@ -186,14 +182,12 @@ export const DEMO_PRODUCTS: Product[] = [
   { productNo: 106, name: "세라믹 머그 2P", price: 28_000 },
 ];
 
-// 찜·장바구니 회원 범위 [시작, 끝] (회원 m1~m400)
-const WISH: Record<number, [number, number]> = { 101: [1, 180], 102: [60, 200], 103: [150, 240], 104: [300, 330], 106: [331, 340] };
-const CART: Record<number, [number, number]> = { 101: [170, 200], 102: [190, 230], 103: [235, 250], 104: [330, 335], 105: [380, 382] };
+// 장바구니 회원 범위 [시작, 끝] (회원 m1~m400). 찜을 빼면서(#81) 예전 찜 회원도 장바구니로 옮겨 데모 초대 인원을 비슷하게 둔다
+const CART: Record<number, [number, number]> = { 101: [1, 200], 102: [60, 230], 103: [150, 250], 104: [300, 335], 105: [380, 382], 106: [331, 340] };
 
 /** 회원 400명, 약 60% 문자 수신 동의 */
 export function seedDemoMall(w: MockCafe24, mallId = DEMO_MALL) {
   w.addMall(mallId, DEMO_PRODUCTS);
   for (let i = 1; i <= 400; i++) w.addMember(mallId, `m${i}`, (i * 37) % 10 < 6);
-  for (const [no, [a, b]] of Object.entries(WISH)) for (let i = a; i <= b; i++) w.addWish(mallId, Number(no), `m${i}`);
   for (const [no, [a, b]] of Object.entries(CART)) for (let i = a; i <= b; i++) w.addCart(mallId, Number(no), `m${i}`);
 }

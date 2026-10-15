@@ -27,7 +27,7 @@ export const oauthStates = pgTable("oauth_states", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-// 수요 레이더 수집 1회 = run 1개. 찜 웹훅이 없어 상품 단위로 하나씩 묻는 배치라 수 분~수 시간 걸릴 수 있다.
+// 수요 레이더 수집 1회 = run 1개. 장바구니 수를 상품 단위로 하나씩 묻는 배치라 수 분~수 시간 걸릴 수 있다.
 export const collectionRuns = pgTable("collection_runs", {
   id: serial("id").primaryKey(),
   mallId: text("mall_id").notNull(),
@@ -47,7 +47,7 @@ export const demandSnapshots = pgTable("demand_snapshots", {
   productName: text("product_name").notNull(),
   price: integer("price").notNull(),
   soldOut: boolean("sold_out").notNull().default(false),
-  wishlistCount: integer("wishlist_count").notNull(),
+  wishlistCount: integer("wishlist_count").notNull(), // 쓰지 않음(찜 뺌 #81). 0으로 채우고, 다음 DB 작업 때 지운다
   cartCount: integer("cart_count").notNull(),
   collectedAt: timestamp("collected_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index("demand_mall_idx").on(t.mallId, t.collectedAt)]);
@@ -97,7 +97,7 @@ export const campaigns = pgTable("campaigns", {
 export const invitations = pgTable("invitations", {
   campaignId: uuid("campaign_id").notNull().references(() => campaigns.id),
   memberId: text("member_id").notNull(),
-  source: text("source").notNull(), // alert | wishlist | cart | both
+  source: text("source").notNull(), // alert | cart (찜을 빼기 전 기록은 wishlist | both도 있다, #81)
 }, (t) => [primaryKey({ columns: [t.campaignId, t.memberId] })]);
 
 // state: pledged | cancelled | coupon_issued | paid | expired | not_reached | still_wanted(미달 뒤 '그래도 살래요') | campaign_cancelled(판매자가 공구를 취소, #65)
