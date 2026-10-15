@@ -37,23 +37,23 @@ const SETTINGS: { item: string; pick: ReactNode; why: string }[] = [
   { item: "알림 유효 기간", pick: <><span className={s.pill}>3개월</span> 이상</>, why: "기간이 지난 신청에는 알림이 가지 않습니다. 목표를 채우는 데 걸리는 기간보다 길게 잡으세요. (1·3·6·12개월 중 선택)" },
   { item: "버튼 노출 여부", pick: <span className={s.pill}>노출함</span>, why: "버튼을 켜는 스위치입니다." },
   { item: "버튼 노출 대상", pick: <span className={s.pill}>전체</span>, why: "비회원도 신청할 수 있어 수요가 더 많이 쌓입니다. 회원만 받으려면 \"회원\"을 고릅니다." },
-  { item: "버튼 노출 방법", pick: <span className={s.pill}>상품별</span>, why: "카페24 안내의 기본 조건입니다. 옵션마다 따로 받으려면 품목별을 고릅니다." },
-  { item: "버튼 노출 상품", pick: <>전체<br /><span className={s.sub}>필요하면 일부 제외</span></>, why: "단종될 상품처럼 다시 들여올 수 없는 상품은 제외합니다." },
+  { item: "버튼 노출 방법", pick: <span className={s.pill}>상품별</span>, why: "카페24 안내의 기본 조건입니다. 옵션(품목)마다 따로 받으려면 품목 단위로 노출하는 선택지를 고릅니다." },
+  { item: "버튼 노출 상품", pick: <>신청을 받을 품절 상품이 모두 포함되게 두기<br /><span className={s.sub}>필요하면 일부 상품만 제외</span></>, why: "단종될 상품처럼 다시 들여올 수 없는 상품은 제외합니다." },
 ];
 
 const TROUBLE: { sym: string; ref: string; go: ReactNode }[] = [
-  { sym: "품절 상품이 목록에 안 보여요", ref: "1단계 A", go: <>품절상품 노출이 <strong>노출함</strong>인지</> },
-  { sym: "품절 상품이 목록 중간에 섞여 있어요", ref: "1단계 B", go: <>그 분류의 품절상품진열이 <strong>품절상품 맨 뒤로</strong>인지</> },
-  { sym: "재입고 알림 신청 버튼이 안 보여요", ref: "2단계", go: <>버튼 노출 여부 <strong>노출함</strong>, 노출 방법 <strong>상품별</strong>인지. 그래도 안 보이면 아래 스킨 안내</> },
+  { sym: "품절 상품이 목록에 안 보여요", ref: "1단계 A", go: <>품절 상품 노출 항목이 <strong>노출함</strong>인지</> },
+  { sym: "품절 상품이 목록 중간에 섞여 있어요", ref: "1단계 B", go: <>그 분류의 품절 상품 진열 항목이 <strong>품절 상품 맨 뒤로</strong>인지</> },
+  { sym: "재입고 알림 신청 버튼이 안 보여요", ref: "2단계", go: <>버튼 노출 여부가 <strong>노출함</strong>, 버튼 노출 방법이 <strong>상품별</strong>인지 확인. 그래도 안 보이면 아래 스킨 안내 참고</> },
   { sym: "옵션 상품에서만 신청이 안 돼요", ref: "1단계 B 아래", go: <>품절된 옵션 품목 노출 여부가 노출안함이면 바꾸기</> },
-  { sym: "알림 문자가 안 나가요", ref: "준비", go: <>SMS 잔여 건수, 알림 유효 기간이 지났는지</> },
+  { sym: "알림 문자가 안 나가요", ref: "준비", go: <>SMS 잔여 건수가 남아 있는지, 알림 유효 기간이 지나지 않았는지</> },
 ];
 
 const SOURCES: { href: string; label: string }[] = [
   { href: "https://support.cafe24.com/hc/ko/articles/7739172846105", label: "재입고 알림 상품 설정 및 조회" },
   { href: "https://support.cafe24.com/hc/ko/articles/40478449321497", label: "상품 상세에 재입고 알림 신청 버튼이 노출안되는데 어떻게 해야하나요?" },
   { href: "https://support.cafe24.com/hc/ko/articles/17457549008793", label: "상품 재고 관리 및 품절 관련 자주 묻는 질문" },
-  { href: "https://support.cafe24.com/hc/ko/articles/8467145462681", label: "상품 목록 중간에 품절 상품이 노출됩니다" },
+  { href: "https://support.cafe24.com/hc/ko/articles/8467145462681", label: "상품 목록 중간에 품절 상품이 노출됩니다." },
 ];
 
 /** 카페24 관리자 메뉴 경로: 상품 › 재입고 알림 */
@@ -165,18 +165,18 @@ export default function SellerGuide() {
 
       <section id="sg-principle" className={s.section}>
         <h3 className={s.h}>핵심 원칙</h3>
-        <p><strong>품절돼도 상품을 미진열하지 마세요.</strong> 품절 상품에 &quot;재입고 알림 신청&quot; 버튼을 두면, 신청한 사람 수가 곧 수요 데이터가 됩니다.</p>
+        <p><strong>품절돼도 상품을 숨기지(미진열) 마세요.</strong> 품절 상품에 &quot;재입고 알림 신청&quot; 버튼을 두면, 신청한 사람 수가 곧 수요 데이터가 됩니다.</p>
         <div className={s.compare}>
           <div>
             <h4>상품을 숨기면 (미진열)</h4>
             <dl>
-              <div><dt>소비자</dt><dd>상품이 안 보여서 찜·장바구니를 못 함</dd></div>
+              <div><dt>소비자</dt><dd>상품이 안 보여서 장바구니에 못 담음</dd></div>
               <div><dt>수요 데이터</dt><dd>쌓이지 않음 (0으로 보임)</dd></div>
               <div><dt>사장님</dt><dd>인기 상품인데 수요를 모름</dd></div>
             </dl>
           </div>
           <div className={s.good}>
-            <h4>상품을 남겨두면 (품절 표시 + 신청 버튼)</h4>
+            <h4>상품을 남겨 두면 (품절 표시 + 신청 버튼)</h4>
             <dl>
               <div><dt>소비자</dt><dd>신청 버튼으로 &quot;사고 싶다&quot;를 남김</dd></div>
               <div><dt>수요 데이터</dt><dd>신청 수가 그대로 쌓임</dd></div>
@@ -202,7 +202,7 @@ export default function SellerGuide() {
 
       <section id="sg-prep" className={s.section}>
         <h3 className={s.h}><span className={s.step}>준비</span>시작 전 준비</h3>
-        <p>아래 두 가지가 없으면 버튼은 보여도 알림 문자가 나가지 않습니다.</p>
+        <p>아래 두 가지를 먼저 갖춰 주세요. 특히 SMS를 충전하지 않으면 버튼은 보여도 알림 문자가 나가지 않습니다.</p>
         <ul className={s.checks}>
           <CheckItem id="c-prep1" checked={on("c-prep1")} onToggle={toggle}>카페24 쇼핑몰 관리자에 로그인할 수 있다 (상품·쇼핑몰 설정 메뉴 권한)</CheckItem>
           <CheckItem id="c-prep2" checked={on("c-prep2")} onToggle={toggle}>SMS 서비스를 신청하고 충전해 두었다 (유료, 잔여 건수가 남아 있어야 발송됨)</CheckItem>
@@ -215,20 +215,20 @@ export default function SellerGuide() {
         <p>목록 노출과 진열 순서는 서로 다른 메뉴에 있습니다. <strong>A와 B를 모두 해야</strong> 품절 상품이 &quot;품절&quot; 표시와 함께 목록 끝에 보입니다.</p>
 
         <h4 className={s.sh}><span className={s.tag}>A</span>품절 상품을 목록에 보이기</h4>
-        <Where items={["쇼핑몰 설정", "상품 설정", "상품 목록 화면 설정"]} />
+        <Where items={["쇼핑몰 설정", "상품 설정", "상품 보기 설정", "상품 목록 화면 설정"]} />
         <ol className={s.do}>
-          <li><span><strong>품절상품 노출</strong>을 <span className={s.pill}>노출함</span>으로 바꿉니다.</span></li>
-          <li><span>같은 화면의 <strong>검색 페이지 품절 상품 진열</strong>을 <span className={s.pill}>품절 상품 맨 뒤로</span>로 바꾸고 저장합니다.</span></li>
+          <li><span><strong>품절 상품 노출</strong> 항목을 <span className={s.pill}>노출함</span>으로 바꿉니다.</span></li>
+          <li><span>같은 화면의 <strong>검색 페이지 품절 상품 진열</strong> 항목에서 <span className={s.pill}>품절 상품 맨 뒤로</span>를 고르고 저장합니다.</span></li>
         </ol>
 
         <h4 className={s.sh}><span className={s.tag}>B</span>카테고리별로 품절 상품을 맨 뒤로</h4>
         <Where items={["상품", "상품관리", "상품 분류 관리"]} />
         <ol className={s.do}>
-          <li><span>분류(카테고리)를 하나 고르고 <strong>품절상품진열</strong>을 <span className={s.pill}>품절상품 맨 뒤로</span>로 바꾼 뒤 <strong>저장</strong>합니다.</span></li>
+          <li><span>분류(카테고리)를 하나 고르고, <strong>품절 상품 진열</strong> 항목에서 <span className={s.pill}>품절 상품 맨 뒤로</span>를 고른 뒤 <strong>저장</strong>합니다.</span></li>
           <li><span>다른 분류도 하나씩 같은 방법으로 바꿉니다.</span></li>
         </ol>
 
-        <div className={s.warn}><b>옵션 상품이라면</b> 색상·사이즈 같은 옵션이 있는 상품은 품절된 옵션도 보여야 그 옵션에 알림 신청을 받을 수 있습니다. <Path items={["쇼핑몰 설정", "상품 설정"]} />의 상품옵션 설정에서 <strong>품절된 옵션 품목 노출 여부</strong>가 <strong>노출안함</strong>이면 바꿔 주세요.</div>
+        <div className={s.warn}><b>옵션 상품이라면</b> 색상·사이즈 같은 옵션이 있는 상품은 품절된 옵션도 보여야 그 옵션에 알림 신청을 받을 수 있습니다. <Path items={["쇼핑몰 설정", "상품 설정", "상품 정책 설정", "상품 관련 설정"]} />의 상품옵션 설정에서 <strong>품절된 옵션 품목 노출 여부</strong>(도움말에 따라 「품절된 품목 노출 여부」로도 표기)가 <strong>노출안함</strong>으로 되어 있으면 품절된 옵션도 보이도록 바꿔 주세요. 또 옵션 상품은 품절된 품목의 진열 상태가 <strong>진열함</strong>이어야 고객이 재입고 알림을 신청할 수 있습니다.</div>
       </section>
 
       <section id="sg-step2" className={s.section}>
@@ -254,11 +254,11 @@ export default function SellerGuide() {
 
       <section id="sg-step3" className={s.section}>
         <h3 className={s.h}><span className={s.step}>3단계</span>쇼핑몰에서 직접 확인하기</h3>
-        <p>설정한 뒤 손님 화면으로 확인해야 끝납니다. 재고가 0인 상품 하나를 골라 <strong>PC와 휴대폰에서 각각</strong> 봅니다.</p>
+        <p>설정을 마쳤으면 고객이 보는 쇼핑몰 화면에서 직접 확인합니다. 재고가 0인 상품 하나를 골라 <strong>PC와 휴대폰에서 각각</strong> 봅니다.</p>
         <ul className={s.checks}>
           <CheckItem id="c-s3-1" checked={on("c-s3-1")} onToggle={toggle}>카테고리 목록에서 상품이 맨 뒤에 <strong>품절</strong> 표시와 함께 보인다</CheckItem>
-          <CheckItem id="c-s3-2" checked={on("c-s3-2")} onToggle={toggle}>상품 상세 페이지 판매가 옆에 <strong>재입고 알림 신청</strong> 버튼이 보인다</CheckItem>
-          <CheckItem id="c-s3-3" checked={on("c-s3-3")} onToggle={toggle}>버튼을 눌러 내 휴대폰 번호로 신청이 끝까지 된다</CheckItem>
+          <CheckItem id="c-s3-2" checked={on("c-s3-2")} onToggle={toggle}>상품 상세 페이지의 판매가 오른쪽에 <strong>재입고 알림 신청</strong> 버튼이 보인다</CheckItem>
+          <CheckItem id="c-s3-3" checked={on("c-s3-3")} onToggle={toggle}>버튼을 눌러 내 휴대폰 번호로 신청을 끝까지 마칠 수 있다</CheckItem>
           <CheckItem id="c-s3-4" checked={on("c-s3-4")} onToggle={toggle}><Path items={["상품", "재입고 알림", "신청 내역 조회"]} />에 방금 한 신청이 나타난다</CheckItem>
         </ul>
         <div className={`${s.tip} ${s.done}`}><b>확인이 끝나면</b> 테스트로 넣은 내 신청은 신청 내역 조회에서 선택해 <strong>삭제</strong>합니다. 하나라도 안 되면 <a className={s.link} href="#sg-trouble">문제 해결</a>을 보세요.</div>
@@ -270,10 +270,10 @@ export default function SellerGuide() {
         <Where items={["상품", "재입고 알림", "신청 내역 조회"]} />
         <ol className={s.do}>
           <li><span>검색 조건에 <strong>상품명</strong>을 넣고 <strong>검색</strong>을 누릅니다.</span></li>
-          <li><span>결과의 <strong>미발송</strong> 건수를 봅니다. 아직 기다리는 사람 수입니다.</span></li>
+          <li><span>검색 결과에서 <strong>미발송</strong> 건수를 봅니다. 아직 알림을 기다리는 신청 수입니다.</span></li>
           <li><span>여러 상품을 한눈에 보려면 <strong>엑셀 다운로드</strong>를 누르고 상품별로 셉니다.</span></li>
         </ol>
-        <div className={s.tip}><b>정확하게 세는 법</b> 같은 번호가 여러 번 신청했을 수 있으니 엑셀에서 중복을 빼고 세세요. 품절 전 쌓인 찜·장바구니 수도 함께 보면, 신청은 적어도 관심이 높은 상품을 놓치지 않습니다.</div>
+        <div className={s.tip}><b>정확하게 세는 법</b> 같은 휴대폰 번호로 여러 번 신청했을 수 있으니 엑셀에서 중복을 빼고 세세요. 품절 전에 쌓인 장바구니 수도 함께 보세요. 신청은 적어도 관심이 높은 상품을 놓치지 않을 수 있습니다.</div>
       </section>
 
       <section id="sg-step5" className={s.section}>
@@ -281,12 +281,12 @@ export default function SellerGuide() {
         <p>미발송 신청이 목표에 닿으면 아래 순서대로 공구를 엽니다. 못 미치면 그대로 두고 다음 주에 다시 확인합니다.</p>
         <ol className={s.do}>
           <li><span>공급처에 주문하고 입고 날짜를 정합니다.</span></li>
-          <li><span>상품의 재고 수량을 입력해 판매를 다시 엽니다. 품절 표시는 자동으로 사라집니다.</span></li>
+          <li><span>상품의 재고 수량을 입력해 판매를 다시 엽니다. 품절 표시는 재고 관리·품절 표시 설정에 따라 바뀝니다.</span></li>
           <li><span><Path items={["상품", "재입고 알림", "신청 내역 조회"]} />에서 그 상품의 미발송 신청을 모두 선택합니다.</span></li>
           <li><span><strong>일괄 발송</strong>을 누릅니다. 신청자 모두에게 재입고 알림 문자가 나갑니다.</span></li>
           <li><span>발송한 건이 <strong>발송 완료</strong>로 바뀌었는지 확인합니다.</span></li>
         </ol>
-        <div className={s.warn}><b>다른 방법으로 보냈다면</b> 카카오톡 등으로 따로 알렸다면, 선택한 건에 <strong>알림 상태 변경</strong>을 눌러 발송 완료로 바꿔 두세요. 그래야 다음 주 신청 수가 정확합니다.</div>
+        <div className={s.warn}><b>다른 방법으로 보냈다면</b> 카카오톡 등으로 따로 알렸다면, 그 신청을 선택하고 <strong>알림 상태 변경</strong>을 눌러 발송 완료로 바꿔 두세요. 그래야 다음 주 신청 수가 정확합니다.</div>
       </section>
 
       <section id="sg-trouble" className={s.section}>
@@ -307,8 +307,8 @@ export default function SellerGuide() {
         <p className={s.groupLabel}>처음 한 번</p>
         <ul className={s.checks}>
           <CheckItem id="c-1" tag="준비" checked={on("c-1")} onToggle={toggle}>SMS 서비스를 신청하고 충전했다</CheckItem>
-          <CheckItem id="c-2" tag="1단계 A" checked={on("c-2")} onToggle={toggle}>품절상품 노출을 노출함으로 바꿨다</CheckItem>
-          <CheckItem id="c-3" tag="1단계 B" checked={on("c-3")} onToggle={toggle}>모든 분류의 품절상품진열을 맨 뒤로 바꿨다</CheckItem>
+          <CheckItem id="c-2" tag="1단계 A" checked={on("c-2")} onToggle={toggle}>품절 상품 노출을 &apos;노출함&apos;으로 바꿨다</CheckItem>
+          <CheckItem id="c-3" tag="1단계 B" checked={on("c-3")} onToggle={toggle}>모든 분류의 품절 상품 진열을 &apos;품절 상품 맨 뒤로&apos;로 바꿨다</CheckItem>
           <CheckItem id="c-4" tag="2단계" checked={on("c-4")} onToggle={toggle}>재입고 알림 버튼을 켰다: 수동 발송, 노출함, 상품별</CheckItem>
           <CheckItem id="c-5" tag="3단계" checked={on("c-5")} onToggle={toggle}>PC·휴대폰에서 직접 신청해 보고, 테스트 신청은 지웠다</CheckItem>
         </ul>
@@ -325,13 +325,13 @@ export default function SellerGuide() {
         <div className={s.faq}>
           <details>
             <summary>공구를 여는 목표는?</summary>
-            <p className={s.answer}>목표 수량 기본 <strong>30개</strong>입니다.</p>
+            <p className={s.answer}>목표 수량은 기본 <strong>30개</strong>입니다.</p>
             <ul><li>판매자가 공구마다 정합니다.</li><li>인원이 아니라 수량이고, 1인 최대 2개가 기본입니다.</li></ul>
           </details>
           <details>
             <summary>찜꽁은 어떤 구조인가요?</summary>
             <p className={s.answer}>판매자의 카페24 쇼핑몰에 설치하는 <strong>앱</strong>입니다.</p>
-            <ul><li>고객은 상품 페이지에서 신청합니다.</li><li>결제는 쇼핑몰 주문서에서 쿠폰으로 합니다.</li></ul>
+            <ul><li>고객은 상품 페이지에서 신청합니다.</li><li>결제는 쇼핑몰 주문서에서 하고, 공구 가격은 쿠폰으로 적용됩니다.</li></ul>
           </details>
           <details>
             <summary>품절 상품 공구를 별도 메뉴로 두나요?</summary>
@@ -340,7 +340,7 @@ export default function SellerGuide() {
           <details>
             <summary>신청자 알림은 무엇으로 보내나요?</summary>
             <p className={s.answer}><strong>SMS(카페24 문자)</strong>입니다.</p>
-            <ul><li>알림톡은 카페24 API에 없고, 광고성인 초대 문자는 알림톡으로 보낼 수 없습니다.</li><li>문자 비용은 판매자의 카페24 문자 충전에서 빠집니다.</li><li>발신번호 등록이 필요합니다.</li></ul>
+            <ul><li>알림톡은 카페24 API에 없고, 광고성인 초대 문자는 알림톡으로 보낼 수 없습니다.</li><li>문자 비용은 판매자가 카페24에 충전한 SMS 잔여 건수에서 빠집니다.</li><li>발신번호 등록이 필요합니다.</li></ul>
           </details>
           <details>
             <summary>카페24 재입고 알림과는 어떤 관계인가요?</summary>
@@ -349,7 +349,7 @@ export default function SellerGuide() {
           </details>
           <details>
             <summary>버튼 문구를 &quot;공구 참여하기&quot; 등으로 바꾸나요?</summary>
-            <p className={s.answer}><span className={s.tbd}>미정</span> 카페24 기본 버튼은 스킨 수정이 필요합니다.</p>
+            <p className={s.answer}><span className={s.tbd}>미정</span> 카페24 기본 버튼 문구를 바꾸려면 스킨 수정이 필요합니다.</p>
           </details>
         </div>
       </section>
