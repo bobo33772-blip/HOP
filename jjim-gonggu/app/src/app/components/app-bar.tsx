@@ -24,7 +24,7 @@ export default function AppBar({ current, shop, onNavigate }: { current: Section
   return (
     <header className="appbar side">
       <div className="in">
-        <a className="logo" href="/"><img src="/logo.svg" alt="" />찜꽁</a>
+        <a className="logo" href="/"><img src="/logo.svg" alt="" /><span className="logo-text">찜꽁</span></a>
         {shop && <span className="shop">{shop}</span>}
         <nav className="tabs" aria-label="찜꽁 메뉴">
           {LINKS.map(([k, label, href]) => (
