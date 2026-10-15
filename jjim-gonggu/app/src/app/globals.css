@@ -6,7 +6,7 @@
    - 숫자는 고정폭(tabular)으로 정렬 */
 :root {
   --ink: #364a63; --on-ink: #fff;
-  --brand: #e94162; --brand-2: #e94162; --brand-soft: #fdecf0; --brand-ink: #c22d4d; --brand-strong: #d63556;
+  --brand: #e94162; --brand-2: #e94162; --brand-soft: #fdecf0; --brand-ink: #c22d4d; --brand-strong: #d63556; --btn-dark: #23272f; --on-btn-dark: #fff;
   --primary: var(--brand);
   --success: #0f9f6e; --warning: #c77700; --danger: #d4380d;
   --bg: #f5f6fa; --surface: #fff; --line: #dbdfea; --soft: #eef0f5; --fg: #364a63; --fg2: #526484; --muted: #5b6a80;
@@ -17,7 +17,7 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --ink: #e5e9f2; --on-ink: #101924;
-    --brand: #e94162; --brand-2: #e94162; --brand-soft: #3a1f2b; --brand-ink: #f2738f; --brand-strong: #d63556;
+    --brand: #e94162; --brand-2: #e94162; --brand-soft: #3a1f2b; --brand-ink: #f2738f; --brand-strong: #d63556; --btn-dark: #e5e9f2; --on-btn-dark: #101924;
     --success: #34d399; --warning: #f5b342; --danger: #ff7a59;
     --bg: #0d141d; --surface: #141c26; --line: #26303d; --soft: #1c2532; --fg: #e5e9f2; --fg2: #a9b4c4; --muted: #8392a5;
     --shadow: none; --shadow-pop: 0 8px 24px rgba(0, 0, 0, .45);
@@ -56,6 +56,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .btn:active { transform: scale(.98); }
 .btn.brand { background: var(--brand-strong); color: #fff; }
 .btn.brand:hover { background: color-mix(in srgb, var(--brand-strong) 88%, #000); }
+/* 진한 회색 버튼(다크 모드에서는 밝게 뒤집힘) · 작은 버튼: 홈의 '새 공구 열기' */
+.btn.dark { background: var(--btn-dark); color: var(--on-btn-dark); }
+.btn.dark:hover { background: color-mix(in srgb, var(--btn-dark) 85%, var(--surface)); }
+.btn.compact { justify-self: start; min-height: 40px; padding: 0 16px; font-size: 14px; }
 .ghost {
   display: inline-flex; justify-content: center; align-items: center; gap: 6px; min-height: 40px; border: 1px solid var(--line); background: var(--surface);
   color: var(--fg); border-radius: var(--r-sm); padding: 0 14px; font-weight: 600; font-size: 14px; text-decoration: none;
