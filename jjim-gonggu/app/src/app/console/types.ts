@@ -1,6 +1,6 @@
 // 공구 관리 화면이 API와 주고받는 데이터 모양. 운영자 화면과 판매자 화면이 같이 쓴다.
 
-export type State = "open" | "reached" | "failed" | "settled";
+export type State = "open" | "reached" | "failed" | "settled" | "cancelled";
 export interface Mall { mallId: string; brandName: string | null; optOutNumber: string | null; smsSender: string | null; senders?: { senderNo: string; number: string; status: string }[] | null }
 export interface Camp { id: string; state: State; productName: string; targetQty: number; pledgedQty: number; deadlineAt: string; payUntil: string | null }
 export interface Report {
@@ -16,9 +16,23 @@ export interface Detail {
   // 미달 공구만: '그래도 살래요' 표시 수와 그래도 진행할 수 있는 기간
   proceed: { proceedUntil: string | null; proceedOpen: boolean; wanted: { members: number; qty: number }; payWindowHours: number; costPrice: number | null } | null;
 }
-export interface RadarRow { productNo: number; name: string; price: number; soldOut: boolean; alert: number; wishlist: number; cart: number }
+export interface RadarRow { productNo: number; name: string; price: number; soldOut: boolean; alert: number; cart: number }
 export interface Run { status: "running" | "done" | "failed"; total: number; done: number; finishedAt: string | null; startedAt: string }
 export interface Preview {
   errors: string[]; warnings: string[]; message: string; sendAt: string; marginPerUnit: number | null;
-  audience: { alert: number; wishlist: number; cart: number; unique: number; reachable: number; consentChecked: boolean };
+  audience: { alert: number; cart: number; unique: number; reachable: number; consentChecked: boolean };
+}
+/** 공구 매출 (#79). 숫자 기준은 리포트의 확정 매출과 같다 */
+export type SalesBy = "day" | "week" | "month";
+export interface SalesRow {
+  id: string; productNo: number; productName: string; state: State; proceeded: boolean;
+  openedAt: string; deadlineAt: string; payUntil: string | null; settledAt: string | null;
+  listPrice: number; dealPrice: number; targetQty: number;
+  orders: number; qty: number; revenue: number; cancelledOrders: number; lateOrders: number;
+}
+export interface Sales {
+  by: SalesBy;
+  totals: { campaigns: number; orders: number; qty: number; revenue: number; thisMonth: number; lastMonth: number };
+  trend: { points: { key: string; label: string; orders: number; qty: number; revenue: number }[]; truncated: boolean };
+  campaigns: SalesRow[];
 }

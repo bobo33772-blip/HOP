@@ -43,28 +43,28 @@
     });
   }
 
-  // 쇼핑몰 스킨과 어울리도록 흰 바탕 · 얇은 테두리, 브랜드 로즈는 하트·진행률에만
-  // 작은 글씨는 바탕 대비 4.5:1 이상(WCAG AA): 보조 글씨는 #6B6973 하나, 배지 글자는 배지 바탕보다 진한 같은 계열 색. 한글은 단어 단위로 줄을 바꾼다
-  var css = '.jjg{font:14px/1.55 "Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;letter-spacing:-.01em;color:#17171C;border:1px solid #E6E3DD;border-radius:16px;padding:16px;margin:14px 0;background:#fff;display:grid;gap:10px;max-width:520px;box-shadow:0 1px 2px rgba(23,23,28,.04),0 6px 20px rgba(23,23,28,.06);text-align:left;word-break:keep-all;overflow-wrap:break-word}' +
-    '.jjg *{box-sizing:border-box}.jjg-top{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:12.5px}' +
-    '.jjg-badge{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:#B8164A;background:#FDEAF0;border-radius:99px;padding:3px 10px 3px 8px}.jjg-badge svg{width:13px;height:13px}' +
-    '.jjg-badge.ok{color:#0B7A55;background:#E3F6EE}.jjg-badge.no{color:#5F5D66;background:#F0EEE9}.jjg-muted{color:#6B6973;font-size:12.5px}' +
-    '.jjg-cnt{font-size:24px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.15}.jjg-cnt small{font-size:13.5px;font-weight:500;color:#6B6973}' +
-    '.jjg-price{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.jjg-price b{font-size:17px;color:#E0245E}.jjg-price s{color:#6B6973;font-size:13px}' +
-    '.jjg-bar{height:8px;border-radius:99px;background:#F0EEE9;overflow:hidden}.jjg-bar i{display:block;height:100%;min-width:8px;background:linear-gradient(90deg,#FF5C7A,#E0245E);border-radius:99px;transition:width .5s}.jjg-bar.ok i{background:#0F9F6E}' +
-    '.jjg-others{border-top:1px solid #E6E3DD;padding-top:12px;display:grid;gap:8px}.jjg-others:first-child{border-top:0;padding-top:0}.jjg-others>b{font-size:13.5px}' +
-    '.jjg a.jjg-other{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #E6E3DD;border-radius:12px;color:#17171C;font-weight:600;text-decoration:none}' +
-    '.jjg a.jjg-other:focus-visible{outline:3px solid rgba(224,36,94,.35);outline-offset:2px}.jjg-other>div{flex:1;min-width:0;display:grid;gap:4px}' +
-    '.jjg-other small{color:#6B6973;font-size:12.5px;font-weight:500}.jjg-other small.due{color:#B8164A;font-weight:700}.jjg-other .jjg-bar{height:5px}.jjg-other>span{color:#6B6973;font-size:20px;font-weight:400}' +
-    '.jjg-btn{font:inherit;font-size:15px;font-weight:700;border:0;border-radius:12px;background:#17171C;color:#fff;min-height:50px;cursor:pointer;width:100%}' +
-    '.jjg-btn:disabled{opacity:.45;cursor:not-allowed}.jjg-btn.ghost{background:#fff;color:#17171C;border:1px solid #E6E3DD;font-weight:600;min-height:40px;font-size:14px}' +
-    '.jjg-btn:focus-visible,.jjg-step button:focus-visible{outline:3px solid rgba(224,36,94,.35);outline-offset:2px}' +
-    '.jjg-row{display:flex;justify-content:space-between;align-items:center;gap:8px}.jjg-step{display:flex;border:1px solid #E6E3DD;border-radius:10px;overflow:hidden;background:#fff}' +
-    '.jjg-step button{font:inherit;font-size:18px;width:42px;height:40px;border:0;background:#F6F5F2;cursor:pointer;color:#17171C}.jjg-step span{width:44px;display:grid;place-items:center;font-weight:700}' +
-    '.jjg-list{margin:0;padding:10px 12px 10px 28px;background:#F6F5F2;border-radius:12px;font-size:13px;color:#55535C;display:grid;gap:2px}.jjg-err{color:#D4380D;font-size:13px}' +
-    '.jjg-foot{font-size:11px;color:#6B6973;text-align:right}.jjg a{color:#E0245E;font-weight:600}' +
-    '.jjg-due{background:#FDEAF0;color:#B8164A;border-radius:12px;padding:10px 12px;font-weight:700}' +
-    '.jjg-pulse{outline:3px solid #E0245E!important;outline-offset:3px;border-radius:6px}';
+  // 쇼핑몰 스킨과 어울리도록 흰 바탕 · 얇은 테두리 · 그림자 없음(판매자 화면과 같은 DashLite풍 화이트). 포인트색 #E94162는 진행 막대에만, 흰 글씨를 얹는 주 버튼은 한 단계 진한 #D63556(대비 4.66:1)
+  // 작은 글씨는 바탕 대비 4.5:1 이상(WCAG AA): 글자는 슬레이트 #364A63, 보조 글씨는 #526484 하나, 작은 분홍 글씨는 #C22D4D(연분홍 바탕 #FDECF0), 배지 글자는 배지 바탕보다 진한 같은 계열 색. 한글은 단어 단위로 줄을 바꾼다
+  var css = '.jjg{font:14px/1.55 "Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;letter-spacing:-.01em;color:#364A63;border:1px solid #DBDFEA;border-radius:6px;padding:16px;margin:14px 0;background:#fff;display:grid;gap:10px;max-width:520px;box-shadow:none;text-align:left;word-break:keep-all;overflow-wrap:break-word;grid-template-columns:minmax(0,1fr)}' +
+    '.jjg *{box-sizing:border-box}.jjg-top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 8px;align-items:center;font-size:12.5px}.jjg-top>.jjg-muted{min-width:0;margin-left:auto;text-align:right}' +
+    '.jjg-badge{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:#C22D4D;background:#FDECF0;border-radius:4px;padding:3px 10px 3px 8px;flex:none;white-space:nowrap}.jjg-badge svg{width:13px;height:13px}' +
+    '.jjg-badge.ok{color:#0B7A55;background:#E3F6EE}.jjg-badge.no{color:#526484;background:#EEF0F5}.jjg-muted{color:#526484;font-size:12.5px}' +
+    '.jjg-cnt{font-size:24px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.15}.jjg-cnt small{font-size:13.5px;font-weight:500;color:#526484}' +
+    '.jjg-price{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.jjg-price b{font-size:17px;color:#C22D4D;white-space:nowrap}.jjg-price s{color:#526484;font-size:13px;white-space:nowrap}' +
+    '.jjg-bar{height:8px;border-radius:99px;background:#EEF0F5;overflow:hidden}.jjg-bar i{display:block;height:100%;min-width:8px;background:#E94162;border-radius:99px;transition:width .5s}.jjg-bar.ok i{background:#0F9F6E}' +
+    '.jjg-others{border-top:1px solid #DBDFEA;padding-top:12px;display:grid;grid-template-columns:minmax(0,1fr);gap:8px}.jjg-others:first-child{border-top:0;padding-top:0}.jjg-others>b{font-size:13.5px}' +
+    '.jjg a.jjg-other{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #DBDFEA;border-radius:6px;color:#364A63;font-weight:600;text-decoration:none}' +
+    '.jjg a.jjg-other:focus-visible{outline:3px solid rgba(233,65,98,.35);outline-offset:2px}.jjg-other>div{flex:1;min-width:0;display:grid;gap:4px}' +
+    '.jjg-other small{color:#526484;font-size:12.5px;font-weight:500}.jjg-other small.due{color:#C22D4D;font-weight:700}.jjg-other .jjg-bar{height:5px}.jjg-other>span{color:#526484;font-size:20px;font-weight:400}' +
+    '.jjg-btn{font:inherit;font-size:15px;font-weight:700;border:0;border-radius:4px;background:#D63556;color:#fff;min-height:50px;cursor:pointer;width:100%}' +
+    '.jjg-btn:not(.ghost):not(:disabled):hover{background:#C22D4D}.jjg-btn:disabled{opacity:.45;cursor:not-allowed}.jjg-btn.ghost{background:#fff;color:#364A63;border:1px solid #DBDFEA;font-weight:600;min-height:40px;font-size:14px}' +
+    '.jjg-btn:focus-visible,.jjg-step button:focus-visible{outline:3px solid rgba(233,65,98,.35);outline-offset:2px}' +
+    '.jjg-row{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px 8px}.jjg-step{display:flex;border:1px solid #DBDFEA;border-radius:4px;overflow:hidden;background:#fff}' +
+    '.jjg-step button{font:inherit;font-size:18px;width:42px;height:40px;border:0;background:#F5F6FA;cursor:pointer;color:#364A63}.jjg-step span{width:44px;display:grid;place-items:center;font-weight:700}' +
+    '.jjg-list{margin:0;padding:10px 12px 10px 28px;background:#F5F6FA;border-radius:4px;font-size:13px;color:#526484;display:grid;gap:2px}.jjg-err{color:#D4380D;font-size:13px}' +
+    '.jjg-foot{font-size:11px;color:#526484;text-align:right}.jjg a{color:#C22D4D;font-weight:600}.jjg a:not(.jjg-other){display:inline-flex;align-items:center;min-height:44px}.jjg-other>div>span{overflow-wrap:anywhere}' +
+    '.jjg-due{background:#FDECF0;color:#C22D4D;border-radius:4px;padding:10px 12px;font-weight:700}' +
+    '.jjg-pulse{outline:3px solid #E94162!important;outline-offset:3px;border-radius:6px}';
   var HEART = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21c-.4 0-.7-.1-1-.4C7.4 17.5 3 14 3 9.5 3 6.9 5 5 7.4 5c1.8 0 3.3 1 4.1 2.3h1C13.3 6 14.8 5 16.6 5 19 5 21 6.9 21 9.5 21 14 16.6 17.5 13 20.6c-.3.3-.6.4-1 .4z"/></svg>';
   var style = document.createElement('style'); style.textContent = css; document.head.appendChild(style);
 
@@ -79,7 +79,7 @@
   else script.parentNode.insertBefore(root, script.nextSibling);
 
   // a: '공구 열리면 알림 받기' (진행 중 공구가 없거나 지난 공구가 끝난 상품). 카페24 찜 대신 고객이 직접 신청한다. soldOut: 품절 상품만 알림 버튼 (#67)
-  // others: 이 회원이 장바구니 · 찜 · 알림으로 초대받았거나 신청한 다른 상품의 공구 (#60)
+  // others: 이 회원이 장바구니 · 알림으로 초대받았거나 신청한 다른 상품의 공구 (#60)
   var state = { c: null, mine: null, qty: 1, step: 'view', err: '', busy: false, idem: null, a: null, soldOut: false, others: [] };
   var ALERTS = '/api/public/malls/' + encodeURIComponent(MALL) + '/products/' + productNo + '/alerts';
 
@@ -94,7 +94,12 @@
       .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw j; return j; }); });
   }
 
-  var alertable = function () { return !state.c || state.c.state === 'failed' || state.c.state === 'settled'; };
+  var alertable = function () { return !state.c || state.c.state === 'failed' || state.c.state === 'settled' || state.c.state === 'cancelled'; };
+  // 판매자가 취소한 공구(#65)는 신청했던 회원에게만 취소 안내로 보여 준다. 그 밖의 고객에게는 공구가 없는 상품처럼 보인다
+  var shownCampaign = function () {
+    var c = state.c, m = state.mine;
+    return c && c.state === 'cancelled' && !(m && (m.state === 'campaign_cancelled' || m.state === 'pledged')) ? null : c;
+  };
   // 알림 칸을 보여 줄지: 품절 상품이거나, 재고가 다시 생겼어도 이미 신청해 둔 회원(취소할 수 있게)
   var alertShown = function () { return !!state.a && (state.soldOut || state.a.mine); };
 
@@ -125,7 +130,7 @@
         var jobs = [];
         if (state.a) jobs.push(api('POST', ALERTS + '/mine', { member_token: t }).then(function (j) { state.a = { waiting: j.waiting, mine: !!j.alert }; }).catch(function () { }));
         // 미달 공구도 '그래도 살래요'를 정할 수 있는 동안은 내 신청을 읽는다
-        if (state.c && (!state.a || state.c.proceedOpen)) jobs.push(api('POST', '/api/public/campaigns/' + state.c.id + '/pledges/mine', { member_token: t }).then(function (j) { state.mine = j.pledge; state.mineFailed = false; }).catch(function () { state.mineFailed = true; }));
+        if (state.c && (!state.a || state.c.proceedOpen || state.c.state === 'cancelled')) jobs.push(api('POST', '/api/public/campaigns/' + state.c.id + '/pledges/mine', { member_token: t }).then(function (j) { state.mine = j.pledge; state.mineFailed = false; }).catch(function () { state.mineFailed = true; }));
         return Promise.all(jobs).then(function () { return resume; });
       })
       .then(function (resume) {
@@ -139,6 +144,10 @@
       })
       .catch(function () { root.remove(); });
   }
+
+  // 결제 자리 (꺼진 버튼): 공구가 열리기 전 · 모집 중에는 결제가 언제 열리는지 미리 보여 준다.
+  // 쿠폰을 받으면 같은 자리에 '쿠폰 쓰고 결제하러 가기'가 켜진다(쇼핑몰 구매 버튼으로 안내, #58). 위젯 안에서 결제하지는 않는다
+  function payLater(text) { return el('button', { class: 'jjg-btn ghost', disabled: '' }, [text]); }
 
   // 공구 알림: 진행 중 공구가 없으면 이것만, 지난 공구가 끝났으면 결과 아래에 '다음 공구' 알림으로 붙인다.
   // 품절 상품에서는 재입고 알림처럼 말한다 (#67). 재고가 다시 생긴 상품은 이미 신청한 회원에게만 보인다(신청 완료 · 취소)
@@ -158,6 +167,7 @@
     } else {
       root.appendChild(el('button', { class: 'jjg-btn' + (after ? ' ghost' : ''), onclick: alertOn, disabled: state.busy ? '' : null }, [state.busy ? '신청 중…' : after ? '다음 공구 알림 받기' : '재입고 · 공구 알림 받기']));
     }
+    if (!after) root.appendChild(payLater('결제하기 · 공구 목표를 채우면 켜져요'));
   }
 
   // 담아 둔 다른 상품의 공구 (#60): 모집 중이면 진행률 · 공구가, 쿠폰을 받았으면 결제 마감. 누르면 그 상품 페이지로
@@ -179,7 +189,7 @@
   }
 
   function render() {
-    var c = state.c, showAlert = alertShown(); root.textContent = ''; root.style.display = '';
+    var c = shownCampaign(), showAlert = alertShown(); root.textContent = ''; root.style.display = '';
     if (!c) {
       // 재고 있는 상품(공구 없음)에는 알림 버튼이 없다 (#67). 담아 둔 다른 상품의 공구가 있으면 그것만 보여 준다
       if (!showAlert && !state.others.length) { root.style.display = 'none'; return; }
@@ -193,12 +203,21 @@
     var bar = el('div', { class: 'jjg-bar' + (ok ? ' ok' : ''), role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': String(c.targetQty), 'aria-valuenow': String(c.pledgedQty) }, [el('i', { style: 'width:' + Math.min(100, c.pledgedQty / c.targetQty * 100) + '%' })]);
     // 상태 이름표 (#10). 위젯은 앱 코드를 불러올 수 없어 이름표를 따로 둔다. 판매자 화면과 다르게 쓰는 것:
     // 목표 달성(초록) — 고객에게는 "쿠폰을 받았다"가 핵심이라 '달성 · 결제 기간' 대신 / 진행 안 됨(회색) — 고객을 놀라게 하지 않게 판매자 화면의 빨강 대신 /
-    // 공동구매 종료 — 고객 입장의 말로 '확정 완료' 대신 / 그래도 진행 — 미달 뒤 판매자가 진행한 공구(#24)
-    var label = c.proceeded && c.state === 'reached' ? ['그래도 진행', 'ok'] : { open: ['공동구매 모집 중', ''], reached: ['목표 달성', 'ok'], settled: ['공동구매 종료', 'ok'], failed: ['진행 안 됨', 'no'] }[c.state];
+    // 공동구매 종료 — 고객 입장의 말로 '확정 완료' 대신 / 그래도 진행 — 미달 뒤 판매자가 진행한 공구(#24) / 공동구매 취소(회색) — 판매자가 모집 중에 취소한 공구(#65)
+    var label = c.proceeded && c.state === 'reached' ? ['그래도 진행', 'ok'] : { open: ['공동구매 모집 중', ''], reached: ['목표 달성', 'ok'], settled: ['공동구매 종료', 'ok'], failed: ['진행 안 됨', 'no'], cancelled: ['공동구매 취소', 'no'] }[c.state];
     var badge = el('span', { class: 'jjg-badge ' + label[1] }, [label[0]]); badge.insertAdjacentHTML('afterbegin', HEART);
     // 결제 기간에는 이미 지난 모집 마감 대신 결제 마감을 보여 준다
     var paying = c.state === 'reached' && c.payUntil;
-    root.appendChild(el('div', { class: 'jjg-top' }, [badge, el('span', { class: 'jjg-muted' }, [paying ? '결제 마감 ' + when(c.payUntil) : when(c.deadlineAt) + ' 마감'])]));
+    root.appendChild(el('div', { class: 'jjg-top' }, [badge, el('span', { class: 'jjg-muted' }, [paying ? '결제 마감 ' + when(c.payUntil) : c.state === 'cancelled' ? '' : when(c.deadlineAt) + ' 마감'])]));
+    if (c.state === 'cancelled') {
+      // 취소한 공구는 진행률 · 가격 없이 안내만. 품절 상품이면 다음 공구 알림을 붙인다
+      root.appendChild(el('div', null, ['판매자 사정으로 공동구매가 취소됐어요. 결제된 금액은 없어요. 신청해 주셔서 감사해요.']));
+      if (showAlert) renderAlert(true);
+      renderOthers();
+      if (state.err) root.appendChild(el('div', { class: 'jjg-err', role: 'alert' }, [state.err]));
+      root.appendChild(el('div', { class: 'jjg-foot' }, ['찜꽁 예약 공동구매']));
+      return;
+    }
     root.appendChild(el('div', { class: 'jjg-row' }, [el('div', { class: 'jjg-cnt' }, [String(c.pledgedQty), el('small', null, [' / ' + c.targetQty + '개 모였어요'])]),
       el('div', { class: 'jjg-price' }, [el('s', null, [won(c.listPrice)]), el('b', null, [won(c.dealPrice)])])]));
     root.appendChild(bar);
@@ -222,6 +241,7 @@
       } else {
         root.appendChild(el('button', { class: 'jjg-btn', onclick: start }, ['참여 신청 · 지금 결제 없음']));
       }
+      if (state.step !== 'form') root.appendChild(payLater('결제하기 · 목표를 채우면 마감 뒤 켜져요'));
     } else if (c.state === 'reached') {
       var mine = state.mine;
       if (mine && mine.state === 'coupon_issued') {

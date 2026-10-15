@@ -1,4 +1,4 @@
-// GET  /api/seller/radar — 찜 많은 상위 20개 상품 + 수집 상태
+// GET  /api/seller/radar — 알림 신청 · 장바구니 많은 상위 20개 상품 + 수집 상태
 // POST /api/seller/radar — 수집 시작
 
 import { json, seller } from "@/lib/http";

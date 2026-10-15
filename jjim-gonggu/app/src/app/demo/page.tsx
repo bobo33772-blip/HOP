@@ -20,7 +20,7 @@ export default async function DemoPage() {
       <div className="card">
         <b>1. 운영자 화면에서 공구 열기</b>
         <span className="muted">운영자 토큰: <code>{env().adminToken}</code></span>
-        <span className="muted">새 공구 → 찜 데이터 모으기 → 상품 선택 → 미리보기 → 공구 열기</span>
+        <span className="muted">새 공구 → 관심 데이터 모으기 → 상품 선택 → 미리보기 → 공구 열기</span>
         <a className="btn" href="/admin" style={{ width: "max-content" }}>운영자 화면 열기</a>
       </div>
       <div className="card">
@@ -34,7 +34,7 @@ export default async function DemoPage() {
       </div>
       <div className="card">
         <b>판매자 화면 (카페24 앱 실행 화면)</b>
-        <span className="muted">카페24 관리자에서 앱을 실행한 것처럼 판매자 홈과 수요 레이더를 볼 수 있어요.</span>
+        <span className="muted">카페24 관리자에서 앱을 실행한 것처럼 판매자 홈과 모니터링 화면을 볼 수 있어요.</span>
         <a className="ghost" href="/api/cafe24/launch" style={{ width: "max-content", display: "inline-flex", alignItems: "center", textDecoration: "none" }}>판매자로 들어가기</a>
       </div>
     </main>

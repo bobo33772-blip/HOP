@@ -4,7 +4,8 @@
 
 import { nextAllowedSendTime } from "./messaging";
 
-export type CampaignState = "open" | "reached" | "failed" | "settled";
+/** cancelled: 판매자가 모집 중에 취소한 공구 (#65). 지우지 않고 남긴다 */
+export type CampaignState = "open" | "reached" | "failed" | "settled" | "cancelled";
 
 export interface CampaignInput {
   productNo: number;

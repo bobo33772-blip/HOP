@@ -59,10 +59,11 @@ describe("개설", () => {
 });
 
 describe("초대 문자", () => {
-  it("찜 ∪ 장바구니에서 중복을 빼고 수신 동의자에게만, (광고)·수신거부 문구를 붙여 보낸다", async () => {
+  it("알림 신청 ∪ 장바구니에서 중복을 빼고 수신 동의자에게만, (광고)·수신거부 문구를 붙여 보낸다 (찜은 쓰지 않는다, #81)", async () => {
     const env = await setup();
     const pv = await previewCampaign(env.ctx, MALL, baseInput(env.clock));
-    expect(pv.audience).toEqual({ alert: 0, wishlist: 100, cart: 40, unique: 139, reachable: 69, consentChecked: true }); // 찜 목록은 실제 API처럼 100명에서 끊긴다 (P8)
+    expect(pv.audience).toEqual({ alert: 0, cart: 139, unique: 139, reachable: 69, consentChecked: true });
+    expect(pv.message).toMatch(/장바구니에 담아 두신 스톤웨어/);
     const { campaign, invited } = await openCampaign(env.ctx, "op", MALL, baseInput(env.clock));
     expect(invited).toBe(69);
     expect(campaign.couponNo).toBeTruthy();
@@ -71,6 +72,11 @@ describe("초대 문자", () => {
     const sms = env.world.smsLog[0];
     expect(sms.content.startsWith("(광고)[LINEN & CO.]")).toBe(true);
     expect(sms.content).toMatch(/무료수신거부 080-000-0000/);
+    // 받는 이유와 혜택 → 결제 조건 → 할 일(신청 기한) 순서, 출고일은 상품 페이지에서 본다
+    expect(sms.content).toMatch(/♥ (찜하신|장바구니에 담아 두신|공구 알림을 신청하신|관심 가져 주신) .+ 공동구매가 열렸습니다\.\n쿠폰을 쓰면 [\d,]+원\(정가 [\d,]+원\)입니다\.\n※ 결제는 \d+개가 모인 뒤에 합니다\.\n☞ \d+\/\d+\(.\) \d\d:\d\d까지 신청해 주시기 바랍니다\.\n/);
+    expect(sms.content).not.toMatch(/예상 출고/);
+    // 이모티콘은 일반 문자(EUC-KR)에서 깨지지 않는 특수문자만 쓴다. 그림 이모지(😊 등)는 휴대폰에 따라 '?'로 보인다
+    expect([...sms.content].filter((ch) => /\p{Extended_Pictographic}/u.test(ch) && !"♥★☞※♡".includes(ch))).toEqual([]);
     expect(sms.memberIds).toHaveLength(69);
     expect(sms.memberIds.every((id) => Number(id.slice(1)) % 2 === 0)).toBe(true);
   });
@@ -171,7 +177,7 @@ describe("마감 판정", () => {
     expect((await getCampaign(env.ctx, c.id)).state).toBe("failed");
     expect(await (await env.ctx.shop(MALL)).listCouponHolders(c.couponNo!)).toHaveLength(0);
     const result = env.world.smsLog.find((s) => !s.isAd)!;
-    expect(result.content).toMatch(/진행되지 않아요. 결제된 금액은 없어요/);
+    expect(result.content).toMatch(/진행되지 않습니다. 결제된 금액은 없습니다/);
     expect([...result.memberIds].sort()).toEqual(["m10", "m2", "m4", "m6", "m8"]);
   });
 
@@ -184,6 +190,9 @@ describe("마감 판정", () => {
     await tick(env.ctx);
     const holders = new Set(await (await env.ctx.shop(MALL)).listCouponHolders(c.couponNo!));
     expect((await getCampaign(env.ctx, c.id)).state).toBe("reached");
+    const result = env.world.smsLog.find((s) => !s.isAd)!;
+    expect(result.content).toMatch(/★ 신청하신 .+ 공동구매가 목표를 달성했습니다\(\d+\/\d+개\)\.\n☞ 계정에 넣어 드린 할인 쿠폰으로 .+까지 결제해 주시기 바랍니다\./);
+    expect(result.content).not.toMatch(/결제 기한/); // 결제 안내(reminders)와 구분되는 글자
     expect(holders.has("m5")).toBe(true); // 한 번 빠진 회원은 재발급으로 채운다
     expect(holders.has("m7")).toBe(false);
     expect(holders.size).toBe(39);
@@ -458,19 +467,20 @@ describe("확정 리포트와 4주 판정표", () => {
 });
 
 describe("개인정보 권한 없는 몰 (장바구니 고객 공구)", () => {
-  it("찜·수신 동의를 조회하지 않고 장바구니 고객을 초대하며, 수신거부 고객은 카페24 발송 단계에서 빠진다", async () => {
+  it("수신 동의를 조회하지 않고 장바구니 고객을 초대하며, 수신거부 고객은 카페24 발송 단계에서 빠진다", async () => {
     const env = await setup();
     env.world.privacy = false;
     const pv = await previewCampaign(env.ctx, MALL, baseInput(env.clock));
-    expect(pv.audience).toEqual({ alert: 0, wishlist: 0, cart: 40, unique: 40, reachable: 40, consentChecked: false });
+    expect(pv.audience).toEqual({ alert: 0, cart: 139, unique: 139, reachable: 139, consentChecked: false });
     const { invited } = await openCampaign(env.ctx, "op", MALL, baseInput(env.clock));
-    expect(invited).toBe(40);
+    expect(invited).toBe(139);
     await tick(env.ctx);
     const sms = env.world.smsLog[0];
+    const got = env.world.smsLog.flatMap((s) => s.memberIds); // 초대 문자는 100명씩 나눠 보낸다
     expect(sms.isAd).toBe(true);
-    expect(sms.memberIds).toHaveLength(20); // m100~m139 중 수신 동의(짝수)만 실제로 받는다
+    expect(got).toHaveLength(69); // m1~m139 중 수신 동의(짝수)만 실제로 받는다
     expect(sms.content).toMatch(/장바구니에 담아 두신 스톤웨어/);
-    expect(sms.memberIds.every((id) => Number(id.slice(1)) % 2 === 0)).toBe(true);
+    expect(got.every((id) => Number(id.slice(1)) % 2 === 0)).toBe(true);
   });
 });
 
@@ -538,7 +548,7 @@ describe("미달 뒤 그래도 진행 (#23)", () => {
     const sms = proceedSms(env)!;
     expect(sms.isAd).toBe(false);
     expect([...sms.memberIds].sort()).toEqual(["m2", "m4"]);
-    expect(sms.content).not.toMatch(/바뀌었어요/);
+    expect(sms.content).not.toMatch(/바뀌었습니다/);
 
     await env.world.placeOrder(MALL, "m2", PRODUCT, 1, done.couponNo!);
     env.clock.advance(72 * HOUR + 60_000);
@@ -563,7 +573,7 @@ describe("미달 뒤 그래도 진행 (#23)", () => {
     expect(env.world.couponsOf(MALL, "m2")).toContainEqual(expect.objectContaining({ discountAmount: 7000 }));
     await expect(proceedCampaign(env.ctx, "op", c.id, {})).rejects.toThrow(/목표에 못 미친 공구만/);
     await tick(env.ctx);
-    expect(proceedSms(env)!.content).toMatch(/공구가가 39,000원에서 45,000원으로 바뀌었어요/);
+    expect(proceedSms(env)!.content).toMatch(/공구가가 39,000원에서 45,000원으로 바뀌었습니다/);
   });
 
   it("미달 결과 안내가 카페24 오류로 아직 멈춰 있으면(판정 뒤처리 재시도 중) 그래도 진행을 막는다", async () => {

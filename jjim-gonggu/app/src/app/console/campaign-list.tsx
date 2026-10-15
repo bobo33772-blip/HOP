@@ -1,12 +1,14 @@
 "use client";
 
 // 공구 목록. 누르면 아래에 상세(campaign-detail)가 펼쳐진다. 운영자 OP-4로 들어가는 목록 / 판매자 S-12 · S-E1(빈 상태).
+// 목록 위에 공구 매출(합계 · 추이 · 공구별 · 엑셀)을 둔다 (#79).
 
 import { useCallback, useEffect, useState } from "react";
 import { useConsole } from "./provider";
 import type { Camp } from "./types";
 import { CHIP, kst } from "./format";
 import { CampaignDetail } from "./campaign-detail";
+import { SalesPanel } from "./sales";
 
 export function ListTab({ mall, openId, setOpenId, say, goNew }: { mall: string; openId: string | null; setOpenId: (id: string | null) => void; say: (t: string) => void; goNew: () => void }) {
   const a = useConsole();
@@ -18,12 +20,13 @@ export function ListTab({ mall, openId, setOpenId, say, goNew }: { mall: string;
     <div className="card empty">
       <img src="/logo.svg" alt="" />
       <b>아직 연 공구가 없어요</b>
-      <p className="muted">고객이 장바구니·찜에 많이 담아 둔 상품으로 첫 공구를 열어 보세요.<br />목표 수량이 모이면 그때 결제를 받아요.</p>
+      <p className="muted">고객이 장바구니에 많이 담아 두거나 공구 알림을 신청한 상품으로 첫 공구를 열어 보세요.<br />목표 수량이 모이면 그때 결제를 받아요.</p>
       <button className="btn brand" onClick={goNew}>첫 공구 열기</button>
     </div>
   );
   return (
     <>
+      <SalesPanel say={say} />
       <div className="camps">
         {camps.map((c) => {
           const [label, cls] = CHIP[c.state];

@@ -56,10 +56,11 @@ export async function buildReport(ctx: Ctx, campaignId: string) {
     rates: {
       inviteToPledge: rate(n(invPl.v), invitedSent),
       pledgeToPaid: rate(paidMembers, couponIssued),
-      reached: state === "open" ? null : state !== "failed" && !c.proceededAt,
+      // 성사: 목표를 채워 달성한 공구만. 미달 · 그래도 진행 · 판매자가 취소한 공구(#65)는 성사가 아니다
+      reached: state === "open" ? null : (state === "reached" || state === "settled") && !c.proceededAt,
     },
     openIssues: n(issues.v),
-    final: state === "settled" || state === "failed",
+    final: state === "settled" || state === "failed" || state === "cancelled",
   };
 }
 
@@ -68,10 +69,14 @@ export type Report = Awaited<ReturnType<typeof buildReport>>;
 /** 4주 성공 기준 판정표 (기획서 '4주 MVP · 목표'와 같은 기준). 결과를 보기 전에 정해 둔 기준으로만 판정한다 */
 export async function pilotScorecard(ctx: Ctx) {
   const camps = await ctx.db.select({ id: schema.campaigns.id, mallId: schema.campaigns.mallId, state: schema.campaigns.state, proceededAt: schema.campaigns.proceededAt }).from(schema.campaigns);
-  const malls = new Set(camps.map((c) => c.mallId)).size;
+  // 판매자가 모집 중에 취소한 공구(#65): 성사율에서는 미달처럼 분모에 넣는다(미달될 것 같은 공구를 취소해 성사율을 올릴 수 없게).
+  // 파일럿 규모(연 공구 수)와 '다시 생각' 판단에서는 뺀다. 따로 "취소 N건"으로 보여 준다
+  const cancelled = camps.filter((c) => c.state === "cancelled").length;
+  const run = camps.filter((c) => c.state !== "cancelled");
+  const malls = new Set(run.map((c) => c.mallId)).size;
   const judged = camps.filter((c) => c.state !== "open");
   // 미달 뒤 그래도 진행한 공구는 성사가 아니다. 쿠폰도 원하는 사람만 받아 결제율이 높게 나오니 신청→결제에서도 뺀다
-  const reached = judged.filter((c) => c.state !== "failed" && !c.proceededAt).length;
+  const reached = judged.filter((c) => (c.state === "reached" || c.state === "settled") && !c.proceededAt).length;
   const proceeded = camps.filter((c) => c.proceededAt).length;
   const reps = await Promise.all(camps.map((c) => buildReport(ctx, c.id)));
   const sum = (f: (r: Report) => number, rs = reps) => rs.reduce((a, r) => a + f(r), 0);
@@ -87,16 +92,17 @@ export async function pilotScorecard(ctx: Ctx) {
   const accuracy = n(acc.v);
   const rows = [
     { key: "one_thing", label: "목표 수량 이상 결제된 공구로 생산을 결정한 판매자", value: oneThing as number | string | null, kind: "count", goal: "1곳 이상", pass: oneThing >= 1 },
-    { key: "scale", label: "파일럿 몰 · 연 공구", value: `${malls}몰 · ${camps.length}건`, kind: "text", goal: "3몰 · 3건 이상", pass: malls >= 3 && camps.length >= 3 },
+    { key: "scale", label: "파일럿 몰 · 연 공구", value: `${malls}몰 · ${run.length}건`, kind: "text", goal: "3몰 · 3건 이상", pass: malls >= 3 && run.length >= 3 },
     { key: "reach_rate", label: "공구 성사율", value: r(reached, judged.length), kind: "rate", goal: "60% 이상", pass: judged.length > 0 && reached / judged.length >= 0.6 },
     { key: "invite_to_pledge", label: "초대 → 신청", value: r(invP, sent), kind: "rate", goal: "5% 이상", pass: sent > 0 && invP / sent >= 0.05 },
     { key: "pledge_to_paid", label: "신청 → 결제", value: r(paid, issued), kind: "rate", goal: "50% 이상", pass: issued > 0 && paid / issued >= 0.5 },
     { key: "accuracy", label: "쿠폰 누락 · 대사 불일치", value: accuracy, kind: "count", goal: "0건", pass: accuracy === 0 },
   ];
-  const allLowPledge = judged.length >= 3 && reps.filter((x) => x.campaign.state !== "open").every((x) => (x.rates.inviteToPledge ?? 0) < 0.02);
+  const ended = reps.filter((x) => x.campaign.state !== "open" && x.campaign.state !== "cancelled");
+  const allLowPledge = ended.length >= 3 && ended.every((x) => (x.rates.inviteToPledge ?? 0) < 0.02);
   // 보완 (기획서 v2 7번): 성사율과 신청 전환은 됐는데 결제 전환이 50% 미만. 우리 쪽 오류(쿠폰 누락 등)가 없을 때만 고객 반응으로 본다
   const pass = (k: string) => rows.find((x) => x.key === k)!.pass;
   const payOnlyLow = pass("reach_rate") && pass("invite_to_pledge") && pass("accuracy") && !pass("pledge_to_paid");
   const verdict = rows.every((x) => x.pass) ? "go" : allLowPledge ? "rethink" : payOnlyLow ? "iterate" : "in_progress";
-  return { rows, verdict, proceeded };
+  return { rows, verdict, proceeded, cancelled };
 }

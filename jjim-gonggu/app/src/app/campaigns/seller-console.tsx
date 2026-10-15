@@ -6,6 +6,7 @@ import { ListTab } from "../console/campaign-list";
 import { NewTab } from "../console/radar-picker";
 import { ProfileCard } from "../console/profile-card";
 import type { Mall } from "../console/types";
+import type { ScopeInfo } from "@/lib/cafe24/scopes";
 import AppBar, { type Section } from "../components/app-bar";
 import { ThemeSetting } from "../components/theme-toggle";
 
@@ -13,7 +14,7 @@ const API = { role: "seller", mallBase: "/api/seller", campaignBase: "/api/selle
 type Tab = "list" | "new" | "profile";
 const isTab = (s: string | null): s is Tab => s === "list" || s === "new" || s === "profile";
 
-export default function SellerConsole({ mallId, initialTab, initialOpen }: { mallId: string; initialTab?: string; initialOpen?: string }) {
+export default function SellerConsole({ mallId, initialTab, initialOpen, scopes }: { mallId: string; initialTab?: string; initialOpen?: string; scopes: ScopeInfo[] }) {
   const [mall, setMall] = useState<Mall | null>(null);
   const [tab, setTabState] = useState<Tab>(isTab(initialTab ?? null) ? (initialTab as Tab) : "list");
   const [openId, setOpenId] = useState<string | null>(initialOpen ?? null);
@@ -52,6 +53,13 @@ export default function SellerConsole({ mallId, initialTab, initialOpen }: { mal
             {tab === "list" && <ListTab mall={mallId} openId={openId} setOpenId={setOpenId} say={say} goNew={() => setTab("new")} />}
             {tab === "new" && <NewTab mall={mallId} say={say} onOpened={(id) => { setOpenId(id); setTab("list"); }} />}
             {tab === "profile" && <p className="note">광고 문자 맨 앞에 브랜드명이, 끝에 무료수신거부 번호가 자동으로 붙어요. 발신번호는 카페24 관리자 › SMS 발신번호 관리에 등록된 번호여야 해요.</p>}
+            {/* 앱이 쓰는 카페24 권한 안내(예전 홈 토글). 목록은 서버 설정(CAFE24_PRIVACY_SCOPE)에 따라 달라서 서버 페이지에서 받는다 */}
+            {tab === "profile" && (
+              <details className="card">
+                <summary>찜꽁이 쓰는 카페24 권한 {scopes.length}개</summary>
+                {scopes.map((s) => <p key={s.scope} className="small"><code>{s.scope}</code> · {s.why}</p>)}
+              </details>
+            )}
           </ConsoleProvider>
         )}
         {/* 화면 밝기 (#85): 휴대폰에서는 상단바 버튼이 없어서 여기서 바꾼다 */}
