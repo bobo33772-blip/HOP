@@ -10,7 +10,6 @@ import { chip, kst, won } from "./format";
 import { useNarrow } from "./radar-picker";
 
 const BY: [SalesBy, string][] = [["day", "일별"], ["week", "주별"], ["month", "월별"]];
-const profit = (n: number | null) => (n == null ? "–" : won(n));
 const nowrap = { whiteSpace: "nowrap" } as const; // 숫자 칸은 한 줄 (#35)
 
 export function SalesPanel({ say }: { say: (t: string) => void }) {
@@ -41,14 +40,12 @@ export function SalesPanel({ say }: { say: (t: string) => void }) {
         <>
           <div className="kpi many">
             <div><small>확정 매출</small><strong>{won(t.revenue)}</strong></div>
-            <div><small>이익 (매출 − 원가)</small><strong>{profit(t.profit)}</strong></div>
             <div><small>확정 수량</small><strong>{t.qty}개</strong></div>
             <div><small>이번 달 매출</small><strong>{won(t.thisMonth)}</strong></div>
             <div><small>지난달 매출</small><strong>{won(t.lastMonth)}</strong></div>
           </div>
           <p className="small">
-            결제 기간 안에 공구 쿠폰으로 결제된 금액이에요. 취소 · 반품은 빼고, 결제 기간 중인 공구는 숫자가 더 늘 수 있어요. 이익에서 배송비 · 결제 수수료는 빼지 않았어요.
-            {t.profitMissing > 0 && ` 원가를 넣지 않은 공구 ${t.profitMissing}개는 이익 합계에서 뺐어요.`}
+            결제 기간 안에 공구 쿠폰으로 결제된 금액이에요. 취소 · 반품은 빼고, 결제 기간 중인 공구는 숫자가 더 늘 수 있어요.
           </p>
 
           <div className="row" style={{ flexWrap: "wrap" }}>
@@ -89,7 +86,7 @@ export function SalesPanel({ say }: { say: (t: string) => void }) {
                 <li key={r.id}><div className="item">
                   <span className="meta">
                     <b style={{ whiteSpace: "normal" }}>{r.productName}</b>
-                    <small>{r.qty}개 · 매출 {won(r.revenue)}{r.profit != null && ` · 이익 ${won(r.profit)}`}</small>
+                    <small>{r.qty}개 · 매출 {won(r.revenue)}</small>
                     <small>결제 마감 {kst(r.payUntil)}{r.cancelledOrders + r.lateOrders > 0 && ` · 취소 ${r.cancelledOrders}건 · 기한 뒤 결제 ${r.lateOrders}건`}</small>
                   </span>
                   <span className={`chip ${cls}`} style={{ flex: "none" }}>{label}</span>
@@ -98,14 +95,14 @@ export function SalesPanel({ say }: { say: (t: string) => void }) {
             })}</ul>
           ) : (
             <div className="tw"><table style={{ wordBreak: "keep-all" }}>
-              <thead><tr><th>상품</th><th>상태</th><th>결제 마감</th><th>확정 수량</th><th>확정 매출</th><th>이익</th><th>취소 · 기한 뒤 결제</th></tr></thead>
+              <thead><tr><th>상품</th><th>상태</th><th>결제 마감</th><th>확정 수량</th><th>확정 매출</th><th>취소 · 기한 뒤 결제</th></tr></thead>
               <tbody>{s.campaigns.map((r) => {
                 const [label, cls] = chip(r.state, r.proceeded);
                 return (
                   <tr key={r.id}>
                     <td>{r.productName}</td><td><span className={`chip ${cls}`}>{label}</span></td><td>{kst(r.payUntil)}</td>
                     <td className="mono" style={nowrap}>{r.qty}개</td><td className="mono" style={nowrap}>{won(r.revenue)}</td>
-                    <td className="mono" style={nowrap}>{profit(r.profit)}</td><td className="mono" style={nowrap}>{r.cancelledOrders}건 · {r.lateOrders}건</td>
+                    <td className="mono" style={nowrap}>{r.cancelledOrders}건 · {r.lateOrders}건</td>
                   </tr>
                 );
               })}</tbody>
