@@ -113,7 +113,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
         <a className="ghost" href="/radar">수요 레이더 · 어떤 상품에 관심이 몰렸는지 보기</a>
 
         <details className="card">
-          <summary>셀러 가이드라인</summary>
+          <summary>셀러 가이드라인 자세히 보기</summary>
           <SellerGuide />
         </details>
         <nav className="legal"><a href="/privacy">개인정보 처리방침</a><a href="/terms">이용약관</a></nav>

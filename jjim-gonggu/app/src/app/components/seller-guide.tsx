@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import s from "./seller-guide.module.css";
 
-/** 홈 '셀러 가이드라인' 토글 안에 펼쳐지는 찜꽁 사장님 가이드 본문 (문구는 원문 그대로) */
+/** 홈 '셀러 가이드라인 자세히 보기' 토글 안에 펼쳐지는 찜꽁 사장님 가이드 본문 (문구는 원문 그대로) */
 
 const STORAGE_KEY = "zzimkkong-guide-checks";
 type Checks = Record<string, boolean>;
