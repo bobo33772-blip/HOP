@@ -96,8 +96,8 @@ async function queueProceeded(ctx: Ctx, c: Campaign, fromPrice: number) {
   const to = issued.filter((m) => ok.has(m));
   if (!to.length) return;
   const brand = mall.brandName || mall.mallId;
-  const changed = c.dealPrice !== fromPrice ? ` 수량이 적어 공구가가 ${won(fromPrice)}에서 ${won(c.dealPrice)}으로 바뀌었어요.` : "";
-  const content = `[${brand}] ${c.productName} 공동구매를 판매자가 그래도 진행하기로 했어요.${changed} 회원님 계정에 ${won(c.listPrice - c.dealPrice)} 할인 쿠폰을 넣어 드렸어요. ${fmtKst(c.payUntil)}까지 결제해 주세요.\n${ctx.productUrl(c.mallId, c.productNo)}`;
+  const changed = c.dealPrice !== fromPrice ? ` 수량이 적어 공구가가 ${won(fromPrice)}에서 ${won(c.dealPrice)}으로 바뀌었습니다.` : "";
+  const content = `[${brand}] ♥ ${c.productName} 공동구매를 그래도 진행하기로 했습니다.${changed}\n☞ 계정에 ${won(c.listPrice - c.dealPrice)} 할인 쿠폰을 넣어 드렸습니다. ${fmtKst(c.payUntil)}까지 결제해 주시기 바랍니다.\n${ctx.productUrl(c.mallId, c.productNo)}`;
   await ctx.db.insert(schema.messages).values({ campaignId: c.id, kind: "proceed", recipients: to, content, sendAfter: nextAllowedSendTime(ctx.clock.now()) });
   await queueReminder(ctx, c, to, brand);
 }

@@ -1,16 +1,17 @@
-// 판매자 홈: 시작하기 체크리스트 · 숫자 요약 · 내 공구(진행률) · 권한 안내.
+// 판매자 홈: 시작하기 체크리스트 · 숫자 요약 · 내 공구(진행률) · 셀러 가이드라인(권한 안내는 설정 화면).
 
 import { eq } from "drizzle-orm";
 import { schema } from "@/db";
 import { fmtKst } from "@/lib/time";
 import WidgetInstallButton from "./components/widget-install-button";
 import AppBar from "./components/app-bar";
+import SellerOnboarding from "./components/seller-onboarding";
 import { env } from "@/lib/env";
 import { launchErrorMessage } from "@/lib/launch-errors";
 import { getSession } from "@/lib/session";
 import { getCtx } from "@/lib/server";
 import { listCampaigns } from "@/lib/engine/campaigns";
-import { requestedScopes } from "@/lib/cafe24/scopes";
+import SellerGuide from "./components/seller-guide";
 import { CHIP } from "./console/format";
 import type { State } from "./console/types";
 
@@ -42,10 +43,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
   const camps = (await listCampaigns(ctx, session.mallId)).slice(0, 12);
   const profileDone = !!(mall?.brandName && mall?.smsSender && mall?.optOutNumber);
   const widgetDone = !!mall?.scriptTagNo || mock;
+  // '첫 공구 열기'는 온보딩(#89)에서 안내해서 시작하기에서는 뺐다
   const steps = [
     { done: profileDone, title: "쇼핑몰 정보 등록", hint: "브랜드명·문자 발신번호·무료수신거부 번호", href: "/campaigns?tab=profile" },
     { done: widgetDone, title: "상품 페이지 위젯 설치", hint: "공구 중인 상품에 진행률과 참여 버튼이 보여요", href: null },
-    { done: camps.length > 0, title: "첫 공구 열기", hint: "공구 알림 신청·장바구니가 많은 상품부터 추천해 드려요", href: "/campaigns?tab=new" },
   ];
   const allDone = steps.every((s) => s.done);
   const open = camps.filter((c) => c.state === "open");
@@ -64,6 +65,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
           <span className="eyebrow">{mock ? "데모 모드" : "카페24 연결됨"}</span>
           <h1>{mall?.brandName ?? session.mallId}님, 안녕하세요</h1>
           <p className="muted">장바구니에 담아 둔 고객이 모이면, 그때 만들고 파세요.</p>
+          {/* 처음 들어오면 로고 인트로 + 사용법 장면이 저절로 열린다. 이 버튼으로 다시 본다 */}
+          <SellerOnboarding />
         </div>
 
         {!allDone && (
@@ -109,12 +112,11 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
           </div>
         )}
 
-        <a className="btn brand" href="/campaigns?tab=new">＋ 새 공구 열기</a>
-        <a className="ghost" href="/radar">수요 레이더 · 어떤 상품에 관심이 몰렸는지 보기</a>
+        <a className="btn dark compact" href="/campaigns?tab=new">＋ 새 공구 열기</a>
 
         <details className="card">
-          <summary>찜꽁이 쓰는 카페24 권한 {requestedScopes().length}개</summary>
-          {requestedScopes().map((s) => <p key={s.scope} className="small"><code>{s.scope}</code> · {s.why}</p>)}
+          <summary>셀러 가이드라인 자세히 보기</summary>
+          <SellerGuide />
         </details>
         <nav className="legal"><a href="/privacy">개인정보 처리방침</a><a href="/terms">이용약관</a></nav>
       </main>

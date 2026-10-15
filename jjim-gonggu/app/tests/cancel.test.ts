@@ -57,7 +57,7 @@ describe("공구 취소 (#65)", () => {
     await tick(env.ctx);
     expect(env.world.smsLog).toHaveLength(1);
     expect(env.world.smsLog[0]).toMatchObject({ memberIds: ["m100"], isAd: false });
-    expect(env.world.smsLog[0].content).toMatch(/판매자 사정으로 취소됐어요\. 결제된 금액은 없어요/);
+    expect(env.world.smsLog[0].content).toMatch(/판매자 사정으로 취소되었습니다\. 결제된 금액은 없습니다/);
   });
 
   it("알림 신청으로 초대받았던 회원의 알림 신청을 되살린다 (다음 공구 때 다시 초대)", async () => {
