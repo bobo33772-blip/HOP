@@ -1,6 +1,6 @@
 // 공구 관리 화면이 API와 주고받는 데이터 모양. 운영자 화면과 판매자 화면이 같이 쓴다.
 
-export type State = "open" | "reached" | "failed" | "settled";
+export type State = "open" | "reached" | "failed" | "settled" | "cancelled";
 export interface Mall { mallId: string; brandName: string | null; optOutNumber: string | null; smsSender: string | null; senders?: { senderNo: string; number: string; status: string }[] | null }
 export interface Camp { id: string; state: State; productName: string; targetQty: number; pledgedQty: number; deadlineAt: string; payUntil: string | null }
 export interface Report {
