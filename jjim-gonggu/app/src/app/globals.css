@@ -1,17 +1,20 @@
-/* 찜꽁 디자인 토큰 (DashLite풍 화이트)
-   - 연회색 바탕 위 흰 카드, 얇은 테두리, 그림자 없음, 슬레이트 글자
-   - 포인트색(#E94162)은 화면의 약 6%: 주 버튼 · 선택 메뉴 · 진행 막대 · 모집 중 칩에만
+/* 찜꽁 디자인 토큰 (시안 2: 셀러박스풍 — 시안 1 DashLite풍 화이트 위에 덮어씀)
+   - 연회색 바탕 위 테두리 없는 흰 카드(모서리 20px), 진한 먹색 글자, 큰 굵은 숫자
+   - 주 포인트색은 로고와 같은 분홍(#E94162): 주 버튼 · 선택 메뉴 · 진행 막대 · 모집 중 칩
+   - 보조색(보라 · 파랑 · 초록 · 노랑)은 아이콘 타일과 순위 같은 작은 장식에만 써서 화면이 심심하지 않게
    - 작은 분홍 글씨는 대비를 위해 한 단계 진한 --brand-ink를, 흰 글씨를 얹는 주 버튼은 --brand-strong을 쓴다
    - 보조 버튼은 진한 슬레이트(--ink), 성공 초록, 위험 주홍
    - 숫자는 고정폭(tabular)으로 정렬 */
 :root {
-  --ink: #364a63; --on-ink: #fff;
-  --brand: #e94162; --brand-2: #e94162; --brand-soft: #fdecf0; --brand-ink: #c22d4d; --brand-strong: #d63556; --btn-dark: #23272f; --on-btn-dark: #fff;
+  --ink: #191f28; --on-ink: #fff;
+  --brand: #e94162; --brand-2: #e94162; --brand-soft: #fdecf0; --brand-ink: #c22d4d; --brand-strong: #d63556; --btn-dark: #000; --on-btn-dark: #fff;
   --primary: var(--brand);
+  --violet: #7b6cf6; --blue: #3182f6; --green: #00a876; --amber: #f5a000;
+  --violet-ink: #5b4bd6; --blue-ink: #1b64da; --green-ink: #006b4f; --amber-ink: #a05c00;
   --success: #0f9f6e; --warning: #c77700; --danger: #d4380d;
-  --bg: #f5f6fa; --surface: #fff; --line: #dbdfea; --soft: #eef0f5; --fg: #364a63; --fg2: #526484; --muted: #5b6a80;
-  --shadow: none; --shadow-pop: 0 1px 3px rgba(16, 25, 36, .08), 0 8px 24px rgba(16, 25, 36, .1);
-  --r: 6px; --r-sm: 4px; --side: 232px;
+  --bg: #f2f4f6; --surface: #fff; --line: #e5e8eb; --soft: #f2f4f6; --fg: #191f28; --fg2: #4e5968; --muted: #5f6b7a;
+  --shadow: none; --shadow-pop: 0 2px 6px rgba(0, 0, 0, .06), 0 12px 32px rgba(0, 0, 0, .1);
+  --r: 20px; --r-sm: 12px; --side: 240px;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -253,4 +256,101 @@ details.card > :not(summary) { margin-top: 8px; }
   body:has(.appbar.side) main { padding: 32px 28px 72px; }
   body:has(.appbar.side) main:not(.wide) { max-width: 960px; }
   body:has(.appbar.side) .toast { left: calc(50% + var(--side) / 2); }
+} }
+
+/* ================= 시안 2: 셀러박스풍 =================
+   위(시안 1)의 규칙을 덮어쓴다. 시안을 고르면 이 묶음을 위 규칙에 합치고 지운다.
+   - 카드는 테두리 없이 흰 바탕 · 모서리 20px, 숫자는 크고 굵게
+   - 아이콘 타일 · 순위 동그라미에만 보조색(보라 · 파랑 · 초록 · 노랑). 타일 위 작은 글씨는 대비 4.5:1 이상인 *-ink 색 */
+h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.03em; }
+main { gap: 14px; }
+.card { border-color: transparent; padding: 22px; }
+.section-head h2 { font-size: 18px; font-weight: 800; }
+.section-head a { color: var(--muted); }
+
+/* 홈 인사 */
+.hello .eyebrow { justify-self: start; background: var(--brand-soft); color: var(--brand-ink); border-radius: 99px; padding: 3px 10px; font-size: 12.5px; }
+.hello .muted { font-size: 15px; }
+
+/* 숫자 칸: 색 타일 아이콘 + 이름 + 큰 숫자 */
+.stats { gap: 12px; }
+.stat { border-color: transparent; padding: 18px; gap: 4px; }
+.stat::before { content: ""; width: 40px; height: 40px; border-radius: 12px; margin-bottom: 8px; background: var(--tile, var(--soft)) var(--icon, none) center / 21px no-repeat; }
+.stat:nth-child(1) { --tile: color-mix(in srgb, var(--violet) 15%, var(--surface)); --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237b6cf6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 11v2a1 1 0 0 0 1 1h2l6 4V6l-6 4H4a1 1 0 0 0-1 1zM16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12'/%3E%3C/svg%3E"); }
+.stat:nth-child(2) { --tile: color-mix(in srgb, var(--blue) 14%, var(--surface)); --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233182f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM21 20v-1a4 4 0 0 0-3-3.9M15 3.1a4 4 0 0 1 0 7.8'/%3E%3C/svg%3E"); }
+.stat:nth-child(3) { --tile: color-mix(in srgb, var(--green) 15%, var(--surface)); --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300a876' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 11v1a9 9 0 1 1-5.3-8.2M21 5l-9 9-3-3'/%3E%3C/svg%3E"); }
+.stat small { font-size: 13px; font-weight: 600; }
+.stat strong { font-size: 30px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.2; }
+
+/* 시작하기 */
+.steps .dot { width: 30px; height: 30px; background: color-mix(in srgb, var(--violet) 14%, var(--surface)); color: var(--violet-ink); }
+.steps .done .dot { background: color-mix(in srgb, var(--green) 16%, var(--surface)); color: var(--green-ink); }
+.steps li + li { border-top-color: var(--soft); }
+
+/* 공구 카드 */
+.camps { gap: 14px; }
+.camp:hover { border-color: color-mix(in srgb, var(--brand) 30%, transparent); transform: translateY(-1px); }
+.count { font-size: 30px; font-weight: 800; letter-spacing: -0.03em; }
+.bar { height: 10px; }
+.pill, .chip { border-radius: 99px; padding: 4px 10px; }
+
+/* 버튼 · 입력칸 */
+.btn { border-radius: 14px; min-height: 50px; padding: 0 20px; }
+.btn.compact { border-radius: 12px; min-height: 42px; }
+.ghost { border-radius: 12px; min-height: 42px; }
+.field, .form input, .form select { border-radius: 12px; padding: 12px 14px; }
+.msg { border-radius: 14px; }
+.note, .warn { border-radius: 12px; }
+.toast { border-radius: 14px; }
+.sheet .in { border-radius: 24px 24px 0 0; }
+
+/* 위쪽 메뉴: 밑줄 탭 (넓은 화면의 사이드바는 아래에서 다시 알약 모양으로) */
+.tabs a, .tabs button { font-weight: 700; color: var(--muted); border-radius: 10px; }
+.tabs [aria-current="page"], .tabs [aria-selected="true"] { background: none; color: var(--fg); border-radius: 0; box-shadow: inset 0 -2.5px 0 var(--brand); }
+
+/* 알약 토글 · 목록 */
+/* 알약 토글은 회색 바탕 위에도 놓여서, 칸은 바탕보다 한 단계 진하게 */
+.seg { border-radius: 14px; padding: 4px; background: var(--line); }
+.seg button { border-radius: 10px; font-weight: 700; }
+.seg button[aria-checked="true"] { box-shadow: 0 1px 3px rgba(0, 0, 0, .08); }
+.list { border-color: transparent; }
+.list li + li { border-top-color: var(--soft); }
+.item { padding: 15px 18px; }
+.rank { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; background: color-mix(in srgb, var(--violet) 14%, var(--surface)); color: var(--violet-ink); }
+.list li:first-child .rank { background: var(--brand-soft); color: var(--brand-ink); }
+.meta b { font-weight: 700; }
+
+/* 숫자 묶음 · 표 */
+.kpi { gap: 10px; }
+.kpi div { border-color: transparent; background: var(--soft); border-radius: 16px; padding: 12px 14px; }
+.kpi div.hl { border-color: transparent; background: var(--brand-soft); }
+.kpi div.hl.confirmed { border-color: transparent; background: color-mix(in srgb, var(--success) 14%, var(--surface)); }
+.kpi strong { font-size: 24px; font-weight: 800; }
+.tw { border-color: transparent; }
+.tw th, .tw td { padding: 12px 14px; border-top-color: var(--soft); }
+.tw thead th { background: var(--surface); color: var(--muted); border-bottom: 1px solid var(--line); }
+
+/* 토글 카드(셀러 가이드라인 · 권한 안내): 노랑 책 타일 + 굵은 제목 + › */
+details.card > summary { list-style: none; display: flex; align-items: center; gap: 12px; font-size: 15.5px; font-weight: 700; color: var(--fg); padding: 2px 0; }
+details.card > summary::-webkit-details-marker { display: none; }
+details.card > summary::before { content: ""; flex: none; width: 40px; height: 40px; border-radius: 12px; background: color-mix(in srgb, var(--amber) 18%, var(--surface)) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5a000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5zM20 17v4H6.5a2.5 2.5 0 0 1 0-5'/%3E%3C/svg%3E") center / 21px no-repeat; }
+details.card > summary::after { content: "›"; margin-left: auto; font-size: 24px; line-height: 1; color: var(--muted); transition: transform .15s; }
+details.card[open] > summary::after { transform: rotate(90deg); }
+
+/* 휴대폰 폭 */
+@media (max-width: 560px) {
+  h1 { font-size: 23px; }
+  .card { padding: 18px; }
+  .tw th, .tw td { padding: 9px 8px; }
+  .stat { padding: 14px 12px; } .stat::before { width: 34px; height: 34px; border-radius: 10px; background-size: 18px; margin-bottom: 6px; }
+  .stat strong { font-size: 24px; }
+  .btn { min-height: 48px; }
+}
+
+/* 넓은 화면 사이드바: 선택 메뉴는 분홍 알약 */
+@media (min-width: 900px) { @supports selector(:has(a)) {
+  .appbar.side { border-right-color: transparent; }
+  .appbar.side .tabs a { border-radius: 12px; padding: 11px 12px; color: var(--fg2); }
+  .appbar.side .tabs [aria-current="page"] { background: var(--brand-soft); color: var(--brand-ink); box-shadow: none; }
+  body:has(.appbar.side) main { padding: 36px 32px 80px; }
 } }
