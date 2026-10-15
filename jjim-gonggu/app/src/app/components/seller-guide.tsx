@@ -143,7 +143,7 @@ export default function SellerGuide() {
     <div className={s.guide}>
       <header className={s.head}>
         <p className={s.kicker}>찜꽁 · 사장님용 운영 가이드</p>
-        <h2 className={s.title}>품절 상품으로<br />재입고 공구 여는 법</h2>
+        <h2 className={s.title}>품절 상품으로 재입고 공구 여는 법</h2>
         <p className={s.lead}>품절 상품을 숨기지 말고 <strong>재입고 알림 신청</strong>을 받으세요. 신청 수가 목표에 닿으면 재입고 공구를 열고, 신청자에게 알림을 보냅니다.</p>
         <div className={s.rhythm}>
           <div><b>설정은 한 번</b><span>1~3단계 · 카페24 관리자</span></div>
