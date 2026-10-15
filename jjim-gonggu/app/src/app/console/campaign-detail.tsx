@@ -1,13 +1,14 @@
 "use client";
 
-// 공구 상세: 진행률 · 퍼널 · 문자 · 리포트 링크 · 미달 뒤 그래도 진행 · 생산 결정 기록. 운영자 OP-4(모집 → 판정 → 결제 대사) / 판매자 S-09 · S-10 · S-11.
+// 공구 상세: 진행률 · 퍼널 · 문자 · 리포트 링크 · 미달 뒤 그래도 진행 · 생산 결정 기록 · 모집 중 공구 취소(#66). 운영자 OP-4(모집 → 판정 → 결제 대사) / 판매자 S-09 · S-10 · S-11.
 // 운영자만: 수동 판정 · 대사 · 문자 재발송 · 확인할 일.
 
 import { useCallback, useEffect, useState } from "react";
 import { useConsole } from "./provider";
 import type { Detail } from "./types";
-import { chip, kst, pct, won } from "./format";
+import { chip, kst, msgKind, pct, won } from "./format";
 import { DECISION_CONFIRM_RATIO, decisionNeedsConfirm } from "@/lib/core/campaign";
+import { CancelSheet } from "./cancel-sheet";
 
 const MSG_STATUS = { sent: ["발송", "ok"], failed: ["실패", "bad"], scheduled: ["예약", "warn"], sending: ["보내는 중", "open"] } as const;
 const ISSUE_LABEL: Record<string, string> = {
@@ -27,6 +28,7 @@ export function CampaignDetail({ id, say, onChanged }: { id: string; say: (t: st
   const [priceMode, setPriceMode] = useState<"same" | "new">("same");
   const [newPrice, setNewPrice] = useState("");
   const [belowCost, setBelowCost] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
   const load = useCallback(async () => {
     const [detail, clock] = await Promise.all([a.call<Detail>("GET", `${a.campaignBase}/${id}`), a.call<{ now: string }>("GET", a.now)]);
     setD(detail);
@@ -39,6 +41,8 @@ export function CampaignDetail({ id, say, onChanged }: { id: string; say: (t: st
   const [label, cls] = chip(c.state, !!c.proceededAt);
   const p = d.proceed;
   const big = decisionNeedsConfirm(Number(dq), r.confirmed.qty);
+  // 취소는 모집 중이고 마감 전인 공구만 (#65). 달성 뒤에는 쿠폰 · 결제가 있을 수 있어 버튼을 두지 않는다
+  const cancellable = c.state === "open" && now > 0 && now < new Date(c.deadlineAt).getTime();
   const act = async (path: string, msg: (j: Record<string, unknown>) => string, body?: unknown) => {
     try { const j = await a.call<Record<string, unknown>>("POST", path, body ?? {}); say(msg(j)); await load(); onChanged(); } catch (e) { say((e as Error).message); }
   };
@@ -51,6 +55,7 @@ export function CampaignDetail({ id, say, onChanged }: { id: string; say: (t: st
       <div className="row"><h2 style={{ fontSize: 19, margin: 0 }}>{c.productName}</h2><span className={`chip ${cls}`}>{label}</span></div>
       <p className="muted">{won(c.listPrice)} → {won(c.dealPrice)} · 목표 {c.targetQty}개 · 마감 {kst(c.deadlineAt)} · 출고 {c.shipEta}</p>
       {c.proceededAt && <p className="small">목표에 못 미쳤지만 {kst(c.proceededAt)}에 그래도 진행했어요. 4주 판정표의 공구 성사율에서는 빠져요.</p>}
+      {c.state === "cancelled" && <p className="small">모집 중에 취소한 공구예요. 신청한 고객에게는 취소 안내 문자가 가고, 결제된 금액은 없어요. 같은 상품으로 새 공구를 열 수 있어요.</p>}
       <div className="kpi many">
         <div><small>초대</small><strong>{r.funnel.invited}</strong></div>
         <div><small>신청 수량</small><strong>{r.funnel.pledgedQty}</strong></div>
@@ -67,6 +72,7 @@ export function CampaignDetail({ id, say, onChanged }: { id: string; say: (t: st
           <button className="ghost" disabled={!(c.state === "open" && now >= new Date(c.deadlineAt).getTime())} onClick={() => act(`${a.campaignBase}/${id}/judge`, () => "판정했어요")}>마감 판정 실행</button>
           <button className="ghost" disabled={!["reached", "settled"].includes(c.state)} onClick={() => act(`${a.campaignBase}/${id}/reconcile`, (j) => `주문 ${j.checked}건을 대조했어요`)}>주문 대사 실행</button>
         </>}
+        {cancellable && <button className="ghost danger" onClick={() => setCancelOpen(true)}>공구 취소</button>}
       </div>
       {p && (
         <div className="card" style={{ background: "var(--soft)" }}>
@@ -117,7 +123,7 @@ export function CampaignDetail({ id, say, onChanged }: { id: string; say: (t: st
         <thead><tr><th>종류</th><th>대상</th><th>상태</th><th>발송 예정·완료</th>{isAdmin && <th />}</tr></thead>
         <tbody>{d.messages.map((m) => (
           <tr key={m.id}>
-            <td style={{ whiteSpace: "nowrap" }}>{m.kind === "invite_ad" ? "초대 (광고)" : m.kind === "pay_reminder" ? "결제 안내" : m.kind === "proceed" ? "진행 안내" : "결과 안내"}</td>
+            <td style={{ whiteSpace: "nowrap" }}>{msgKind(m.kind)}</td>
             <td className="mono" style={{ whiteSpace: "nowrap" }}>{m.recipients}명</td>
             <td><span className={`chip ${MSG_STATUS[m.status][1]}`}>{MSG_STATUS[m.status][0]}</span>{m.error && <div className="small">{m.error}</div>}</td>
             <td>{kst(m.sentAt ?? m.sendAfter)}</td>
@@ -132,6 +138,18 @@ export function CampaignDetail({ id, say, onChanged }: { id: string; say: (t: st
           <tr key={i.id}><td>{kst(i.at)}</td><td><b>{ISSUE_LABEL[i.kind] ?? i.kind}</b></td><td className="small">{JSON.stringify(i.detail)}</td></tr>
         ))}</tbody></table></div>
       ) : <p className="muted">없어요.</p>}
+      {cancelOpen && (
+        <CancelSheet productName={c.productName} pledgers={r.funnel.pledgers} onClose={() => setCancelOpen(false)}
+          onConfirm={async (reason) => {
+            // 실패하면 창을 그대로 두고 이유를 보여 준다 (예: 그새 마감이 지났어요)
+            try {
+              const j = await a.call<{ notified: number }>("POST", `${a.campaignBase}/${id}/cancel`, { reason });
+              setCancelOpen(false);
+              say(`공구를 취소했어요${j.notified > 0 ? ` · 취소 안내 문자 ${j.notified}명` : ""}`);
+              await load(); onChanged();
+            } catch (e) { say((e as Error).message); }
+          }} />
+      )}
     </div>
   );
 }
