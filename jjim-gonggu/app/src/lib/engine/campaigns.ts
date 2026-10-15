@@ -40,37 +40,35 @@ export async function pledgedQty(ctx: Ctx, campaignId: string, db: Pick<Db, "sel
 }
 
 /** consentChecked=false: 개인정보 권한이 없어 수신 동의를 미리 확인하지 못했다. reachable은 최대치이고, 수신거부 고객은 카페24가 발송 때 뺀다 */
-export interface Audience { alert: number; wishlist: number; cart: number; unique: number; reachable: number; consentChecked: boolean; members: { memberId: string; source: string }[] }
+export interface Audience { alert: number; cart: number; unique: number; reachable: number; consentChecked: boolean; members: { memberId: string; source: string }[] }
 
 /**
- * 알림 신청 ∪ 찜 ∪ 장바구니 회원에서 중복을 빼고, 문자 수신 동의자만 남긴다.
- * 개인정보 권한이 없으면 찜은 빼고(알림 신청 + 장바구니), 수신 동의는 카페24 발송 단계에 맡긴다.
+ * 알림 신청 ∪ 장바구니 회원에서 중복을 빼고, 문자 수신 동의자만 남긴다. 찜은 쓰지 않는다(카페24 개인정보 권한이 필요, #81).
+ * 개인정보 권한이 없으면 수신 동의는 카페24 발송 단계에 맡긴다.
  * 알림 신청은 고객이 직접 원한 것이라 다른 경로와 겹쳐도 source를 alert로 둔다.
  */
 export async function buildAudience(ctx: Ctx, mallId: string, productNo: number): Promise<Audience> {
   const api = await ctx.shop(mallId);
-  const [a, w, c] = await Promise.all([alertMembers(ctx, mallId, productNo), api.privacy ? api.wishlistMembers(productNo) : Promise.resolve([] as string[]), api.cartMembers(productNo)]);
+  const [a, c] = await Promise.all([alertMembers(ctx, mallId, productNo), api.cartMembers(productNo)]);
   const src = new Map<string, string>();
-  for (const id of w) src.set(id, "wishlist");
-  for (const id of c) src.set(id, src.has(id) ? "both" : "cart");
+  for (const id of c) src.set(id, "cart");
   for (const id of a) src.set(id, "alert");
   const ids = [...src.keys()];
   const ok = api.privacy ? new Set((ids.length ? await api.consents(ids) : []).filter((x) => x.sms).map((x) => x.memberId)) : new Set(ids);
   const members = ids.filter((id) => ok.has(id)).map((id) => ({ memberId: id, source: src.get(id)! }));
-  return { alert: a.length, wishlist: w.length, cart: c.length, unique: ids.length, reachable: members.length, consentChecked: api.privacy, members };
+  return { alert: a.length, cart: c.length, unique: ids.length, reachable: members.length, consentChecked: api.privacy, members };
 }
 
 type InviteFields = Pick<Campaign, "productName" | "targetQty" | "dealPrice" | "listPrice" | "deadlineAt" | "shipEta">;
 
 /** 초대 문자는 한 통을 모두에게 보내므로, 받는 사람 모두에게 맞는 말을 고른다 */
-export function inviteLead(aud: Pick<Audience, "alert" | "wishlist" | "cart">): string {
-  if (aud.wishlist) return "찜하신";
+export function inviteLead(aud: Pick<Audience, "alert" | "cart">): string {
   if (aud.alert && aud.cart) return "관심 가져 주신";
   if (aud.alert) return "공구 알림을 신청하신";
   return "장바구니에 담아 두신";
 }
 
-export function inviteContent(mall: Pick<Mall, "mallId" | "brandName" | "optOutNumber">, c: InviteFields, link: string, lead = "찜하신"): string {
+export function inviteContent(mall: Pick<Mall, "mallId" | "brandName" | "optOutNumber">, c: InviteFields, link: string, lead = "관심 가져 주신"): string {
   return formatAdMessage({
     mallName: `[${mall.brandName || mall.mallId}]`,
     body: `${lead} ${c.productName} 공동구매가 열렸어요. ${c.targetQty}개가 모이면 ${won(c.dealPrice)}(정가 ${won(c.listPrice)}). ${fmtKst(c.deadlineAt)} 마감, 결제는 목표 달성 후에 해요. 예상 출고 ${c.shipEta}.\n${link}`,
@@ -97,7 +95,7 @@ export async function previewCampaign(ctx: Ctx, mallId: string, input: CampaignI
     errors: errorMessages(issues),
     warnings: issues.filter((i) => i.level === "warning").map((i) => i.message),
     message,
-    audience: { alert: aud.alert, wishlist: aud.wishlist, cart: aud.cart, unique: aud.unique, reachable: aud.reachable, consentChecked: aud.consentChecked },
+    audience: { alert: aud.alert, cart: aud.cart, unique: aud.unique, reachable: aud.reachable, consentChecked: aud.consentChecked },
     sendAt: nextAllowedSendTime(ctx.clock.now()),
     marginPerUnit: input.costPrice != null ? input.dealPrice - input.costPrice : null,
   };
@@ -119,7 +117,7 @@ export async function openCampaign(ctx: Ctx, actor: string, mallId: string, inpu
   }
   const errors = errorMessages(pv.issues);
   if (errors.length) throw new UserError("invalid_input", errors.join(" "));
-  if (pv.aud.reachable === 0) throw new UserError("no_audience", pv.aud.consentChecked ? "문자를 받을 수 있는 알림 신청·찜·장바구니 고객이 없어요." : "이 상품에 공구 알림을 신청했거나 장바구니에 담은 고객이 없어요.");
+  if (pv.aud.reachable === 0) throw new UserError("no_audience", pv.aud.consentChecked ? "문자를 받을 수 있는 알림 신청·장바구니 고객이 없어요." : "이 상품에 공구 알림을 신청했거나 장바구니에 담은 고객이 없어요.");
   const [dup] = await ctx.db.select({ id: schema.campaigns.id }).from(schema.campaigns)
     .where(and(eq(schema.campaigns.mallId, mallId), eq(schema.campaigns.productNo, pv.product.productNo), inArray(schema.campaigns.state, ["open", "reached"])));
   if (dup) throw new UserError("duplicate", "이 상품은 이미 진행 중인 공구가 있어요.", 409);

@@ -78,8 +78,8 @@ describe("광고 문자 규칙", () => {
     expect(isValidOptOutNumber("")).toBe(false);
   });
   it("(광고) 표기와 수신거부 안내 강제", () => {
-    const m = formatAdMessage({ mallName: "도윤백", body: "(광고) 찜하신 숄더백 공구가 열렸어요", optOutNumber: "080-000-0000" });
-    expect(m.startsWith("(광고)도윤백\n찜하신")).toBe(true);
+    const m = formatAdMessage({ mallName: "도윤백", body: "(광고) 장바구니에 담아 두신 숄더백 공구가 열렸어요", optOutNumber: "080-000-0000" });
+    expect(m.startsWith("(광고)도윤백\n장바구니에 담아 두신")).toBe(true);
     expect(m.endsWith("무료수신거부 080-000-0000")).toBe(true);
   });
 });

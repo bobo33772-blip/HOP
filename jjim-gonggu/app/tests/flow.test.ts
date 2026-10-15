@@ -59,10 +59,11 @@ describe("개설", () => {
 });
 
 describe("초대 문자", () => {
-  it("찜 ∪ 장바구니에서 중복을 빼고 수신 동의자에게만, (광고)·수신거부 문구를 붙여 보낸다", async () => {
+  it("알림 신청 ∪ 장바구니에서 중복을 빼고 수신 동의자에게만, (광고)·수신거부 문구를 붙여 보낸다 (찜은 쓰지 않는다, #81)", async () => {
     const env = await setup();
     const pv = await previewCampaign(env.ctx, MALL, baseInput(env.clock));
-    expect(pv.audience).toEqual({ alert: 0, wishlist: 100, cart: 40, unique: 139, reachable: 69, consentChecked: true }); // 찜 목록은 실제 API처럼 100명에서 끊긴다 (P8)
+    expect(pv.audience).toEqual({ alert: 0, cart: 139, unique: 139, reachable: 69, consentChecked: true });
+    expect(pv.message).toMatch(/장바구니에 담아 두신 스톤웨어/);
     const { campaign, invited } = await openCampaign(env.ctx, "op", MALL, baseInput(env.clock));
     expect(invited).toBe(69);
     expect(campaign.couponNo).toBeTruthy();
@@ -458,19 +459,20 @@ describe("확정 리포트와 4주 판정표", () => {
 });
 
 describe("개인정보 권한 없는 몰 (장바구니 고객 공구)", () => {
-  it("찜·수신 동의를 조회하지 않고 장바구니 고객을 초대하며, 수신거부 고객은 카페24 발송 단계에서 빠진다", async () => {
+  it("수신 동의를 조회하지 않고 장바구니 고객을 초대하며, 수신거부 고객은 카페24 발송 단계에서 빠진다", async () => {
     const env = await setup();
     env.world.privacy = false;
     const pv = await previewCampaign(env.ctx, MALL, baseInput(env.clock));
-    expect(pv.audience).toEqual({ alert: 0, wishlist: 0, cart: 40, unique: 40, reachable: 40, consentChecked: false });
+    expect(pv.audience).toEqual({ alert: 0, cart: 139, unique: 139, reachable: 139, consentChecked: false });
     const { invited } = await openCampaign(env.ctx, "op", MALL, baseInput(env.clock));
-    expect(invited).toBe(40);
+    expect(invited).toBe(139);
     await tick(env.ctx);
     const sms = env.world.smsLog[0];
+    const got = env.world.smsLog.flatMap((s) => s.memberIds); // 초대 문자는 100명씩 나눠 보낸다
     expect(sms.isAd).toBe(true);
-    expect(sms.memberIds).toHaveLength(20); // m100~m139 중 수신 동의(짝수)만 실제로 받는다
+    expect(got).toHaveLength(69); // m1~m139 중 수신 동의(짝수)만 실제로 받는다
     expect(sms.content).toMatch(/장바구니에 담아 두신 스톤웨어/);
-    expect(sms.memberIds.every((id) => Number(id.slice(1)) % 2 === 0)).toBe(true);
+    expect(got.every((id) => Number(id.slice(1)) % 2 === 0)).toBe(true);
   });
 });
 

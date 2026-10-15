@@ -100,10 +100,3 @@ describe("호출기 재시도 정책", () => {
   });
 });
 
-describe("찜 회원 조회", () => {
-  it("문서에 없는 limit 파라미터를 보내지 않는다", async () => {
-    const { api, calls } = fakeShop((c) => c.path === "/products/102/wishlist/customers" ? { json: { customers: [{ member_id: "m1" }] } } : undefined);
-    expect(await api.wishlistMembers(102)).toEqual(["m1"]);
-    expect(calls[0].query.limit).toBeUndefined();
-  });
-});

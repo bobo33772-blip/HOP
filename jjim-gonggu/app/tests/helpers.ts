@@ -10,7 +10,7 @@ import { openCampaign } from "@/lib/engine/campaigns";
 export const MALL = "linenco";
 export const PRODUCT = 102;
 
-/** 2026-10-12(월) 10:00 KST에서 시작하는 모의 쇼핑몰 1곳: 회원 200명(짝수만 수신 동의), 상품 102 찜 120명·장바구니 40명 */
+/** 2026-10-12(월) 10:00 KST에서 시작하는 모의 쇼핑몰 1곳: 회원 200명(짝수만 수신 동의), 상품 102 장바구니 139명(m1~m139) */
 export async function setup(opts: { members?: number; consentEvery?: number } = {}) {
   const clock = manualClock(new Date("2026-10-12T01:00:00Z"));
   const world = new MockCafe24(clock);
@@ -21,9 +21,9 @@ export async function setup(opts: { members?: number; consentEvery?: number } = 
   ]);
   const n = opts.members ?? 200, every = opts.consentEvery ?? 2;
   for (let i = 1; i <= n; i++) world.addMember(MALL, `m${i}`, i % every === 0);
-  for (let i = 1; i <= 120; i++) world.addWish(MALL, PRODUCT, `m${i}`);
-  for (let i = 100; i <= 139; i++) world.addCart(MALL, PRODUCT, `m${i}`);
-  for (let i = 1; i <= 60; i++) world.addWish(MALL, 101, `m${i}`);
+  // 찜을 빼면서(#81) 예전 찜 회원(m1~m120)도 장바구니로 옮겼다. 초대 대상은 예전 찜 ∪ 장바구니와 같은 139명
+  for (let i = 1; i <= 139; i++) world.addCart(MALL, PRODUCT, `m${i}`);
+  for (let i = 1; i <= 60; i++) world.addCart(MALL, 101, `m${i}`);
   const db = await createTestDb();
   await db.insert(schema.malls).values({ mallId: MALL, brandName: "LINEN & CO.", optOutNumber: "080-000-0000", smsSender: "02-000-0000" });
   const logs: string[] = [];

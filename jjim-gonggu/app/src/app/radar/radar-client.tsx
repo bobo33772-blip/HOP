@@ -6,17 +6,17 @@ import { useCallback, useEffect, useState } from "react";
 import AppBar from "../components/app-bar";
 import { fmtKst } from "@/lib/time";
 
-type Sort = "total" | "alert" | "wishlist" | "cart";
-interface Row { productNo: number; name: string; price: number; alert: number; wishlist: number; cart: number }
+type Sort = "total" | "alert" | "cart";
+interface Row { productNo: number; name: string; price: number; alert: number; cart: number }
 interface Run { id: number; status: "running" | "done" | "failed"; total: number; done: number; startedAt: string; finishedAt: string | null }
 interface Radar { run: Run | null; current: Run | null; rows: Row[] }
-interface Reach { productNo: number; interested: number; reachable: number; wishlistCapped: boolean }
+interface Reach { productNo: number; interested: number; reachable: number }
 
 const won = (n: number) => `${n.toLocaleString("ko-KR")}원`;
 const when = (s: string) => fmtKst(s); // 한국 시간 고정, 다른 화면과 같은 모양 (#12)
-const SORTS: [Sort, string][] = [["total", "전체"], ["alert", "알림 신청"], ["wishlist", "찜"], ["cart", "장바구니"]];
-/** 찜 수는 카페24 개인정보 권한이 있을 때만 모인다. 없으면 찜 숫자·정렬을 숨긴다 */
-const counts = (r: Row, wish: boolean) => `알림 신청 ${r.alert}${wish ? ` · 찜 ${r.wishlist}` : ""} · 장바구니 ${r.cart}`;
+const SORTS: [Sort, string][] = [["total", "전체"], ["alert", "알림 신청"], ["cart", "장바구니"]];
+/** 수요는 알림 신청(품절 상품)과 장바구니로만 잰다. 찜은 쓰지 않는다 (#81) */
+const counts = (r: Row) => `알림 신청 ${r.alert} · 장바구니 ${r.cart}`;
 
 export default function RadarClient() {
   const [sort, setSort] = useState<Sort>("total");
@@ -75,8 +75,7 @@ export default function RadarClient() {
     );
   }
 
-  const wish = data.rows.some((r) => r.wishlist > 0);
-  const max = Math.max(1, ...data.rows.map((r) => r.alert + r.wishlist + r.cart));
+  const max = Math.max(1, ...data.rows.map((r) => r.alert + r.cart));
   return (
     <><AppBar current="radar" /><main>
       <h1>수요 레이더</h1>
@@ -86,7 +85,7 @@ export default function RadarClient() {
       </p>
       <div className="toolbar">
         <div className="seg" role="radiogroup" aria-label="정렬">
-          {SORTS.filter(([k]) => wish || k !== "wishlist").map(([k, label]) => (
+          {SORTS.map(([k, label]) => (
             <button key={k} role="radio" aria-checked={sort === k} onClick={() => setSort(k)}>{label}</button>
           ))}
         </div>
@@ -103,9 +102,9 @@ export default function RadarClient() {
                 <span className="rank">{i + 1}</span>
                 <span className="meta">
                   <b>{r.name}</b>
-                  <small>{won(r.price)} · {counts(r, wish)}</small>
+                  <small>{won(r.price)} · {counts(r)}</small>
                   <span className="bars" aria-hidden="true">
-                    <i style={{ width: `${((r.alert + r.wishlist) / max) * 100}%` }} />
+                    <i style={{ width: `${(r.alert / max) * 100}%` }} />
                     <i className="c" style={{ width: `${(r.cart / max) * 100}%` }} />
                   </span>
                 </span>
@@ -115,9 +114,9 @@ export default function RadarClient() {
           ))}
         </ol>
       )}
-      <p className="legend"><i /> {wish ? "알림 신청·찜" : "알림 신청"} <i className="c" /> 장바구니 · 알림 신청은 지금 숫자예요. 장바구니는 쇼핑몰 보관 기간이 지나면 사라져 최근 관심만 반영돼요.</p>
+      <p className="legend"><i /> 알림 신청 <i className="c" /> 장바구니 · 알림 신청은 지금 숫자예요. 장바구니는 쇼핑몰 보관 기간이 지나면 사라져 최근 관심만 반영돼요.</p>
       {error && <p className="err">{error}</p>}
-      {picked && <ReachSheet row={picked} wish={wish} onClose={() => setPicked(null)} />}
+      {picked && <ReachSheet row={picked} onClose={() => setPicked(null)} />}
     </main></>
   );
 }
@@ -132,7 +131,7 @@ function Progress({ done, total }: { done: number; total: number }) {
   );
 }
 
-function ReachSheet({ row, wish, onClose }: { row: Row; wish: boolean; onClose: () => void }) {
+function ReachSheet({ row, onClose }: { row: Row; onClose: () => void }) {
   const [reach, setReach] = useState<Reach | null>(null);
   const [failed, setFailed] = useState(false);
   useEffect(() => {
@@ -149,7 +148,7 @@ function ReachSheet({ row, wish, onClose }: { row: Row; wish: boolean; onClose: 
       <div className="in" onClick={(e) => e.stopPropagation()}>
         <div className="grab" />
         <h2>{row.name}</h2>
-        <p className="muted">{counts(row, wish)}</p>
+        <p className="muted">{counts(row)}</p>
         {failed ? (
           <p className="err">대상 고객 수를 확인하지 못했어요.</p>
         ) : !reach ? (
@@ -161,7 +160,6 @@ function ReachSheet({ row, wish, onClose }: { row: Row; wish: boolean; onClose: 
               <div className="hl"><small>공구 초대를 받을 수 있는 고객</small><strong>{reach.reachable}명</strong></div>
             </div>
             <p className="muted">광고 문자는 수신동의한 고객에게만 보내요. 동의하지 않은 고객도 상품 페이지 위젯으로 공구를 볼 수 있어요.</p>
-            {reach.wishlistCapped && <p className="warn">찜한 회원이 많아 일부만 확인됐어요. 실제 대상은 이보다 많을 수 있어요.</p>}
           </>
         )}
         <a className="btn brand" href="/campaigns?tab=new">이 상품으로 공구 열기</a>

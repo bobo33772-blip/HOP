@@ -79,7 +79,7 @@
   else script.parentNode.insertBefore(root, script.nextSibling);
 
   // a: '공구 열리면 알림 받기' (진행 중 공구가 없거나 지난 공구가 끝난 상품). 카페24 찜 대신 고객이 직접 신청한다. soldOut: 품절 상품만 알림 버튼 (#67)
-  // others: 이 회원이 장바구니 · 찜 · 알림으로 초대받았거나 신청한 다른 상품의 공구 (#60)
+  // others: 이 회원이 장바구니 · 알림으로 초대받았거나 신청한 다른 상품의 공구 (#60)
   var state = { c: null, mine: null, qty: 1, step: 'view', err: '', busy: false, idem: null, a: null, soldOut: false, others: [] };
   var ALERTS = '/api/public/malls/' + encodeURIComponent(MALL) + '/products/' + productNo + '/alerts';
 

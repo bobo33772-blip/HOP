@@ -64,7 +64,7 @@ describe("API 호출기", () => {
     let token = "old";
     const slept: number[] = [];
     const c = new Cafe24Client("m", { get: async (force) => (force ? (token = "new") : token) }, fake, async (ms) => void slept.push(ms));
-    const r = await c.request<{ count: number }>("GET", "/products/1/wishlist/customers/count");
+    const r = await c.request<{ count: number }>("GET", "/products/1/carts/count");
     expect(r.count).toBe(7);
     expect(calls).toEqual(["Bearer old", "Bearer new", "Bearer new"]);
     expect(slept).toEqual([1000]);

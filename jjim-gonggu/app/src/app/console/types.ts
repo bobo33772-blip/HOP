@@ -16,9 +16,9 @@ export interface Detail {
   // 미달 공구만: '그래도 살래요' 표시 수와 그래도 진행할 수 있는 기간
   proceed: { proceedUntil: string | null; proceedOpen: boolean; wanted: { members: number; qty: number }; payWindowHours: number; costPrice: number | null } | null;
 }
-export interface RadarRow { productNo: number; name: string; price: number; soldOut: boolean; alert: number; wishlist: number; cart: number }
+export interface RadarRow { productNo: number; name: string; price: number; soldOut: boolean; alert: number; cart: number }
 export interface Run { status: "running" | "done" | "failed"; total: number; done: number; finishedAt: string | null; startedAt: string }
 export interface Preview {
   errors: string[]; warnings: string[]; message: string; sendAt: string; marginPerUnit: number | null;
-  audience: { alert: number; wishlist: number; cart: number; unique: number; reachable: number; consentChecked: boolean };
+  audience: { alert: number; cart: number; unique: number; reachable: number; consentChecked: boolean };
 }
