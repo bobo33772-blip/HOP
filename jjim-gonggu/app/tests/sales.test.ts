@@ -21,10 +21,19 @@ const stateName = (s: Parameters<typeof chip>[0], p: boolean) => chip(s, p)[0];
 async function reached(input: Partial<CampaignInput> = {}) {
   const env = await setup();
   const c = await openAndFill(env, range(1, 40), 1, input);
-  expect((await salesOverview(env.ctx, MALL)).campaigns).toEqual([]); // 모집 중 공구는 매출이 없어 표에 없다
+  const before = await salesOverview(env.ctx, MALL);
+  expect(before.campaigns).toEqual([]); // 모집 중 공구는 매출이 없어 표에 없다
+  // 모집 중 신청 금액 (#92): 신청 40개 × 공구가 39,000원. 목표 30개를 넘겼다
+  expect(before.recruiting).toEqual({ campaigns: 1, qty: 40, amount: 40 * 39000, reachedTarget: 1 });
+  expect(before.waiting).toMatchObject({ campaigns: 0, members: 0, amount: 0, payUntil: null });
   env.clock.advance(5 * DAY);
   await tick(env.ctx);
-  return { env, c, cp: (await getCampaign(env.ctx, c.id)).couponNo! };
+  const judged = await getCampaign(env.ctx, c.id);
+  // 달성 직후 (#92): 40명 모두 쿠폰을 받고 아직 안 냈다. 가장 가까운 결제 마감이 함께 온다. 모집 중은 0
+  const after = await salesOverview(env.ctx, MALL);
+  expect(after.waiting).toEqual({ campaigns: 1, members: 40, qty: 40, amount: 40 * 39000, payUntil: judged.payUntil });
+  expect(after.recruiting).toMatchObject({ campaigns: 0, qty: 0, amount: 0 });
+  return { env, c, cp: judged.couponNo! };
 }
 
 /** 10/17(토) m1 결제 · 10/19(월) m2 결제 + m4 결제 후 취소 · 정가 주문 m3 · 결제 기한 뒤 m5 */
@@ -53,10 +62,14 @@ describe("공구 매출 (#79)", () => {
       id: c.id, state: "reached", proceeded: false,
       orders: 2, qty: rep.confirmed.qty, revenue: rep.confirmed.revenue,
       cancelledOrders: 1, lateOrders: 1,
+      // 쿠폰 받은 40명 중 결제 2명. m4는 결제 뒤 취소, m5는 기한 뒤 결제라 아직 쿠폰 받은 상태 → 대기 38명 (#92)
+      couponMembers: 40, paidMembers: 2, waitingMembers: 38, waitingQty: 38,
     });
     expect(rep.confirmed.revenue).toBe(78000);
     expect(s.totals).toEqual({ campaigns: 1, orders: 2, qty: 2, revenue: 78000, thisMonth: 78000, lastMonth: 0 });
     expect(JSON.stringify(s)).not.toMatch(/profit|costPrice/);
+    // 결제 기한이 지났으면 대기 금액은 남아도 가까운 마감은 없다
+    expect(s.waiting).toEqual({ campaigns: 1, members: 38, qty: 38, amount: 38 * 39000, payUntil: null });
     expect((await salesOverview(env.ctx, "other-mall")).campaigns).toEqual([]); // 다른 몰 매출은 보이지 않는다
   });
 
