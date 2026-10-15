@@ -42,10 +42,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
   const camps = (await listCampaigns(ctx, session.mallId)).slice(0, 12);
   const profileDone = !!(mall?.brandName && mall?.smsSender && mall?.optOutNumber);
   const widgetDone = !!mall?.scriptTagNo || mock;
+  // '첫 공구 열기'는 온보딩(#89)에서 안내해서 시작하기에서는 뺐다
   const steps = [
     { done: profileDone, title: "쇼핑몰 정보 등록", hint: "브랜드명·문자 발신번호·무료수신거부 번호", href: "/campaigns?tab=profile" },
     { done: widgetDone, title: "상품 페이지 위젯 설치", hint: "공구 중인 상품에 진행률과 참여 버튼이 보여요", href: null },
-    { done: camps.length > 0, title: "첫 공구 열기", hint: "공구 알림 신청·장바구니가 많은 상품부터 추천해 드려요", href: "/campaigns?tab=new" },
   ];
   const allDone = steps.every((s) => s.done);
   const open = camps.filter((c) => c.state === "open");

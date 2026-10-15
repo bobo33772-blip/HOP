@@ -6,7 +6,7 @@ const LINKS: [Section, string, string][] = [
   ["home", "홈", "/"],
   ["list", "내 공구", "/campaigns"],
   ["new", "새 공구", "/campaigns?tab=new"],
-  ["radar", "수요 레이더", "/radar"],
+  ["radar", "모니터링", "/radar"],
   ["profile", "설정", "/campaigns?tab=profile"],
 ];
 
