@@ -71,6 +71,9 @@ describe("초대 문자", () => {
     const sms = env.world.smsLog[0];
     expect(sms.content.startsWith("(광고)[LINEN & CO.]")).toBe(true);
     expect(sms.content).toMatch(/무료수신거부 080-000-0000/);
+    // 받는 이유와 혜택 → 결제 조건 → 할 일(신청 기한) 순서, 출고일은 상품 페이지에서 본다
+    expect(sms.content).toMatch(/공동구매가 열렸어요\. 쿠폰을 쓰면 [\d,]+원\(정가 [\d,]+원\)\.\n결제는 \d+개가 모인 뒤에 해요\.\n\d+\/\d+\(.\) \d\d:\d\d까지 신청해 주세요\.\n/);
+    expect(sms.content).not.toMatch(/예상 출고/);
     expect(sms.memberIds).toHaveLength(69);
     expect(sms.memberIds.every((id) => Number(id.slice(1)) % 2 === 0)).toBe(true);
   });
@@ -184,6 +187,9 @@ describe("마감 판정", () => {
     await tick(env.ctx);
     const holders = new Set(await (await env.ctx.shop(MALL)).listCouponHolders(c.couponNo!));
     expect((await getCampaign(env.ctx, c.id)).state).toBe("reached");
+    const result = env.world.smsLog.find((s) => !s.isAd)!;
+    expect(result.content).toMatch(/신청하신 .+ 공동구매가 목표를 달성했어요\(\d+\/\d+개\)\.\n계정에 넣어 드린 할인 쿠폰으로 .+까지 결제해 주세요\./);
+    expect(result.content).not.toMatch(/결제 기한/); // 결제 안내(reminders)와 구분되는 글자
     expect(holders.has("m5")).toBe(true); // 한 번 빠진 회원은 재발급으로 채운다
     expect(holders.has("m7")).toBe(false);
     expect(holders.size).toBe(39);

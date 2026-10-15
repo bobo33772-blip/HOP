@@ -73,7 +73,7 @@ export function inviteLead(aud: Pick<Audience, "alert" | "wishlist" | "cart">): 
 export function inviteContent(mall: Pick<Mall, "mallId" | "brandName" | "optOutNumber">, c: InviteFields, link: string, lead = "찜하신"): string {
   return formatAdMessage({
     mallName: `[${mall.brandName || mall.mallId}]`,
-    body: `${lead} ${c.productName} 공동구매가 열렸어요. ${c.targetQty}개가 모이면 ${won(c.dealPrice)}(정가 ${won(c.listPrice)}). ${fmtKst(c.deadlineAt)} 마감, 결제는 목표 달성 후에 해요. 예상 출고 ${c.shipEta}.\n${link}`,
+    body: `${lead} ${c.productName} 공동구매가 열렸어요. 쿠폰을 쓰면 ${won(c.dealPrice)}(정가 ${won(c.listPrice)}).\n결제는 ${c.targetQty}개가 모인 뒤에 해요.\n${fmtKst(c.deadlineAt)}까지 신청해 주세요.\n${link}`,
     optOutNumber: mall.optOutNumber ?? "",
   });
 }

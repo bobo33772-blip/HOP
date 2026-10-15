@@ -141,8 +141,8 @@ async function queueResult(ctx: Ctx, c: Campaign, pledgers: string[], total: num
   if (!to.length) return;
   const brand = mall.brandName || mall.mallId;
   const content = c.state === "reached"
-    ? `[${brand}] ${c.productName} 공동구매가 목표를 달성했어요 (${total}/${c.targetQty}개). 회원님 계정에 할인 쿠폰을 넣어 드렸어요. ${fmtKst(c.payUntil)}까지 결제해 주세요.\n${ctx.productUrl(c.mallId, c.productNo)}`
-    : `[${brand}] ${c.productName} 공동구매가 목표(${c.targetQty}개)에 못 미쳐 진행되지 않아요. 결제된 금액은 없어요. 그래도 사고 싶으시면 ${fmtKst(proceedInfo(c, ctx.clock.now()).proceedUntil)}까지 상품 페이지에서 '그래도 살래요'를 눌러 주세요. 판매자가 보고 진행 여부를 정해요.\n${ctx.productUrl(c.mallId, c.productNo)}`;
+    ? `[${brand}] 신청하신 ${c.productName} 공동구매가 목표를 달성했어요(${total}/${c.targetQty}개).\n계정에 넣어 드린 할인 쿠폰으로 ${fmtKst(c.payUntil)}까지 결제해 주세요.\n${ctx.productUrl(c.mallId, c.productNo)}`
+    : `[${brand}] 신청하신 ${c.productName} 공동구매가 목표(${c.targetQty}개)에 못 미쳐 진행되지 않아요. 결제된 금액은 없어요.\n사고 싶으시면 ${fmtKst(proceedInfo(c, ctx.clock.now()).proceedUntil)}까지 상품 페이지에서 '그래도 살래요'를 눌러 주세요. 진행 여부는 판매자가 정해요.\n${ctx.productUrl(c.mallId, c.productNo)}`;
   await ctx.db.insert(schema.messages).values({ campaignId: c.id, kind: "result", recipients: to, content, sendAfter: nextAllowedSendTime(ctx.clock.now()) });
   if (c.state === "reached") await queueReminder(ctx, c, to, brand);
 }
@@ -155,6 +155,6 @@ export async function queueReminder(ctx: Ctx, c: Campaign, to: string[], brand: 
   if (!c.payUntil) return;
   const sendAfter = nextAllowedSendTime(new Date(c.payUntil.getTime() - REMINDER_BEFORE_MS));
   if (sendAfter >= c.payUntil) return;
-  const content = `[${brand}] ${c.productName} 공동구매 결제 기한이 ${fmtKst(c.payUntil)}까지예요. 넣어 드린 쿠폰으로 기한 안에 결제해야 공구가로 확정돼요.\n${ctx.productUrl(c.mallId, c.productNo)}`;
+  const content = `[${brand}] ${c.productName} 공동구매, 아직 결제 전이에요.\n결제 기한은 ${fmtKst(c.payUntil)}까지예요. 쿠폰을 쓰면 공구가로 결제돼요.\n${ctx.productUrl(c.mallId, c.productNo)}`;
   await ctx.db.insert(schema.messages).values({ campaignId: c.id, kind: "pay_reminder", recipients: to, content, sendAfter });
 }
