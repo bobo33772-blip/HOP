@@ -72,7 +72,7 @@ describe("초대 문자", () => {
     expect(sms.content.startsWith("(광고)[LINEN & CO.]")).toBe(true);
     expect(sms.content).toMatch(/무료수신거부 080-000-0000/);
     // 받는 이유와 혜택 → 결제 조건 → 할 일(신청 기한) 순서, 출고일은 상품 페이지에서 본다
-    expect(sms.content).toMatch(/♥ 찜하신 .+ 공동구매가 열렸습니다\.\n쿠폰을 쓰면 [\d,]+원\(정가 [\d,]+원\)입니다\.\n※ 결제는 \d+개가 모인 뒤에 합니다\.\n☞ \d+\/\d+\(.\) \d\d:\d\d까지 신청해 주시기 바랍니다\.\n/);
+    expect(sms.content).toMatch(/♥ (찜하신|장바구니에 담아 두신|공구 알림을 신청하신|관심 가져 주신) .+ 공동구매가 열렸습니다\.\n쿠폰을 쓰면 [\d,]+원\(정가 [\d,]+원\)입니다\.\n※ 결제는 \d+개가 모인 뒤에 합니다\.\n☞ \d+\/\d+\(.\) \d\d:\d\d까지 신청해 주시기 바랍니다\.\n/);
     expect(sms.content).not.toMatch(/예상 출고/);
     // 이모티콘은 일반 문자(EUC-KR)에서 깨지지 않는 특수문자만 쓴다. 그림 이모지(😊 등)는 휴대폰에 따라 '?'로 보인다
     expect([...sms.content].filter((ch) => /\p{Extended_Pictographic}/u.test(ch) && !"♥★☞※♡".includes(ch))).toEqual([]);
