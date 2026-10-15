@@ -8,6 +8,7 @@ import { ProfileCard } from "../console/profile-card";
 import type { Mall } from "../console/types";
 import type { ScopeInfo } from "@/lib/cafe24/scopes";
 import AppBar, { type Section } from "../components/app-bar";
+import { ThemeSetting } from "../components/theme-toggle";
 
 const API = { role: "seller", mallBase: "/api/seller", campaignBase: "/api/seller/campaigns", now: "/api/seller/now", loginUrl: "/" } as const;
 type Tab = "list" | "new" | "profile";
@@ -61,6 +62,8 @@ export default function SellerConsole({ mallId, initialTab, initialOpen, scopes 
             )}
           </ConsoleProvider>
         )}
+        {/* 화면 밝기 (#85): 휴대폰에서는 상단바 버튼이 없어서 여기서 바꾼다 */}
+        {tab === "profile" && <ThemeSetting />}
       </main>
       {node}
     </>

@@ -42,7 +42,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ no: 
   const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(p.name)} · ${esc(DEMO_BRAND)}</title><meta name="robots" content="noindex">
 <style>:root{--fg:#16233F;--fg2:#4B5671;--line:#DDE2EB;--bg:#F7F5F1;--surface:#fff;--accent:#2F5BEA;--hot:#B8164A}
-@media (prefers-color-scheme:dark){:root{--fg:#E6EBF5;--fg2:#AAB4C8;--line:#2A3654;--bg:#10151F;--surface:#18202E;--hot:#FF8FAB;color-scheme:dark}}
+
 .prods{max-width:980px;margin:0 auto;padding:12px 16px 8px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:thin}
 .pitem{flex:none;display:grid;gap:1px;max-width:190px;padding:7px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg);font-size:13px;font-weight:600;text-decoration:none;word-break:keep-all}
 .pitem[aria-current]{border-color:var(--accent)}.pitem:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.tag{font-size:11.5px;font-weight:500;color:var(--fg2)}.tag.on{color:var(--hot);font-weight:700}
