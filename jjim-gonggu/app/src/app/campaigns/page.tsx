@@ -3,6 +3,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
+import { requestedScopes } from "@/lib/cafe24/scopes";
 import SellerConsole from "./seller-console";
 
 export const dynamic = "force-dynamic";
@@ -12,5 +13,5 @@ export default async function CampaignsPage({ searchParams }: { searchParams: Pr
   const s = await getSession();
   if (!s) redirect("/");
   const q = await searchParams;
-  return <SellerConsole mallId={s.mallId} initialTab={q.tab} initialOpen={q.open} />;
+  return <SellerConsole mallId={s.mallId} initialTab={q.tab} initialOpen={q.open} scopes={requestedScopes()} />;
 }
