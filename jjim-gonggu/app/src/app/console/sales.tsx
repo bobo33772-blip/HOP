@@ -2,6 +2,7 @@
 
 // 공구 매출 (#79): 합계 · 매출 추이(일 · 주 · 월) · 공구별 표 · 엑셀(CSV) 내려받기. 운영자 화면과 판매자 화면이 같이 쓴다.
 // 숫자 기준은 리포트의 확정 매출과 같다(lib/engine/sales.ts). 기능만 먼저 둔 기본 모양이고, 위치 · 모양은 디자인 작업에서 정한다.
+// compact: 홈에서 짧게 (#92). 합계 · 추이 그래프만 두고, 공구별 표 · 엑셀은 '자세히'로 내 공구 화면에 보낸다.
 
 import { useCallback, useEffect, useState } from "react";
 import { useConsole } from "./provider";
@@ -12,7 +13,7 @@ import { useNarrow } from "./radar-picker";
 const BY: [SalesBy, string][] = [["day", "일별"], ["week", "주별"], ["month", "월별"]];
 const nowrap = { whiteSpace: "nowrap" } as const; // 숫자 칸은 한 줄 (#35)
 
-export function SalesPanel({ say }: { say: (t: string) => void }) {
+export function SalesPanel({ say, compact = false }: { say: (t: string) => void; compact?: boolean }) {
   const a = useConsole();
   const narrow = useNarrow();
   const [by, setBy] = useState<SalesBy>("week");
@@ -28,7 +29,7 @@ export function SalesPanel({ say }: { say: (t: string) => void }) {
     <section className="card" aria-labelledby="sales-title">
       <div className="row" style={{ flexWrap: "wrap" }}>
         <h2 id="sales-title" style={{ fontSize: 18, margin: 0 }}>공구 매출</h2>
-        {s.campaigns.length > 0 && (
+        {compact ? <a className="ghost" href="/campaigns">자세히 · 엑셀 ›</a> : s.campaigns.length > 0 && (
           <span className="row" style={{ gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
             {/* 엑셀에서 바로 열리는 CSV. 날짜별은 엑셀 피벗으로 원하는 단위의 추이를 볼 수 있다 */}
             <a className="ghost" href={file("campaigns")} download>엑셀 내려받기 · 공구별</a>
@@ -38,15 +39,18 @@ export function SalesPanel({ say }: { say: (t: string) => void }) {
       </div>
       {!s.campaigns.length ? <p className="muted">결제 기간이 시작된 공구가 생기면 여기에 확정 매출이 쌓여요.</p> : (
         <>
-          <div className="kpi many">
+          {/* 금액은 자릿수가 길어 칸을 넓게 잡는다 (휴대폰에서 "5,505,000원"이 잘리지 않게. 공용 .kpi.many는 100px) */}
+          <div className="kpi many" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}>
             <div><small>확정 매출</small><strong>{won(t.revenue)}</strong></div>
-            <div><small>확정 수량</small><strong>{t.qty}개</strong></div>
+            {!compact && <div><small>확정 수량</small><strong>{t.qty}개</strong></div>}
             <div><small>이번 달 매출</small><strong>{won(t.thisMonth)}</strong></div>
             <div><small>지난달 매출</small><strong>{won(t.lastMonth)}</strong></div>
           </div>
-          <p className="small">
-            결제 기간 안에 공구 쿠폰으로 결제된 금액이에요. 취소 · 반품은 빼고, 결제 기간 중인 공구는 숫자가 더 늘 수 있어요.
-          </p>
+          {!compact && (
+            <p className="small">
+              결제 기간 안에 공구 쿠폰으로 결제된 금액이에요. 취소 · 반품은 빼고, 결제 기간 중인 공구는 숫자가 더 늘 수 있어요.
+            </p>
+          )}
 
           <div className="row" style={{ flexWrap: "wrap" }}>
             <b style={{ fontSize: 15 }}>매출 추이</b>
@@ -77,8 +81,8 @@ export function SalesPanel({ say }: { say: (t: string) => void }) {
             </>
           )}
 
-          <b style={{ fontSize: 15 }}>공구별</b>
-          {narrow ? (
+          {!compact && <b style={{ fontSize: 15 }}>공구별</b>}
+          {compact ? null : narrow ? (
             // 휴대폰: 열이 많은 표는 카드보다 넓어진다 → 목록으로 (#36)
             <ul className="list" style={{ wordBreak: "keep-all" }}>{s.campaigns.map((r) => {
               const [label, cls] = chip(r.state, r.proceeded);
