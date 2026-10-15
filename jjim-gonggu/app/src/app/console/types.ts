@@ -22,3 +22,17 @@ export interface Preview {
   errors: string[]; warnings: string[]; message: string; sendAt: string; marginPerUnit: number | null;
   audience: { alert: number; wishlist: number; cart: number; unique: number; reachable: number; consentChecked: boolean };
 }
+/** 공구 매출 (#79). 숫자 기준은 리포트의 확정 매출과 같다 */
+export type SalesBy = "day" | "week" | "month";
+export interface SalesRow {
+  id: string; productNo: number; productName: string; state: State; proceeded: boolean;
+  openedAt: string; deadlineAt: string; payUntil: string | null; settledAt: string | null;
+  listPrice: number; dealPrice: number; costPrice: number | null; targetQty: number;
+  orders: number; qty: number; revenue: number; profit: number | null; cancelledOrders: number; lateOrders: number;
+}
+export interface Sales {
+  by: SalesBy;
+  totals: { campaigns: number; orders: number; qty: number; revenue: number; profit: number | null; profitMissing: number; thisMonth: number; lastMonth: number };
+  trend: { points: { key: string; label: string; orders: number; qty: number; revenue: number }[]; truncated: boolean };
+  campaigns: SalesRow[];
+}
