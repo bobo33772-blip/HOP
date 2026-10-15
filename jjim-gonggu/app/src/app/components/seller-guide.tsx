@@ -45,7 +45,7 @@ const TROUBLE: { sym: string; ref: string; go: ReactNode }[] = [
   { sym: "품절 상품이 목록에 안 보여요", ref: "1단계 A", go: <>품절 상품 노출 항목이 <strong>노출함</strong>인지</> },
   { sym: "품절 상품이 목록 중간에 섞여 있어요", ref: "1단계 B", go: <>그 분류의 품절 상품 진열 항목이 <strong>품절 상품 맨 뒤로</strong>인지</> },
   { sym: "재입고 알림 신청 버튼이 안 보여요", ref: "2단계", go: <>버튼 노출 여부가 <strong>노출함</strong>, 버튼 노출 방법이 <strong>상품별</strong>인지 확인. 그래도 안 보이면 아래 스킨 안내 참고</> },
-  { sym: "옵션 상품에서만 신청이 안 돼요", ref: "1단계 B 아래", go: <>품절된 옵션 품목 노출 여부가 노출안함이면 바꾸기</> },
+  { sym: "옵션 상품에서만 신청이 안 돼요", ref: "1단계 B 아래", go: <>품절된 옵션 품목 노출 여부 항목이 <strong>노출안함</strong>인지 확인</> },
   { sym: "알림 문자가 안 나가요", ref: "준비", go: <>SMS 잔여 건수가 남아 있는지, 알림 유효 기간이 지나지 않았는지</> },
 ];
 
@@ -273,7 +273,7 @@ export default function SellerGuide() {
           <li><span>검색 결과에서 <strong>미발송</strong> 건수를 봅니다. 아직 알림을 기다리는 신청 수입니다.</span></li>
           <li><span>여러 상품을 한눈에 보려면 <strong>엑셀 다운로드</strong>를 누르고 상품별로 셉니다.</span></li>
         </ol>
-        <div className={s.tip}><b>정확하게 세는 법</b> 같은 휴대폰 번호로 여러 번 신청했을 수 있으니 엑셀에서 중복을 빼고 세세요. 품절 전에 쌓인 장바구니 수도 함께 보세요. 신청은 적어도 관심이 높은 상품을 놓치지 않을 수 있습니다.</div>
+        <div className={s.tip}><b>정확하게 세는 법</b> 같은 휴대폰 번호로 여러 번 신청했을 수 있으니 엑셀에서 중복을 빼고 세세요. 품절 전에 쌓인 장바구니 수도 함께 보세요. 신청이 적더라도 관심이 높은 상품을 놓치지 않을 수 있습니다.</div>
       </section>
 
       <section id="sg-step5" className={s.section}>
