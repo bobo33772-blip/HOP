@@ -1,4 +1,4 @@
-// 판매자 홈: 시작하기 체크리스트 · 숫자 요약 · 내 공구(진행률) · 권한 안내.
+// 판매자 홈: 시작하기 체크리스트 · 숫자 요약 · 내 공구(진행률) · 셀러 가이드라인(권한 안내는 설정 화면).
 
 import { eq } from "drizzle-orm";
 import { schema } from "@/db";
@@ -10,7 +10,7 @@ import { launchErrorMessage } from "@/lib/launch-errors";
 import { getSession } from "@/lib/session";
 import { getCtx } from "@/lib/server";
 import { listCampaigns } from "@/lib/engine/campaigns";
-import { requestedScopes } from "@/lib/cafe24/scopes";
+import SellerGuide from "./components/seller-guide";
 import { CHIP } from "./console/format";
 import type { State } from "./console/types";
 
@@ -112,8 +112,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
         <a className="btn dark compact" href="/campaigns?tab=new">＋ 새 공구 열기</a>
 
         <details className="card">
-          <summary>찜꽁이 쓰는 카페24 권한 {requestedScopes().length}개</summary>
-          {requestedScopes().map((s) => <p key={s.scope} className="small"><code>{s.scope}</code> · {s.why}</p>)}
+          <summary>셀러 가이드라인 자세히 보기</summary>
+          <SellerGuide />
         </details>
         <nav className="legal"><a href="/privacy">개인정보 처리방침</a><a href="/terms">이용약관</a></nav>
       </main>
