@@ -59,7 +59,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 /* 진한 회색 버튼(다크 모드에서는 밝게 뒤집힘) · 작은 버튼: 홈의 '새 공구 열기' */
 .btn.dark { background: var(--btn-dark); color: var(--on-btn-dark); }
 .btn.dark:hover { background: color-mix(in srgb, var(--btn-dark) 85%, var(--surface)); }
-.btn.compact { justify-self: start; min-height: 40px; padding: 0 16px; font-size: 14px; }
+.btn.compact { justify-self: center; min-height: 40px; padding: 0 16px; font-size: 14px; }
 .ghost {
   display: inline-flex; justify-content: center; align-items: center; gap: 6px; min-height: 40px; border: 1px solid var(--line); background: var(--surface);
   color: var(--fg); border-radius: var(--r-sm); padding: 0 14px; font-weight: 600; font-size: 14px; text-decoration: none;
