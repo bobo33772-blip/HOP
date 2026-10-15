@@ -261,7 +261,7 @@ export default function SellerGuide() {
 
       <section id="sg-step3" className={s.section}>
         <h3 className={s.h}><span className={s.step}>3단계</span>매주 모니터링 보기</h3>
-        <p>일주일에 한 번, 찜꽁 메뉴의 <strong>모니터링</strong>을 엽니다. 상품별로 기다리는 고객이 몇 명인지 보는 화면입니다(메뉴 이름이 &apos;수요 레이더&apos;로 보이면 같은 화면입니다).</p>
+        <p>일주일에 한 번, 찜꽁 메뉴의 <strong>모니터링</strong>을 엽니다. 상품별로 기다리는 고객이 몇 명인지 보는 화면입니다.</p>
         <Where items={["찜꽁", "모니터링"]} />
         <ol className={s.do}>
           <li><span><strong>다시 수집</strong>을 눌러 장바구니 숫자를 새로 모읍니다. 알림 신청은 지금 숫자라 바로 보입니다.</span></li>
