@@ -1,7 +1,7 @@
 // 공구 매출 (#79): 판매자가 공구로 번 돈을 공구별 · 기간별로 본다. 엑셀(CSV)로도 내려받는다.
 // 숫자는 리포트의 확정 매출(report.ts)과 같은 기준: 결제 기간 안에 공구 쿠폰으로 결제된 금액(order_links.status = paid).
 // 신청 수량을 넘긴 추가 구매분 · 취소 · 반품은 결제 집계(payments.ts)에서 이미 빠지고, 결제 기간 뒤 결제(late)는 건수만 따로 센다.
-// 고객 개인정보(회원 ID)는 내보내지 않는다.
+// 매출만 보여 준다. 이익(원가) 칸은 원가를 적기 번거로워 두지 않는다 (#87). 고객 개인정보(회원 ID)는 내보내지 않는다.
 
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { schema } from "@/db";
@@ -23,8 +23,6 @@ type Sum = { orders: number; qty: number; revenue: number };
 
 const zero = (): Sum => ({ orders: 0, qty: 0, revenue: 0 });
 const add = (s: Sum, o: Order) => { s.orders++; s.qty += o.qty; s.revenue += o.amount; return s; };
-/** 이익 = 확정 매출 − 원가 × 확정 수량. 원가를 안 넣은 공구는 null (배송비 · 결제 수수료는 빼지 않는다) */
-const profitOf = (cost: number | null, s: Sum) => (cost == null ? null : s.revenue - cost * s.qty);
 
 /** 결제 기간이 시작돼 매출이 생기는 공구(달성 · 그래도 진행 · 확정 완료)와 그 주문. 모집 중 · 미달 · 취소는 매출이 없다 */
 async function load(ctx: Ctx, mallId: string) {
@@ -95,8 +93,8 @@ function campaignRows(camps: Awaited<ReturnType<typeof load>>["camps"], orders: 
     return {
       id: c.id, productNo: c.productNo, productName: c.productName, state: c.state as CampaignState, proceeded: c.proceededAt != null,
       openedAt: c.openedAt, deadlineAt: c.deadlineAt, payUntil: c.payUntil, settledAt: c.settledAt,
-      listPrice: c.listPrice, dealPrice: c.dealPrice, costPrice: c.costPrice, targetQty: c.targetQty,
-      ...paid, profit: profitOf(c.costPrice, paid),
+      listPrice: c.listPrice, dealPrice: c.dealPrice, targetQty: c.targetQty,
+      ...paid,
       cancelledOrders: os.filter((o) => o.status === "cancelled").length,
       lateOrders: os.filter((o) => o.status === "late").length,
     };
@@ -111,14 +109,11 @@ export async function salesOverview(ctx: Ctx, mallId: string, by: SalesBy = "wee
   const paid = orders.filter((o) => o.status === "paid");
   const thisMonth = bucketOf(now, "month"), lastMonth = shiftMonth(thisMonth, -1);
   const monthRevenue = (k: string) => paid.filter((o) => bucketOf(o.paidAt, "month") === k).reduce(add, zero()).revenue;
-  const known = campaigns.filter((r) => r.profit != null);
   const all = paid.reduce(add, zero());
   return {
     by,
     totals: {
       campaigns: campaigns.length, ...all,
-      profit: known.length ? known.reduce((a, r) => a + (r.profit ?? 0), 0) : null,
-      profitMissing: campaigns.filter((r) => r.profit == null && r.revenue > 0).length, // 원가가 없어 이익 합계에서 빠진 공구
       thisMonth: monthRevenue(thisMonth), lastMonth: monthRevenue(lastMonth),
     },
     trend: trend(paid, by, now),
@@ -152,11 +147,11 @@ export async function salesCsv(ctx: Ctx, mallId: string, kind: SalesCsvKind, sta
   if (kind === "campaigns") {
     const rows = campaignRows(camps, orders).map((r) => [
       r.productNo, r.productName, stateName(r.state, r.proceeded), stamp(r.openedAt), stamp(r.deadlineAt), stamp(r.payUntil), stamp(r.settledAt),
-      r.listPrice, r.dealPrice, r.costPrice, r.targetQty, r.orders, r.qty, r.revenue, r.profit, r.cancelledOrders, r.lateOrders,
+      r.listPrice, r.dealPrice, r.targetQty, r.orders, r.qty, r.revenue, r.cancelledOrders, r.lateOrders,
     ]);
     return { filename, body: toCsv([[
-      "상품번호", "상품", "상태", "공구 연 날", "모집 마감", "결제 마감", "확정 완료", "정가(원)", "공구가(원)", "원가(원)", "목표 수량",
-      "결제 주문(건)", "확정 수량", "확정 매출(원)", "이익(원)", "취소 주문(건)", "기한 뒤 결제(건)",
+      "상품번호", "상품", "상태", "공구 연 날", "모집 마감", "결제 마감", "확정 완료", "정가(원)", "공구가(원)", "목표 수량",
+      "결제 주문(건)", "확정 수량", "확정 매출(원)", "취소 주문(건)", "기한 뒤 결제(건)",
     ], ...rows]) };
   }
   const byId = new Map(camps.map((c) => [c.id, c]));
@@ -169,6 +164,6 @@ export async function salesCsv(ctx: Ctx, mallId: string, kind: SalesCsvKind, sta
   }
   const rows = [...days.values()]
     .sort((a, b) => a.day.localeCompare(b.day) || a.c.productName.localeCompare(b.c.productName, "ko"))
-    .map(({ day, c, s }) => [day, c.productNo, c.productName, s.orders, s.qty, s.revenue, profitOf(c.costPrice, s)]);
-  return { filename, body: toCsv([["날짜", "상품번호", "상품", "결제 주문(건)", "확정 수량", "확정 매출(원)", "이익(원)"], ...rows]) };
+    .map(({ day, c, s }) => [day, c.productNo, c.productName, s.orders, s.qty, s.revenue]);
+  return { filename, body: toCsv([["날짜", "상품번호", "상품", "결제 주문(건)", "확정 수량", "확정 매출(원)"], ...rows]) };
 }

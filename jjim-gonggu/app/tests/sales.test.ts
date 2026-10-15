@@ -1,4 +1,4 @@
-// 공구 매출 (#79): 리포트 확정 매출과 같은 숫자 · 이익(원가가 있을 때만) · 추이 칸(한국 시간, 월요일 시작, 빈 칸 0) · 엑셀(CSV) · 다른 몰과 분리.
+// 공구 매출 (#79): 리포트 확정 매출과 같은 숫자 · 이익 · 원가 칸 없음(#87) · 추이 칸(한국 시간, 월요일 시작, 빈 칸 0) · 엑셀(CSV) · 다른 몰과 분리.
 
 import { describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
@@ -44,26 +44,20 @@ async function withOrders(input: Partial<CampaignInput> = {}) {
 }
 
 describe("공구 매출 (#79)", () => {
-  it("공구별 확정 매출 · 수량은 리포트와 같고, 이익은 원가 × 수량을 뺀다. 취소 · 기한 뒤 결제는 건수만", async () => {
+  it("공구별 확정 매출 · 수량은 리포트와 같고, 취소 · 기한 뒤 결제는 건수만. 이익 · 원가는 내보내지 않는다 (#87)", async () => {
     const { env, c } = await withOrders();
     const rep = await buildReport(env.ctx, c.id);
     const s = await salesOverview(env.ctx, MALL);
     expect(s.campaigns).toHaveLength(1);
     expect(s.campaigns[0]).toMatchObject({
-      id: c.id, state: "reached", proceeded: false, costPrice: 28500,
-      orders: 2, qty: rep.confirmed.qty, revenue: rep.confirmed.revenue, profit: 78000 - 28500 * 2,
+      id: c.id, state: "reached", proceeded: false,
+      orders: 2, qty: rep.confirmed.qty, revenue: rep.confirmed.revenue,
       cancelledOrders: 1, lateOrders: 1,
     });
     expect(rep.confirmed.revenue).toBe(78000);
-    expect(s.totals).toEqual({ campaigns: 1, orders: 2, qty: 2, revenue: 78000, profit: 21000, profitMissing: 0, thisMonth: 78000, lastMonth: 0 });
+    expect(s.totals).toEqual({ campaigns: 1, orders: 2, qty: 2, revenue: 78000, thisMonth: 78000, lastMonth: 0 });
+    expect(JSON.stringify(s)).not.toMatch(/profit|costPrice/);
     expect((await salesOverview(env.ctx, "other-mall")).campaigns).toEqual([]); // 다른 몰 매출은 보이지 않는다
-  });
-
-  it("원가를 안 넣은 공구는 이익이 없고(–), 합계에서 빠진 수를 알려 준다", async () => {
-    const { env } = await withOrders({ costPrice: null });
-    const s = await salesOverview(env.ctx, MALL);
-    expect(s.campaigns[0].profit).toBeNull();
-    expect(s.totals).toMatchObject({ revenue: 78000, profit: null, profitMissing: 1 });
   });
 
   it("추이: 결제된 날(한국 시간) 기준 일 · 주(월요일 시작) · 월. 빈 칸은 0으로 채우고 지금 칸까지 보여 준다", async () => {
@@ -97,24 +91,24 @@ describe("공구 매출 (#79)", () => {
     const camp = await salesCsv(env.ctx, MALL, "campaigns", stateName);
     expect(camp.filename).toBe("jjimkkong-linenco-sales-campaigns-20261020.csv");
     const lines = camp.body.trimEnd().split("\r\n");
-    expect(lines[0]).toBe("상품번호,상품,상태,공구 연 날,모집 마감,결제 마감,확정 완료,정가(원),공구가(원),원가(원),목표 수량,결제 주문(건),확정 수량,확정 매출(원),이익(원),취소 주문(건),기한 뒤 결제(건)");
+    expect(lines[0]).toBe("상품번호,상품,상태,공구 연 날,모집 마감,결제 마감,확정 완료,정가(원),공구가(원),목표 수량,결제 주문(건),확정 수량,확정 매출(원),취소 주문(건),기한 뒤 결제(건)");
     expect(lines).toHaveLength(2);
-    expect(lines[1]).toMatch(/^102,스톤웨어 디너 접시 4P,달성 · 결제 기간,2026-10-12 10:00,2026-10-17 10:00,2026-10-\d\d \d\d:00,,52000,39000,28500,30,2,2,78000,21000,1,1$/);
+    expect(lines[1]).toMatch(/^102,스톤웨어 디너 접시 4P,달성 · 결제 기간,2026-10-12 10:00,2026-10-17 10:00,2026-10-\d\d \d\d:00,,52000,39000,30,2,2,78000,1,1$/);
     const daily = await salesCsv(env.ctx, MALL, "daily", stateName);
     expect(daily.body.trimEnd().split("\r\n")).toEqual([
-      "날짜,상품번호,상품,결제 주문(건),확정 수량,확정 매출(원),이익(원)",
-      "2026-10-17,102,스톤웨어 디너 접시 4P,1,1,39000,10500",
-      "2026-10-19,102,스톤웨어 디너 접시 4P,1,1,39000,10500",
+      "날짜,상품번호,상품,결제 주문(건),확정 수량,확정 매출(원)",
+      "2026-10-17,102,스톤웨어 디너 접시 4P,1,1,39000",
+      "2026-10-19,102,스톤웨어 디너 접시 4P,1,1,39000",
     ]);
     expect(camp.body + daily.body).not.toMatch(/\bm\d+\b/);
   });
 
-  it("엑셀(CSV): 수식처럼 보이는 상품명은 글자로 두고, 쉼표는 따옴표로 묶는다. 손해(음수 이익)는 숫자 그대로", async () => {
+  it("엑셀(CSV): 수식처럼 보이는 상품명은 글자로 두고, 쉼표는 따옴표로 묶는다", async () => {
     const { env, c } = await withOrders();
-    await env.db.update(schema.campaigns).set({ productName: "=1+2, 접시", costPrice: 50000 }).where(eq(schema.campaigns.id, c.id));
+    await env.db.update(schema.campaigns).set({ productName: "=1+2, 접시" }).where(eq(schema.campaigns.id, c.id));
     const row = (await salesCsv(env.ctx, MALL, "campaigns", stateName)).body.split("\r\n")[1];
     expect(row.startsWith(`102,"'=1+2, 접시",`)).toBe(true);
-    expect(row.endsWith(",78000,-22000,1,1")).toBe(true);
+    expect(row.endsWith(",78000,1,1")).toBe(true);
   });
 
   it("내려받기 응답: 엑셀에서 한글이 깨지지 않게 BOM, CSV 형식, 파일 이름", async () => {
