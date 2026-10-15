@@ -5,6 +5,7 @@ import { schema } from "@/db";
 import { fmtKst } from "@/lib/time";
 import WidgetInstallButton from "./components/widget-install-button";
 import AppBar from "./components/app-bar";
+import SellerOnboarding from "./components/seller-onboarding";
 import { env } from "@/lib/env";
 import { launchErrorMessage } from "@/lib/launch-errors";
 import { getSession } from "@/lib/session";
@@ -64,6 +65,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
           <span className="eyebrow">{mock ? "데모 모드" : "카페24 연결됨"}</span>
           <h1>{mall?.brandName ?? session.mallId}님, 안녕하세요</h1>
           <p className="muted">장바구니에 담아 둔 고객이 모이면, 그때 만들고 파세요.</p>
+          {/* 처음 들어오면 로고 인트로 + 사용법 장면이 저절로 열린다. 이 버튼으로 다시 본다 */}
+          <SellerOnboarding />
         </div>
 
         {!allDone && (
