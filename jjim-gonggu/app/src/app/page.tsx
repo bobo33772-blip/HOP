@@ -109,8 +109,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
           </div>
         )}
 
-        <a className="btn brand" href="/campaigns?tab=new">＋ 새 공구 열기</a>
-        <a className="ghost" href="/radar">수요 레이더 · 어떤 상품에 관심이 몰렸는지 보기</a>
+        <a className="btn dark compact" href="/campaigns?tab=new">＋ 새 공구 열기</a>
 
         <details className="card">
           <summary>찜꽁이 쓰는 카페24 권한 {requestedScopes().length}개</summary>
