@@ -19,12 +19,10 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --ink: #f2f4f6; --on-ink: #101217;
-    --brand: #e94162; --brand-2: #e94162; --brand-soft: #3a1f2b; --brand-ink: #f2738f; --brand-strong: #d63556; --btn-dark: #f2f4f6; --on-btn-dark: #101217;
-    --violet: #9d92ff; --blue: #5aa2ff; --green: #2fd39a; --amber: #ffbe3d;
-    --violet-ink: #c3bbff; --blue-ink: #93c2ff; --green-ink: #6ee7bf; --amber-ink: #ffd27a;
+    --ink: #e5e9f2; --on-ink: #101924;
+    --brand: #e94162; --brand-2: #e94162; --brand-soft: #3a1f2b; --brand-ink: #f2738f; --brand-strong: #d63556; --btn-dark: #e5e9f2; --on-btn-dark: #101924;
     --success: #34d399; --warning: #f5b342; --danger: #ff7a59;
-    --bg: #101217; --surface: #1b1e25; --line: #2c3039; --soft: #252932; --fg: #f2f4f6; --fg2: #b0b8c1; --muted: #8f99a6;
+    --bg: #0d141d; --surface: #141c26; --line: #26303d; --soft: #1c2532; --fg: #e5e9f2; --fg2: #a9b4c4; --muted: #8392a5;
     --shadow: none; --shadow-pop: 0 8px 24px rgba(0, 0, 0, .45);
     color-scheme: dark;
   }
