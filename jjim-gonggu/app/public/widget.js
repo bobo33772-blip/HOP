@@ -43,7 +43,7 @@
     });
   }
 
-  // 쇼핑몰 스킨과 어울리도록 흰 바탕 · 얇은 테두리 · 그림자 없음(판매자 화면과 같은 DashLite풍 화이트). 포인트색 #E94162는 진행 막대와 주 버튼에만
+  // 쇼핑몰 스킨과 어울리도록 흰 바탕 · 얇은 테두리 · 그림자 없음(판매자 화면과 같은 DashLite풍 화이트). 포인트색 #E94162는 진행 막대에만, 흰 글씨를 얹는 주 버튼은 한 단계 진한 #D63556(대비 4.66:1)
   // 작은 글씨는 바탕 대비 4.5:1 이상(WCAG AA): 글자는 슬레이트 #364A63, 보조 글씨는 #526484 하나, 작은 분홍 글씨는 #C22D4D(연분홍 바탕 #FDECF0), 배지 글자는 배지 바탕보다 진한 같은 계열 색. 한글은 단어 단위로 줄을 바꾼다
   var css = '.jjg{font:14px/1.55 "Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;letter-spacing:-.01em;color:#364A63;border:1px solid #DBDFEA;border-radius:6px;padding:16px;margin:14px 0;background:#fff;display:grid;gap:10px;max-width:520px;box-shadow:none;text-align:left;word-break:keep-all;overflow-wrap:break-word}' +
     '.jjg *{box-sizing:border-box}.jjg-top{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:12.5px}' +
@@ -56,8 +56,8 @@
     '.jjg a.jjg-other{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #DBDFEA;border-radius:6px;color:#364A63;font-weight:600;text-decoration:none}' +
     '.jjg a.jjg-other:focus-visible{outline:3px solid rgba(233,65,98,.35);outline-offset:2px}.jjg-other>div{flex:1;min-width:0;display:grid;gap:4px}' +
     '.jjg-other small{color:#526484;font-size:12.5px;font-weight:500}.jjg-other small.due{color:#C22D4D;font-weight:700}.jjg-other .jjg-bar{height:5px}.jjg-other>span{color:#526484;font-size:20px;font-weight:400}' +
-    '.jjg-btn{font:inherit;font-size:15px;font-weight:700;border:0;border-radius:4px;background:#E94162;color:#fff;min-height:50px;cursor:pointer;width:100%}' +
-    '.jjg-btn:not(.ghost):not(:disabled):hover{background:#D63556}.jjg-btn:disabled{opacity:.45;cursor:not-allowed}.jjg-btn.ghost{background:#fff;color:#364A63;border:1px solid #DBDFEA;font-weight:600;min-height:40px;font-size:14px}' +
+    '.jjg-btn{font:inherit;font-size:15px;font-weight:700;border:0;border-radius:4px;background:#D63556;color:#fff;min-height:50px;cursor:pointer;width:100%}' +
+    '.jjg-btn:not(.ghost):not(:disabled):hover{background:#C22D4D}.jjg-btn:disabled{opacity:.45;cursor:not-allowed}.jjg-btn.ghost{background:#fff;color:#364A63;border:1px solid #DBDFEA;font-weight:600;min-height:40px;font-size:14px}' +
     '.jjg-btn:focus-visible,.jjg-step button:focus-visible{outline:3px solid rgba(233,65,98,.35);outline-offset:2px}' +
     '.jjg-row{display:flex;justify-content:space-between;align-items:center;gap:8px}.jjg-step{display:flex;border:1px solid #DBDFEA;border-radius:4px;overflow:hidden;background:#fff}' +
     '.jjg-step button{font:inherit;font-size:18px;width:42px;height:40px;border:0;background:#F5F6FA;cursor:pointer;color:#364A63}.jjg-step span{width:44px;display:grid;place-items:center;font-weight:700}' +
