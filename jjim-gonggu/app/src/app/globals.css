@@ -14,15 +14,14 @@
   --r: 6px; --r-sm: 4px; --side: 232px;
   color-scheme: light;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --ink: #e5e9f2; --on-ink: #101924;
-    --brand: #e94162; --brand-2: #e94162; --brand-soft: #3a1f2b; --brand-ink: #f2738f; --brand-strong: #d63556; --btn-dark: #e5e9f2; --on-btn-dark: #101924;
-    --success: #34d399; --warning: #f5b342; --danger: #ff7a59;
-    --bg: #0d141d; --surface: #141c26; --line: #26303d; --soft: #1c2532; --fg: #e5e9f2; --fg2: #a9b4c4; --muted: #8392a5;
-    --shadow: none; --shadow-pop: 0 8px 24px rgba(0, 0, 0, .45);
-    color-scheme: dark;
-  }
+/* 어둡게 (#85): 판매자가 고른 경우에만. 기본은 밝게이고 기기의 다크 모드 설정은 따르지 않는다 (lib/theme.ts) */
+:root[data-theme="dark"] {
+  --ink: #e5e9f2; --on-ink: #101924;
+  --brand: #e94162; --brand-2: #e94162; --brand-soft: #3a1f2b; --brand-ink: #f2738f; --brand-strong: #d63556; --btn-dark: #e5e9f2; --on-btn-dark: #101924;
+  --success: #34d399; --warning: #f5b342; --danger: #ff7a59;
+  --bg: #0d141d; --surface: #141c26; --line: #26303d; --soft: #1c2532; --fg: #e5e9f2; --fg2: #a9b4c4; --muted: #8392a5;
+  --shadow: none; --shadow-pop: 0 8px 24px rgba(0, 0, 0, .45);
+  color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
@@ -251,4 +250,15 @@ details.card > :not(summary) { margin-top: 8px; }
   body:has(.appbar.side) main { padding: 32px 28px 72px; }
   body:has(.appbar.side) main:not(.wide) { max-width: 960px; }
   body:has(.appbar.side) .toast { left: calc(50% + var(--side) / 2); }
+} }
+
+/* 화면 밝기 버튼 (#85). 넓은 화면은 사이드바 맨 아래, 중간 폭은 상단바 오른쪽.
+   휴대폰 폭은 상단바 메뉴가 꽉 차서 숨기고, 설정 화면의 "화면 밝기"에서 바꾼다 */
+.theme-toggle { flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--surface); color: var(--fg2); font-size: 13.5px; font-weight: 600; white-space: nowrap; }
+.theme-toggle:hover { color: var(--fg); background: var(--soft); }
+.theme-toggle svg { width: 18px; height: 18px; flex: none; }
+.theme-toggle[aria-pressed="true"] { background: var(--brand-soft); color: var(--brand-ink); border-color: transparent; }
+@media (max-width: 560px) { .appbar .theme-toggle { display: none; } }
+@media (min-width: 900px) { @supports selector(:has(a)) {
+  .appbar.side .theme-toggle { margin-top: 16px; border: 0; border-top: 1px solid var(--line); border-radius: 0; background: none; padding: 14px 12px 6px; justify-content: flex-start; gap: 12px; font-size: 14.5px; }
 } }

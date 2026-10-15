@@ -1,5 +1,7 @@
-// 판매자 화면 공통 상단바: 로고 · 쇼핑몰 이름 · 화면 이동. 지금 화면은 aria-current로 표시한다.
+// 판매자 화면 공통 상단바: 로고 · 쇼핑몰 이름 · 화면 이동 · 화면 밝기(#85). 지금 화면은 aria-current로 표시한다.
 // 넓은 화면에서는 globals.css의 .appbar.side 규칙으로 왼쪽 세로 메뉴(아이콘 + 글자)가 된다.
+
+import { ThemeButton } from "./theme-toggle";
 
 export type Section = "home" | "list" | "new" | "radar" | "profile";
 
@@ -35,6 +37,7 @@ export default function AppBar({ current, shop, onNavigate }: { current: Section
             </a>
           ))}
         </nav>
+        <ThemeButton />
       </div>
     </header>
   );

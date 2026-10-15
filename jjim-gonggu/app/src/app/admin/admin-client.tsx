@@ -9,6 +9,7 @@ import { NewTab } from "../console/radar-picker";
 import { ProfileCard } from "../console/profile-card";
 import { ScoreTab } from "../console/score-tab";
 import type { Mall } from "../console/types";
+import { ThemeButton } from "../components/theme-toggle";
 
 async function get<T>(path: string): Promise<T> {
   const r = await fetch(path, { cache: "no-store" });
@@ -47,6 +48,7 @@ export default function AdminClient({ mock }: { mock: boolean }) {
               <button key={k} role="tab" aria-selected={tab === k} onClick={() => setTab(k)}>{l}</button>
             ))}
           </nav>
+          <ThemeButton />
           <form method="post" action="/api/admin/logout"><button className="ghost" type="submit">로그아웃</button></form>
         </div>
       </header>
