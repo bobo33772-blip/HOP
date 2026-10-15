@@ -89,9 +89,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .shop { display: none; } .tabs a, .tabs button { padding: 8px 9px; }
   /* 판매자 메뉴 5개가 로고 옆 남은 폭을 나눠 써서 320px에서도 모두 보이게 */
   .appbar.side .tabs { flex: 1; margin-left: 0; justify-content: space-between; }
-  /* iOS Safari는 16px 미만 입력칸을 누르면 화면을 확대한다 */
-  .field, .form input, .form select { font-size: 16px; }
-  .tw th, .tw td { padding: 8px 6px; } .tw thead th { white-space: normal; }
   /* 휴대폰(앱 화면)에서는 로고 아이콘만. 글자는 화면 읽기용으로만 남긴다 */
   .appbar.side .logo-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 }
@@ -227,6 +224,14 @@ details summary { cursor: pointer; font-weight: 600; font-size: 14px; color: var
 .form label { align-content: start; }
 details.card { display: block; }
 details.card > :not(summary) { margin-top: 8px; }
+
+/* 휴대폰 폭: 기본 규칙보다 뒤에 둬야 덮어쓴다 */
+@media (max-width: 560px) {
+  /* iOS Safari는 16px 미만 입력칸을 누르면 화면을 확대한다 */
+  .field, .form input, .form select { font-size: 16px; }
+  /* 표는 칸 여백을 줄이고 머리글도 줄바꿈을 허용해 카드 안에 들어오게 */
+  .tw th, .tw td { padding: 8px 6px; } .tw thead th { white-space: normal; }
+}
 
 /* 판매자 사이드바: 넓은 화면(900px 이상)에서 상단바(.appbar.side)를 왼쪽 흰 세로 메뉴로 바꾼다.
    그보다 좁거나 :has()를 모르는 브라우저면 위쪽 가로 메뉴 그대로. 운영자 상단바(.appbar)는 바꾸지 않는다 */
