@@ -20,6 +20,13 @@ export function json(data: unknown, status = 200, extra: Record<string, string> 
   return NextResponse.json(data, { status, headers: { ...SEC_HEADERS, ...extra } });
 }
 
+/** 엑셀(CSV) 내려받기. 엑셀에서 한글이 깨지지 않게 맨 앞에 BOM을 붙인다. 파일 이름은 영문 · 숫자만 (#79) */
+export function csvFile(filename: string, body: string) {
+  return new NextResponse(`﻿${body}`, {
+    headers: { ...SEC_HEADERS, "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": `attachment; filename="${filename.replace(/[^A-Za-z0-9_.-]/g, "")}"` },
+  });
+}
+
 /** 핸들러를 감싸 UserError는 사람이 읽을 메시지로, 나머지는 500으로 바꾼다 */
 export function handle<A extends unknown[]>(fn: (...a: A) => Promise<Response>, extra: Record<string, string> = {}) {
   return async (...a: A): Promise<Response> => {

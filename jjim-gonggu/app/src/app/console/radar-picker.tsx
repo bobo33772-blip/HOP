@@ -5,7 +5,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 /** 휴대폰 폭(560px 이하)인지. 표 대신 목록으로 그릴 때 쓴다 (#9) */
-function useNarrow(max = 560) {
+export function useNarrow(max = 560) {
   const [narrow, setNarrow] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia(`(max-width: ${max}px)`);
