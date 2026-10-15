@@ -63,7 +63,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
         <div className="hello">
           <span className="eyebrow">{mock ? "데모 모드" : "카페24 연결됨"}</span>
           <h1>{mall?.brandName ?? session.mallId}님, 안녕하세요</h1>
-          <p className="muted">찜·장바구니에 담아 둔 고객이 모이면, 그때 만들고 파세요.</p>
+          <p className="muted">장바구니에 담아 둔 고객이 모이면, 그때 만들고 파세요.</p>
         </div>
 
         {!allDone && (

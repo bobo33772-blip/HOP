@@ -13,7 +13,7 @@ const demoApi = (): ShopApi => {
 import { computeReach, getRadar, latestRun, resumeCollections, runCollection, startCollection, startFirstCollection } from "@/lib/radar";
 
 describe("수요 레이더", () => {
-  it("수집 전에는 비어 있고, 수집 후 합계순으로 정렬, 찜·장바구니 0인 상품은 제외", async () => {
+  it("수집 전에는 비어 있고, 수집 후 합계순으로 정렬, 알림 신청·장바구니 0인 상품은 제외 (찜은 세지 않는다, #81)", async () => {
     const db = await createTestDb();
     const api = demoApi();
     expect(await getRadar(db, "m")).toEqual({ run: null, rows: [] });
@@ -25,11 +25,12 @@ describe("수요 레이더", () => {
     const r = await getRadar(db, "m");
     expect(r.run).toMatchObject({ status: "done", total: 6, done: 6 });
     expect(r.rows.map((x) => x.productNo)).toEqual([101, 102, 103, 104, 106, 105]);
-    expect(r.rows[0]).toEqual({ productNo: 101, name: "워싱 린넨 이불 커버 (Q)", price: 129000, soldOut: true, alert: 0, wishlist: 180, cart: 31 });
+    expect(r.rows[0]).toEqual({ productNo: 101, name: "워싱 린넨 이불 커버 (Q)", price: 129000, soldOut: true, alert: 0, cart: 200 });
+    const [snap] = await db.select().from(schema.demandSnapshots).where(eq(schema.demandSnapshots.productNo, 101));
+    expect(snap.wishlistCount).toBe(0); // DB 칸은 그대로 두고 0으로 채운다
 
     const byCart = await getRadar(db, "m", "cart");
-    expect(byCart.rows[0].productNo).toBe(102);
-    expect(byCart.rows[1].productNo).toBe(101);
+    expect(byCart.rows.map((x) => x.productNo)).toEqual([101, 102, 103, 104, 106, 105]);
   });
 
   it("알림 신청만 있는 상품은 수집 전에도, 수집 결과에 없어도 상품 정보를 채워 보여 주고, 몰에 없는 상품 번호는 뺀다", async () => {
@@ -44,7 +45,7 @@ describe("수요 레이더", () => {
     const before = await getRadar(db, "m", "total", 50, api);
     expect(before.run).toBeNull();
     expect(before.rows).toHaveLength(1);
-    expect(before.rows[0]).toMatchObject({ productNo: 103, alert: 2, wishlist: 0, cart: 0 });
+    expect(before.rows[0]).toMatchObject({ productNo: 103, alert: 2, cart: 0 });
     expect(before.rows[0].name.length).toBeGreaterThan(0);
     expect(before.rows[0].price).toBeGreaterThan(0);
 
@@ -116,7 +117,7 @@ describe("수요 레이더", () => {
     const first = await startCollection(db, "m");
     await runCollection(db, ok, "m", first.run.id);
 
-    const broken: ShopApi = { ...demoApi(), wishlistCount: async () => { throw new Error("cafe24 500"); } };
+    const broken: ShopApi = { ...demoApi(), cartCount: async () => { throw new Error("cafe24 500"); } };
     const second = await startCollection(db, "m");
     await runCollection(db, broken, "m", second.run.id);
 
@@ -124,15 +125,14 @@ describe("수요 레이더", () => {
     expect((await getRadar(db, "m")).run?.id).toBe(first.run.id);
   });
 
-  it("도달 가능 인원: 찜∪장바구니 중복 제거 후 수신동의자만, 찜 100명 초과면 capped 표시", async () => {
+  it("도달 가능 인원: 알림 신청∪장바구니 중복 제거 후 수신동의자만", async () => {
     const api = demoApi();
     const reach = await computeReach(api, 101);
-    expect(reach.interested).toBe(131); // 찜 목록 100명(상한) + 장바구니 31명
+    expect(reach.interested).toBe(200); // 장바구니 m1~m200
     expect(reach.reachable).toBeGreaterThan(0);
     expect(reach.reachable).toBeLessThan(reach.interested);
-    expect(reach.wishlistCapped).toBe(true);
 
-    const small = await computeReach(api, 104);
-    expect(small).toMatchObject({ interested: 36, wishlistCapped: false }); // 찜 31 + 장바구니 6 − 겹침 1
+    const small = await computeReach(api, 104, ["m300", "x1"]);
+    expect(small).toMatchObject({ interested: 37 }); // 장바구니 36 + 알림 신청 2 − 겹침 1
   });
 });

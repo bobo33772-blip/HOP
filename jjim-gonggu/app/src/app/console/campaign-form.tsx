@@ -57,7 +57,6 @@ export function CampaignForm({ mall, p, say, onOpened }: { mall: string; p: Rada
         <>
           <div className="kpi many">
             <div><small>알림 신청</small><strong>{pv.audience.alert}</strong></div>
-            {pv.audience.consentChecked && <div><small>찜</small><strong>{pv.audience.wishlist}</strong></div>}
             <div><small>장바구니</small><strong>{pv.audience.cart}</strong></div>
             <div><small>중복 제외</small><strong>{pv.audience.unique}</strong></div>
             <div className="hl"><small>{pv.audience.consentChecked ? "문자 발송 대상 (수신 동의)" : "초대 대상 (최대)"}</small><strong>{pv.audience.reachable}</strong></div>

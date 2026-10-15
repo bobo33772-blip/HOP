@@ -43,12 +43,12 @@ export async function saveMallProfile(ctx: Ctx, actor: string, mallId: string, b
   await audit(ctx, actor, "mall.profile", mallId, { brandName, optOutNumber, smsSender }, mallId);
 }
 
-/** 찜 많은 상위 20개 상품 (마지막 완료 수집) + 진행 중 수집 상태 */
+/** 알림 신청 · 장바구니 많은 상위 20개 상품 (마지막 완료 수집) + 진행 중 수집 상태 */
 export async function radarState(ctx: Ctx, mallId: string) {
   await getMall(ctx, mallId);
   const api = await ctx.shop(mallId);
   const [radar, current] = await Promise.all([getRadar(ctx.db, mallId, "total", 20, api), latestRun(ctx.db, mallId)]);
-  return { ...radar, current, privacy: api.privacy };
+  return { ...radar, current };
 }
 
 /** 수집 시작 (응답 뒤 백그라운드). 이미 진행 중이면 그 수집을 돌려준다 */

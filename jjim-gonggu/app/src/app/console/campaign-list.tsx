@@ -20,7 +20,7 @@ export function ListTab({ mall, openId, setOpenId, say, goNew }: { mall: string;
     <div className="card empty">
       <img src="/logo.svg" alt="" />
       <b>아직 연 공구가 없어요</b>
-      <p className="muted">고객이 장바구니·찜에 많이 담아 둔 상품으로 첫 공구를 열어 보세요.<br />목표 수량이 모이면 그때 결제를 받아요.</p>
+      <p className="muted">고객이 장바구니에 많이 담아 두거나 공구 알림을 신청한 상품으로 첫 공구를 열어 보세요.<br />목표 수량이 모이면 그때 결제를 받아요.</p>
       <button className="btn brand" onClick={goNew}>첫 공구 열기</button>
     </div>
   );

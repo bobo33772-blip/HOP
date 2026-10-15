@@ -36,13 +36,11 @@ export interface OrderInfo {
 }
 
 export interface ShopApi {
-  /** 개인정보(mall.read_privacy) 권한이 있는가. 없으면 찜 회원·수신 동의를 조회할 수 없다 → 장바구니 고객 + 카페24 수신거부 자동 제외로 동작 */
+  /** 개인정보(mall.read_privacy) 권한이 있는가. 없으면 문자 수신 동의를 미리 조회할 수 없다 → 카페24 수신거부 자동 제외로 동작 */
   readonly privacy: boolean;
   listProducts(offset: number, limit: number): Promise<Product[]>;
   /** 상품 하나. 몰에 없는 번호면 null */
   getProduct(productNo: number): Promise<Product | null>;
-  wishlistCount(productNo: number): Promise<number>;
-  wishlistMembers(productNo: number): Promise<string[]>;
   cartCount(productNo: number): Promise<number>;
   cartMembers(productNo: number): Promise<string[]>;
   consents(memberIds: string[]): Promise<MemberConsent[]>;
@@ -121,17 +119,6 @@ export class Cafe24Api implements ShopApi {
       if ((e as { status?: number }).status === 404) return null;
       throw e;
     }
-  }
-
-  async wishlistCount(productNo: number) {
-    const r = await this.c.request<{ count: number }>("GET", `/products/${productNo}/wishlist/customers/count`, { query: { shop_no: this.shopNo } });
-    return Number(r.count ?? 0);
-  }
-
-  async wishlistMembers(productNo: number) {
-    // 문서: limit·offset 파라미터 없음(최대 100건). VERIFY(P8): 100명 초과 상품은 회원별 찜 목록 + 로그인 웹훅(90143)으로 보완
-    const r = await this.c.request<{ customers?: { member_id: string }[]; wishlist?: { member_id: string }[] }>("GET", `/products/${productNo}/wishlist/customers`, { query: { shop_no: this.shopNo } });
-    return (r.customers ?? r.wishlist ?? []).map((c) => String(c.member_id)).filter(Boolean);
   }
 
   async cartCount(productNo: number) {

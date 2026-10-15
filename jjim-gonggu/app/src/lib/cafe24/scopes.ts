@@ -2,11 +2,11 @@
 // 스토어 심사 소명 자료의 표와 반드시 같이 고칠 것.
 // 개인정보(mall.read_privacy)는 사업자등록 + 개인정보 서약서 제출 후 카페24 승인이 있어야 받을 수 있다(2026-10-08 카페24 답변).
 // 팀은 사업자등록이 없어 CAFE24_PRIVACY_SCOPE를 비워 두고, 위젯 '공구 알림' 신청 + 장바구니 고객으로 공구를 연다.
-// 나중에 승인을 받으면 1로 바꿔 찜 고객까지 넓힌다.
+// 나중에 승인을 받으면 1로 바꿔 문자 수신 동의를 미리 확인한다. 찜은 쓰지 않는다(#81).
 
 export interface ScopeInfo { scope: string; why: string }
 
-const PRIVACY: ScopeInfo = { scope: "mall.read_privacy", why: "상품별 찜 회원과 문자 수신동의 여부를 확인해, 동의한 고객에게만 공구 초대를 보냅니다." };
+const PRIVACY: ScopeInfo = { scope: "mall.read_privacy", why: "문자 수신동의 여부를 확인해, 동의한 고객에게만 공구 초대를 보냅니다." };
 
 const BASE: ScopeInfo[] = [
   { scope: "mall.read_product", why: "공구를 열 상품 이름·가격을 불러옵니다." },

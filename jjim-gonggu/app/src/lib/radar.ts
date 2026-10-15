@@ -9,7 +9,7 @@ import { alertCounts } from "./engine/alerts";
 
 const MAX_PRODUCTS = 5_000;
 
-export type RadarSort = "total" | "alert" | "wishlist" | "cart";
+export type RadarSort = "total" | "alert" | "cart";
 
 export interface RadarRow {
   productNo: number;
@@ -17,7 +17,6 @@ export interface RadarRow {
   price: number;
   soldOut: boolean;
   alert: number; // 위젯 '공구 열리면 알림 받기' 신청 수 (지금 값, 우리 DB)
-  wishlist: number;
   cart: number;
 }
 
@@ -64,7 +63,7 @@ const PACE_MS = 450;
 const BUDGET_MS = 40_000;
 const realMode = () => process.env.CAFE24_MOCK === "0";
 
-/** 상품 목록을 훑으며 상품별 찜·장바구니 수를 저장한다. 이미 저장한 상품 수(doneProducts)부터 이어서 한다 */
+/** 상품 목록을 훑으며 상품별 장바구니 수를 저장한다(찜은 쓰지 않는다, #81). 이미 저장한 상품 수(doneProducts)부터 이어서 한다 */
 export async function runCollection(db: Db, api: ShopApi, mallId: string, runId: number, opts: { paceMs?: number; budgetMs?: number } = {}): Promise<void> {
   const paceMs = opts.paceMs ?? (realMode() ? PACE_MS : 0);
   const deadline = Date.now() + (opts.budgetMs ?? (realMode() ? BUDGET_MS : Infinity));
@@ -78,10 +77,10 @@ export async function runCollection(db: Db, api: ShopApi, mallId: string, runId:
     let done = Math.min(r.doneProducts, products.length);
     for (const p of products.slice(done)) {
       if (Date.now() >= deadline) return; // 다음 정기 작업이 이어서 한다
-      // 찜 수는 개인정보 권한이 있어야 조회된다 (없으면 0으로 두고 장바구니만 본다)
-      const [wishlist, cart] = await Promise.all([api.privacy ? api.wishlistCount(p.productNo) : Promise.resolve(0), api.cartCount(p.productNo)]);
+      const cart = await api.cartCount(p.productNo);
+      // wishlist_count 칸은 쓰지 않지만 DB 구조를 바꾸지 않으려고 0으로 채운다 (#81, 칸 정리는 다음 DB 작업 때)
       await db.insert(schema.demandSnapshots).values({
-        runId, mallId, productNo: p.productNo, productName: p.name, price: p.price, soldOut: !!p.soldOut, wishlistCount: wishlist, cartCount: cart,
+        runId, mallId, productNo: p.productNo, productName: p.name, price: p.price, soldOut: !!p.soldOut, wishlistCount: 0, cartCount: cart,
       });
       done++;
       await db.update(schema.collectionRuns).set({ doneProducts: done }).where(run);
@@ -108,7 +107,7 @@ export async function resumeCollections(db: Db, shop: (mallId: string) => Promis
 const FILL_MAX = 20;
 
 /**
- * 마지막으로 끝난 수집 결과에 지금의 알림 신청 수를 더한다. 셋 다 하나도 없는 상품은 뺀다.
+ * 마지막으로 끝난 수집 결과에 지금의 알림 신청 수를 더한다. 알림 신청도 장바구니도 없는 상품은 뺀다.
  * 알림 신청은 수집과 무관하게 쌓이므로, 수집 전이거나 수집 결과에 없는 상품에 알림이 있으면 shop에서 상품 정보를 채워 함께 보여 준다
  * (몰에 없는 상품 번호는 뺀다). shop이 없으면 수집 결과에 있는 상품만 보여 준다.
  * 채울 때는 알림이 많은 순으로 FILL_MAX개만 하나씩 조회한다. 수집 중에는 화면이 1.5초마다 다시 불러오고 수집도 카페24 호출 한도를
@@ -120,20 +119,20 @@ export async function getRadar(db: Db, mallId: string, sort: RadarSort = "total"
     run ? db.select().from(schema.demandSnapshots).where(eq(schema.demandSnapshots.runId, run.id)) : Promise.resolve([]),
     alertCounts({ db }, mallId),
   ]);
-  const key = (r: RadarRow) => (sort === "alert" ? r.alert : sort === "wishlist" ? r.wishlist : sort === "cart" ? r.cart : r.alert + r.wishlist + r.cart);
+  const key = (r: RadarRow) => (sort === "alert" ? r.alert : sort === "cart" ? r.cart : r.alert + r.cart);
   // 수집이 이어 받는 사이 같은 상품이 두 번 저장됐을 수 있어 상품별로 마지막 값만 쓴다
   const latest = new Map(snaps.map((s) => [s.productNo, s]));
   const rows: RadarRow[] = [...latest.values()]
-    .map((s) => ({ productNo: s.productNo, name: s.productName, price: s.price, soldOut: s.soldOut, alert: alerts.get(s.productNo) ?? 0, wishlist: s.wishlistCount, cart: s.cartCount }));
+    .map((s) => ({ productNo: s.productNo, name: s.productName, price: s.price, soldOut: s.soldOut, alert: alerts.get(s.productNo) ?? 0, cart: s.cartCount }));
   const missing = [...alerts.keys()].filter((no) => !latest.has(no)).sort((a, b) => alerts.get(b)! - alerts.get(a)! || a - b).slice(0, FILL_MAX);
   if (missing.length && shop && !running) {
     const found = await Promise.all(missing.map((no) => shop.getProduct(no)));
     for (const p of found) {
-      if (p) rows.push({ productNo: p.productNo, name: p.name, price: p.price, soldOut: p.soldOut ?? false, alert: alerts.get(p.productNo)!, wishlist: 0, cart: 0 });
+      if (p) rows.push({ productNo: p.productNo, name: p.name, price: p.price, soldOut: p.soldOut ?? false, alert: alerts.get(p.productNo)!, cart: 0 });
     }
   }
   const picked = rows
-    .filter((r) => r.alert + r.wishlist + r.cart > 0)
+    .filter((r) => r.alert + r.cart > 0)
     .sort((a, b) => key(b) - key(a) || a.productNo - b.productNo)
     .slice(0, limit);
   return { run, rows: picked };
@@ -141,17 +140,15 @@ export async function getRadar(db: Db, mallId: string, sort: RadarSort = "total"
 
 export interface Reach {
   productNo: number;
-  interested: number; // 알림 신청 ∪ 찜 ∪ 장바구니 회원 (중복 제거)
+  interested: number; // 알림 신청 ∪ 장바구니 회원 (중복 제거)
   reachable: number; // 그중 문자 수신동의
-  wishlistCapped: boolean; // 찜 회원 목록이 100명에서 끊겼을 가능성 (PoC P8)
   consentChecked: boolean; // false면 reachable은 최대치 (수신거부 고객은 카페24가 발송 때 뺀다)
 }
 
 /** 공구를 열 상품 하나에 대해서만 회원 목록을 모아 수신동의자 수를 센다. 회원 ID는 저장하지 않고 숫자만 돌려준다. */
 export async function computeReach(api: ShopApi, productNo: number, alerts: string[] = []): Promise<Reach> {
-  const none = Promise.resolve([] as string[]);
-  const [wishCount, wish, cart] = await Promise.all([api.privacy ? api.wishlistCount(productNo) : Promise.resolve(0), api.privacy ? api.wishlistMembers(productNo) : none, api.cartMembers(productNo)]);
-  const members = [...new Set([...alerts, ...wish, ...cart])];
+  const cart = await api.cartMembers(productNo);
+  const members = [...new Set([...alerts, ...cart])];
   const reachable = api.privacy ? (members.length ? await api.consents(members) : []).filter((c) => c.sms).length : members.length;
-  return { productNo, interested: members.length, reachable, wishlistCapped: wishCount > wish.length, consentChecked: api.privacy };
+  return { productNo, interested: members.length, reachable, consentChecked: api.privacy };
 }
