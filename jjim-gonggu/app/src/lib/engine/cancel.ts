@@ -56,7 +56,7 @@ async function queueCancelled(ctx: Ctx, c: Campaign, pledgers: string[]): Promis
   const to = pledgers.filter((m) => ok.has(m));
   if (!to.length) return 0;
   const brand = mall.brandName || mall.mallId;
-  const content = `[${brand}] 신청하신 ${c.productName} 공동구매가 판매자 사정으로 취소되었습니다. 결제된 금액은 없습니다. 신청해 주셔서 감사합니다.\n${ctx.productUrl(c.mallId, c.productNo)}`;
+  const content = `[${brand}] 신청하신 ${c.productName} 공동구매가 판매자 사정으로 취소되었습니다. 결제된 금액은 없습니다. 신청해 주셔서 감사합니다 ♡\n${ctx.productUrl(c.mallId, c.productNo)}`;
   await ctx.db.insert(schema.messages).values({ campaignId: c.id, kind: "cancel", recipients: to, content, sendAfter: nextAllowedSendTime(ctx.clock.now()) });
   return to.length;
 }

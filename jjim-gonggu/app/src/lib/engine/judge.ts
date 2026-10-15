@@ -141,8 +141,8 @@ async function queueResult(ctx: Ctx, c: Campaign, pledgers: string[], total: num
   if (!to.length) return;
   const brand = mall.brandName || mall.mallId;
   const content = c.state === "reached"
-    ? `[${brand}] 신청하신 ${c.productName} 공동구매가 목표를 달성했습니다(${total}/${c.targetQty}개).\n계정에 넣어 드린 할인 쿠폰으로 ${fmtKst(c.payUntil)}까지 결제해 주시기 바랍니다.\n${ctx.productUrl(c.mallId, c.productNo)}`
-    : `[${brand}] 신청하신 ${c.productName} 공동구매가 목표(${c.targetQty}개)에 못 미쳐 진행되지 않습니다. 결제된 금액은 없습니다.\n구매를 원하시면 ${fmtKst(proceedInfo(c, ctx.clock.now()).proceedUntil)}까지 상품 페이지에서 '그래도 살래요'를 눌러 주시기 바랍니다. 진행 여부는 판매자가 정합니다.\n${ctx.productUrl(c.mallId, c.productNo)}`;
+    ? `[${brand}] ★ 신청하신 ${c.productName} 공동구매가 목표를 달성했습니다(${total}/${c.targetQty}개).\n☞ 계정에 넣어 드린 할인 쿠폰으로 ${fmtKst(c.payUntil)}까지 결제해 주시기 바랍니다.\n${ctx.productUrl(c.mallId, c.productNo)}`
+    : `[${brand}] 신청하신 ${c.productName} 공동구매가 목표(${c.targetQty}개)에 못 미쳐 진행되지 않습니다. 결제된 금액은 없습니다.\n☞ 구매를 원하시면 ${fmtKst(proceedInfo(c, ctx.clock.now()).proceedUntil)}까지 상품 페이지에서 '그래도 살래요'를 눌러 주시기 바랍니다. 진행 여부는 판매자가 정합니다.\n${ctx.productUrl(c.mallId, c.productNo)}`;
   await ctx.db.insert(schema.messages).values({ campaignId: c.id, kind: "result", recipients: to, content, sendAfter: nextAllowedSendTime(ctx.clock.now()) });
   if (c.state === "reached") await queueReminder(ctx, c, to, brand);
 }
@@ -155,6 +155,6 @@ export async function queueReminder(ctx: Ctx, c: Campaign, to: string[], brand: 
   if (!c.payUntil) return;
   const sendAfter = nextAllowedSendTime(new Date(c.payUntil.getTime() - REMINDER_BEFORE_MS));
   if (sendAfter >= c.payUntil) return;
-  const content = `[${brand}] ${c.productName} 공동구매 결제가 아직 완료되지 않았습니다.\n결제 기한은 ${fmtKst(c.payUntil)}까지입니다. 쿠폰을 쓰면 공구가로 결제됩니다.\n${ctx.productUrl(c.mallId, c.productNo)}`;
+  const content = `[${brand}] ※ ${c.productName} 공동구매 결제가 아직 완료되지 않았습니다.\n결제 기한은 ${fmtKst(c.payUntil)}까지입니다. ☞ 쿠폰을 쓰면 공구가로 결제됩니다.\n${ctx.productUrl(c.mallId, c.productNo)}`;
   await ctx.db.insert(schema.messages).values({ campaignId: c.id, kind: "pay_reminder", recipients: to, content, sendAfter });
 }
