@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
   const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>로그인 · 데모 쇼핑몰</title><meta name="robots" content="noindex">
 <style>:root{--fg:#16233F;--fg2:#4B5671;--line:#DDE2EB;--bg:#F7F5F1;--surface:#fff;--accent:#2F5BEA}
-@media (prefers-color-scheme:dark){:root{--fg:#E6EBF5;--fg2:#AAB4C8;--line:#2A3654;--bg:#10151F;--surface:#18202E;color-scheme:dark}}
+
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 "Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}
 form{max-width:380px;margin:48px auto;padding:20px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px;display:grid;gap:12px;word-break:keep-all}
 h1{font-size:20px;margin:0}.muted{color:var(--fg2);font-size:13.5px;margin:0}
