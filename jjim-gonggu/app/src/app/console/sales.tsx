@@ -5,7 +5,7 @@
 // 언제 많이 팔렸나(막대를 눌러 그 기간 숫자) → 공구마다 목표를 얼마나 채웠고 쿠폰 받은 사람 중 몇 명이 냈나. 엑셀(CSV)로도 내려받는다.
 // 판매자는 모니터링 › 리포트, 운영자는 공구 목록 위. compact: 홈에서 짧게(숫자 칸 · 그래프), 공구별 표 · 엑셀은 '자세히'로 모니터링에 보낸다.
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useConsole } from "./provider";
 import type { Sales, SalesBy, SalesRow } from "./types";
 import { chip, kst, won } from "./format";
@@ -29,6 +29,45 @@ const payLine = (r: SalesRow) => `결제 ${r.paidMembers} / ${r.couponMembers}�
 const dueLine = (r: SalesRow) => (r.state === "settled" ? `확정 ${kst(r.settledAt)}` : `결제 마감 ${kst(r.payUntil)}`);
 const extra = (r: SalesRow) => (r.cancelledOrders + r.lateOrders ? ` · 취소 ${r.cancelledOrders}건 · 기한 뒤 결제 ${r.lateOrders}건` : "");
 
+type CsvKind = "campaigns" | "daily";
+const EXCEL: [CsvKind, string][] = [["daily", "날짜별"], ["campaigns", "공구별"]];
+
+/** '엑셀 내려받기' 버튼 하나를 누르면 아래에 날짜별 · 공구별 목록이 뜬다. 하나를 고르거나 바깥 · Esc를 누르면 닫힌다 */
+function ExcelMenu({ file }: { file: (kind: CsvKind) => string }) {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  const btn = useRef<HTMLButtonElement>(null);
+  const id = useId();
+  const close = () => { setOpen(false); btn.current?.focus(); };
+  useEffect(() => {
+    if (!open) return;
+    const out = (e: PointerEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false); };
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") { setOpen(false); btn.current?.focus(); } };
+    document.addEventListener("pointerdown", out);
+    document.addEventListener("keydown", esc);
+    return () => { document.removeEventListener("pointerdown", out); document.removeEventListener("keydown", esc); };
+  }, [open]);
+  return (
+    // Tab으로 목록 밖에 나가면 닫는다. 누른 곳에 포커스가 안 가는 브라우저(사파리)는 relatedTarget이 비어 있어 그대로 둔다
+    <div ref={box} style={{ position: "relative" }} onBlur={(e) => { const to = e.relatedTarget as Node | null; if (to && !box.current?.contains(to)) setOpen(false); }}>
+      <button ref={btn} type="button" className="ghost" aria-expanded={open} aria-controls={id} onClick={() => setOpen((o) => !o)}>
+        엑셀 내려받기 <span aria-hidden="true">{open ? "▴" : "▾"}</span>
+      </button>
+      {open && (
+        <div id={id} style={{
+          position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 10, minWidth: "max(100%, 160px)", display: "grid", gap: 2, padding: 6,
+          background: "var(--surface)", border: "1px solid var(--line)", borderRadius: "var(--r-sm)", boxShadow: "var(--shadow-pop)",
+        }}>
+          {/* 다운로드가 시작된 뒤에 닫는다(누르는 순간 링크가 사라지지 않게) */}
+          {EXCEL.map(([kind, name]) => (
+            <a key={kind} className="ghost" href={file(kind)} download onClick={() => setTimeout(close)} style={{ border: 0, justifyContent: "flex-start" }}>{name}</a>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function SalesPanel({ say, compact = false }: { say: (t: string) => void; compact?: boolean }) {
   const a = useConsole();
   const narrow = useNarrow();
@@ -40,7 +79,7 @@ export function SalesPanel({ say, compact = false }: { say: (t: string) => void;
   if (!s) return null;
 
   const t = s.totals, w = s.waiting, rc = s.recruiting, pts = s.trend.points;
-  const file = (kind: "campaigns" | "daily") => `${a.mallBase}/sales?format=csv&kind=${kind}`;
+  const file = (kind: CsvKind) => `${a.mallBase}/sales?format=csv&kind=${kind}`;
   // 고른 막대. 처음에는 가장 최근에 매출이 있었던 칸
   const cur = pts.find((p) => p.key === pick) ?? [...pts].reverse().find((p) => p.revenue > 0) ?? pts[pts.length - 1];
   const sold = s.campaigns.length > 0;
@@ -53,8 +92,7 @@ export function SalesPanel({ say, compact = false }: { say: (t: string) => void;
         {compact ? <a href="/radar">자세히 보기 ›</a> : sold && (
           <span className="row" style={{ gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
             {/* 엑셀에서 바로 열리는 CSV. 날짜별은 엑셀 피벗으로 원하는 단위의 추이를 볼 수 있다 */}
-            <a className="ghost" href={file("campaigns")} download>엑셀 내려받기 · 공구별</a>
-            <a className="ghost" href={file("daily")} download>엑셀 내려받기 · 날짜별</a>
+            <ExcelMenu file={file} />
           </span>
         )}
       </div>
