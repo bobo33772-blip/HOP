@@ -90,14 +90,15 @@ export function SalesPanel({ say, compact = false }: { say: (t: string) => void;
                 <>
                   {/* 막대를 누르면 그 기간 숫자가 아래에 보인다 (휴대폰은 마우스를 올릴 수 없어서) */}
                   <div role="group" aria-label={`${BY.find(([k]) => k === by)![1]} 매출 막대. 막대를 누르면 그 기간 숫자가 아래에 보여요`}
-                    style={{ display: "flex", alignItems: "stretch", gap: 3, height: 120, overflowX: "auto" }}>
+                    style={{ display: "flex", alignItems: "stretch", gap: 3, height: 120, overflowX: "auto", borderBottom: "1px solid var(--line)" }}>
                     {pts.map((p) => {
                       const on = p.key === cur.key;
                       return (
                         <button key={p.key} type="button" aria-pressed={on} aria-label={`${p.label} 매출 ${won(p.revenue)}`} onClick={() => setPick(p.key)}
-                          style={{ flex: "1 0 10px", display: "flex", alignItems: "flex-end", padding: 0, border: 0, background: "none", minWidth: 10 }}>
+                          style={{ flex: "1 0 10px", display: "flex", alignItems: "flex-end", justifyContent: "center", padding: 0, border: 0, background: "none", minWidth: 10 }}>
                           <span style={{
-                            display: "block", width: "100%", height: `${(p.revenue / max) * 100}%`, minHeight: p.revenue > 0 ? 3 : 1, borderRadius: "4px 4px 0 0",
+                            // 막대는 칸 가운데에 가늘게(칸의 45%, 최대 28px) 세우고 위쪽만 둥글게 해서 얄쌍하게 보이게 한다
+                            display: "block", width: "min(28px, 45%)", minWidth: 4, height: `${(p.revenue / max) * 100}%`, minHeight: p.revenue > 0 ? 3 : 0, borderRadius: "999px 999px 2px 2px",
                             background: p.revenue <= 0 ? "var(--line)" : on ? "var(--brand)" : "color-mix(in srgb, var(--brand) 40%, transparent)",
                           }} />
                         </button>
