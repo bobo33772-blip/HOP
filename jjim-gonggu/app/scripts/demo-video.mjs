@@ -138,6 +138,31 @@ async function main() {
   const token = await evaluate(`document.querySelector("code").textContent`);
   await evaluate(`localStorage.setItem("jjimkkong-onboarding-v1", "1")`);
 
+  // 녹화 전 준비 (영상에 안 들어감): 지난 몇 달 동안 확정된 공구 3개를 만들어 매출 그래프 · 기간별 · 유입별에 칸이 차게 한다
+  await send("Page.navigate", { url: `${BASE}/api/cafe24/launch` }); await waitFor(`location.pathname === "/" && document.readyState === "complete"`, "launch");
+  await api("POST", "/api/seller/radar");
+  for (let i = 0; i < 120; i++) { const r = await api("GET", "/api/seller/radar"); if (r.body?.run && !r.body?.current) break; await sleep(500); }
+  const must = async (label, p) => { const r = await p; if (r.status >= 300) throw new Error(`${label} ${JSON.stringify(r.body)}`); return r.body; };
+  const demo = (action, body) => must(action, api("POST", `/api/demo/${action}`, body));
+  const kstDay = (ms) => new Date(ms + 9 * 3_600_000).toISOString().slice(0, 10);
+  const past = async (productNo, dealPrice, targetQty, pledges, rate1, rate2, gapHours) => {
+    const { now } = await must("now", api("GET", "/api/seller/now"));
+    const dl = new Date(now).getTime() + 5 * 86_400_000;
+    await must(`open ${productNo}`, api("POST", "/api/seller/campaigns", { productNo, targetQty: String(targetQty), dealPrice: String(dealPrice), costPrice: "", perMemberLimit: "2", deadlineAt: new Date(`${kstDay(dl)}T14:00:00+09:00`).toISOString(), payWindowHours: "72", shipEta: kstDay(dl + 14 * 86_400_000), confirmBelowCost: false }));
+    for (let n = pledges; n > 0; n -= 10) await demo("simulate-pledges", { productNo, n: Math.min(10, n) });
+    await demo("advance", { productNo, to: "deadline" }); await demo("simulate-payments", { productNo, rate: rate1 });
+    await demo("advance", { productNo, to: "24" }); await demo("simulate-payments", { productNo, rate: rate2 });
+    await demo("advance", { productNo, to: "payend" });
+    for (let h = gapHours; h > 0; h -= 240) await demo("advance", { productNo, to: String(Math.min(240, h)) });
+  };
+  if (process.env.SEED !== "0") {
+    await past(103, 69000, 20, 40, 0.6, 0.5, 480); // 린넨 암막 커튼
+    await past(101, 99000, 20, 40, 0.5, 0.6, 480); // 워싱 린넨 이불 커버
+    await past(104, 29000, 30, 40, 0.6, 0.5, 240); // 원목 수납 트레이
+    await api("POST", "/api/seller/radar");
+    for (let i = 0; i < 120; i++) { const r = await api("GET", "/api/seller/radar"); if (r.body?.run && !r.body?.current) break; await sleep(500); }
+  }
+
   await send("Page.startScreencast", { format: "jpeg", quality: 88, maxWidth: W * DSF, maxHeight: H * DSF, everyNthFrame: 1 });
   rec.t0 = Date.now(); rec.paused = false;
   await go("/demo", `!!document.querySelector("#roles-title")`);
@@ -231,14 +256,33 @@ async function main() {
   await click(".demobar a", "판매자 화면", { nav: true, ready: `!!document.querySelector("section[aria-labelledby=sales-title] .kpi")` });
   await hover("section[aria-labelledby=sales-title] .kpi div", null, 1000); await hold(1500);
   await scrollBy(260); await hold(1000);
-  await say("seller", "⑦ 판매자 · 모니터링 › 리포트", "공구별 목표 대비 확정 · 결제 인원, 엑셀로도 내려받아요");
+  await say("seller", "⑦ 판매자 · 모니터링 › 리포트", "이번 달 확정 매출 · 결제 기다리는 금액 · 누적을 한눈에");
   await click(".appbar a", "모니터링", { nav: true, ready: `!!document.querySelector("section[aria-labelledby=sales-title] .kpi")` });
-  await hold(1200);
-  await scrollBy(420, 1400); await hold(1300);
-  await scrollBy(-420, 900);
+  await hold(1000);
+  await hover("section[aria-labelledby=sales-title] .kpi div", null, 900); await hold(1200);
+  await say("seller", "⑦ 판매자 · 매출 추이 · 일별 · 주별 · 월별", "막대를 누르면 그 기간의 금액 · 결제 건수 · 수량이 보여요");
+  await hover("[role=radiogroup][aria-label='추이 단위']", null, 800);
+  await click("[role=radio]", "월별", { after: 1200 });
+  { const bars = "[role=group] button"; const n = await evaluate(`document.querySelectorAll("${bars}").length`);
+    for (const i of [n - 2, n - 3, n - 1]) { if (i < 0) continue; await click({ expr: `document.querySelectorAll("${bars}")[${i}]` }, null, { after: 1100 }); } }
+  await click("[role=radio]", "주별", { after: 1300 });
+  await say("seller", "⑦ 판매자 · 공구별 매출과 엑셀", "목표 대비 확정 · 쿠폰 받은 사람 중 결제 인원, 엑셀로 날짜별 · 공구별 내려받기");
+  await scrollBy(520, 1400); await hold(1500);
+  await scrollBy(-520, 900);
+  await click("button[aria-expanded]", "엑셀 내려받기", { after: 1600 });
+  await evaluate(`document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }))`); await hold(500);
   await say("seller", "⑦ 판매자 · 모니터링 › 기간별", "달마다 얼마나 팔렸는지, 지난달 같은 기간과 비교해요");
   await click("[role=tab]", "기간별", { after: 1200 });
-  await waitFor(`!!document.querySelector("section[aria-labelledby=period-title]")`, "period"); await hold(1800);
+  await waitFor(`!!document.querySelector("section[aria-labelledby=period-title]")`, "period"); await hold(1500);
+  { const bars = "section[aria-labelledby=period-title] [role=group] button"; const n = await evaluate(`document.querySelectorAll("${bars}").length`);
+    for (const i of [n - 2, n - 3, n - 1]) { if (i < 0) continue; await click({ expr: `document.querySelectorAll("${bars}")[${i}]` }, null, { after: 1300 }); } }
+  await say("seller", "⑦ 판매자 · 상품별 · 유입별", "어떤 상품이, 어떤 고객(장바구니 · 재입고 알림 · 직접 신청)이 매출을 만들었는지");
+  await scrollBy(300, 1000); await hold(1300);
+  await click("[role=radio]", "유입별", { after: 1800 });
+  await say("seller", "⑦ 판매자 · 내 공구", "진행 중 · 확정된 공구와, 아래에 고객이 기다리는 상품 순위");
+  await click(".appbar a", "내 공구", { nav: true, ready: `!!document.querySelector("#demand-title")` });
+  await hold(1500);
+  await hover("#demand-title", null, 900); await hold(1500);
 
   // 8. 관리자
   await say("admin", "⑧ 관리자 · 찜꽁 운영팀 화면", "파일럿 동안 모든 쇼핑몰의 공구 · 매출을 함께 봐요");
