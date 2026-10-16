@@ -55,12 +55,12 @@ function ExcelMenu({ file }: { file: (kind: CsvKind) => string }) {
       </button>
       {open && (
         <div id={id} style={{
-          position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 10, minWidth: "max(100%, 160px)", display: "grid", gap: 2, padding: 6,
+          position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 4, minWidth: "max(100%, 160px)", display: "grid", gap: 2, padding: 6,
           background: "var(--surface)", border: "1px solid var(--line)", borderRadius: "var(--r-sm)", boxShadow: "var(--shadow-pop)",
         }}>
-          {/* 다운로드가 시작된 뒤에 닫는다(누르는 순간 링크가 사라지지 않게) */}
+          {/* 다운로드가 시작된 뒤에 닫는다(누르는 순간 링크가 사라지지 않게). 위 고정 메뉴바(z-index 5) 밑으로 지나가게 4 */}
           {EXCEL.map(([kind, name]) => (
-            <a key={kind} className="ghost" href={file(kind)} download onClick={() => setTimeout(close)} style={{ border: 0, justifyContent: "flex-start" }}>{name}</a>
+            <a key={kind} className="ghost" href={file(kind)} download aria-label={`${name} 엑셀 내려받기`} onClick={() => setTimeout(close)} style={{ border: 0, justifyContent: "flex-start" }}>{name}</a>
           ))}
         </div>
       )}
