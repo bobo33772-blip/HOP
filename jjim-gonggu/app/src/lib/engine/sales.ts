@@ -169,6 +169,72 @@ export async function salesOverview(ctx: Ctx, mallId: string, by: SalesBy = "wee
 
 export type SalesOverview = Awaited<ReturnType<typeof salesOverview>>;
 
+// ---- 기간별 (모니터링 › 기간별, #92) ----
+
+/** 막대로 보여 줄 달 수 (이번 달까지 최근 6개월) */
+export const PERIOD_MONTHS = 6;
+/** 유입: 공구 초대 이유. 초대 없이 위젯에서 바로 신청한 고객은 '직접 신청'. 찜을 빼기 전 기록(wishlist · both)은 담아 둔 고객이라 장바구니로 센다 */
+export type SalesSource = "cart" | "alert" | "direct";
+const sourceOf = (s: string | undefined): SalesSource => (s === "alert" ? "alert" : s ? "cart" : "direct");
+
+/** ?month=2026-10 형식만 받고, 아니면 이번 달 (한국 시간) */
+export const periodMonth = (v: string | null | undefined, now: Date) => (v && /^\d{4}-(0[1-9]|1[0-2])$/.test(v) ? v : bucketOf(now, "month"));
+const monthStart = (key: string) => new Date(`${key}-01T00:00:00+09:00`);
+
+/** 모니터링 › 기간별: 고른 달의 확정 매출 · 지난달 같은 기간과 비교 · 최근 6개월 막대 · 상품별 · 유입별 */
+export async function salesPeriods(ctx: Ctx, mallId: string, month?: string | null) {
+  const now = ctx.clock.now();
+  const cur = periodMonth(month, now), prev = shiftMonth(cur, -1);
+  const { camps } = await load(ctx, mallId);
+  const ids = camps.map((c) => c.id);
+  const O = schema.orderLinks, I = schema.invitations;
+  const orders = ids.length
+    ? await ctx.db.select({ campaignId: O.campaignId, memberId: O.memberId, qty: O.qty, amount: O.amount, paidAt: O.paidAt }).from(O)
+      .where(and(inArray(O.campaignId, ids), eq(O.status, "paid")))
+    : [];
+  const invs = ids.length
+    ? await ctx.db.select({ campaignId: I.campaignId, memberId: I.memberId, source: I.source }).from(I).where(inArray(I.campaignId, ids))
+    : [];
+  const src = new Map(invs.map((i) => [`${i.campaignId}|${i.memberId}`, i.source]));
+  const byId = new Map(camps.map((c) => [c.id, c]));
+  const sumOf = (os: typeof orders) => os.reduce((a, o) => ({ revenue: a.revenue + o.amount, qty: a.qty + o.qty, orders: a.orders + 1 }), { revenue: 0, qty: 0, orders: 0 });
+
+  // 막대는 이번 달까지 최근 6개월로 고정하고, 고른 달만 강조한다(지난 달을 눌러도 막대가 밀리지 않게). 그보다 앞 달을 고르면 그 달이 맨 오른쪽
+  const last = cur > bucketOf(now, "month") ? cur : [bucketOf(now, "month"), shiftMonth(cur, PERIOD_MONTHS - 1)].sort()[0];
+  const months = Array.from({ length: PERIOD_MONTHS }, (_, i) => shiftMonth(last, i - (PERIOD_MONTHS - 1))).map((key) => ({
+    key, label: `${Number(key.slice(5, 7))}월`, ...sumOf(orders.filter((o) => bucketOf(o.paidAt, "month") === key)),
+  }));
+  const inCur = orders.filter((o) => bucketOf(o.paidAt, "month") === cur);
+  const isCurrent = cur === bucketOf(now, "month");
+  // 비교: 이번 달이면 지난달 1일부터 '이번 달이 지난 만큼'(지난달 같은 기간), 지난 달을 골랐으면 그 전달 전체
+  let compare: { label: string; revenue: number };
+  if (isCurrent) {
+    const from = monthStart(prev), to = new Date(Math.min(from.getTime() + (now.getTime() - monthStart(cur).getTime()), monthStart(cur).getTime()));
+    compare = { label: "지난달 같은 기간", revenue: sumOf(orders.filter((o) => o.paidAt >= from && o.paidAt < to)).revenue };
+  } else {
+    compare = { label: "전달", revenue: sumOf(orders.filter((o) => bucketOf(o.paidAt, "month") === prev)).revenue };
+  }
+
+  const group = <K extends string | number>(key: (o: (typeof orders)[number]) => K) => {
+    const m = new Map<K, typeof orders>();
+    for (const o of inCur) { const k = key(o); const l = m.get(k); if (l) l.push(o); else m.set(k, [o]); }
+    return [...m.entries()].map(([k, os]) => ({ k, ...sumOf(os) })).sort((a, b) => b.revenue - a.revenue);
+  };
+  const byProduct = group((o) => byId.get(o.campaignId)!.productNo).map(({ k, ...s }) => ({
+    productNo: k, name: camps.find((c) => c.productNo === k)!.productName, ...s, // camps는 최근에 연 공구부터라 최신 상품명
+  }));
+  const bySource = group((o) => sourceOf(src.get(`${o.campaignId}|${o.memberId}`))).map(({ k, ...s }) => ({ source: k, ...s }));
+
+  return {
+    month: cur, label: `${cur.slice(0, 4)}년 ${Number(cur.slice(5, 7))}월`, isCurrent,
+    ...sumOf(inCur),
+    compare: { ...compare, diff: sumOf(inCur).revenue - compare.revenue },
+    months, byProduct, bySource,
+  };
+}
+
+export type SalesPeriods = Awaited<ReturnType<typeof salesPeriods>>;
+
 // ---- 엑셀(CSV) ----
 
 type Cell = string | number | null | undefined;

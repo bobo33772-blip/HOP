@@ -39,3 +39,13 @@ export interface Sales {
   trend: { points: { key: string; label: string; orders: number; qty: number; revenue: number }[]; truncated: boolean };
   campaigns: SalesRow[];
 }
+/** 모니터링 › 기간별 (#92). 숫자 기준은 공구 매출과 같다(결제 기간 안 쿠폰 결제, 취소 · 반품 뺌) */
+export type SalesSource = "cart" | "alert" | "direct";
+export interface PeriodSum { revenue: number; qty: number; orders: number }
+export interface SalesPeriods extends PeriodSum {
+  month: string; label: string; isCurrent: boolean;
+  compare: { label: string; revenue: number; diff: number }; // 이번 달이면 '지난달 같은 기간', 지난 달이면 '전달'
+  months: ({ key: string; label: string } & PeriodSum)[];
+  byProduct: ({ productNo: number; name: string } & PeriodSum)[];
+  bySource: ({ source: SalesSource } & PeriodSum)[];
+}

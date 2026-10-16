@@ -3,7 +3,7 @@
 // 공구 매출 (#79): 운영자 화면과 판매자 화면이 같이 쓴다. 숫자 기준은 리포트의 확정 매출과 같다(lib/engine/sales.ts).
 // 판매자가 궁금한 순서로 보여 준다 (#92): 이번 달 얼마 벌었나(지난달보다) → 결제 기다리는 돈 · 마감 → 모집 중 공구가 다 되면 →
 // 언제 많이 팔렸나(막대를 눌러 그 기간 숫자) → 공구마다 목표를 얼마나 채웠고 쿠폰 받은 사람 중 몇 명이 냈나. 엑셀(CSV)로도 내려받는다.
-// compact: 홈에서 짧게. 숫자 칸 · 그래프만 두고, 공구별 표 · 엑셀은 '자세히'로 내 공구 화면에 보낸다.
+// 판매자는 모니터링 › 리포트, 운영자는 공구 목록 위. compact: 홈에서 짧게(숫자 칸 · 그래프), 공구별 표 · 엑셀은 '자세히'로 모니터링에 보낸다.
 
 import { useCallback, useEffect, useState } from "react";
 import { useConsole } from "./provider";
@@ -47,7 +47,7 @@ export function SalesPanel({ say, compact = false }: { say: (t: string) => void;
     <section className="card" aria-labelledby="sales-title">
       <div className="row" style={{ flexWrap: "wrap" }}>
         <h2 id="sales-title" style={{ fontSize: 18, margin: 0 }}>공구 매출</h2>
-        {compact ? <a className="ghost" href="/campaigns">자세히 · 엑셀 ›</a> : sold && (
+        {compact ? <a className="ghost" href="/radar">자세히 · 엑셀 ›</a> : sold && (
           <span className="row" style={{ gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
             {/* 엑셀에서 바로 열리는 CSV. 날짜별은 엑셀 피벗으로 원하는 단위의 추이를 볼 수 있다 */}
             <a className="ghost" href={file("campaigns")} download>엑셀 내려받기 · 공구별</a>

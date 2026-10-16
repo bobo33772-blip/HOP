@@ -6,8 +6,8 @@
 import { ConsoleProvider, useToast } from "../console/provider";
 import { SalesPanel } from "../console/sales";
 
-// campaigns/seller-console.tsx의 판매자 API 주소와 같다
-const SELLER_API = { role: "seller", mallBase: "/api/seller", campaignBase: "/api/seller/campaigns", now: "/api/seller/now", loginUrl: "/" } as const;
+// campaigns/seller-console.tsx의 판매자 API 주소와 같다. 모니터링(radar-client)도 같이 쓴다
+export const SELLER_API = { role: "seller", mallBase: "/api/seller", campaignBase: "/api/seller/campaigns", now: "/api/seller/now", loginUrl: "/" } as const;
 
 export default function HomeSales() {
   const { say, node } = useToast();

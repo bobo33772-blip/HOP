@@ -1,14 +1,13 @@
 "use client";
 
 // 공구 목록. 누르면 아래에 상세(campaign-detail)가 펼쳐진다. 운영자 OP-4로 들어가는 목록 / 판매자 S-12 · S-E1(빈 상태).
-// 목록 위에 공구 매출(합계 · 추이 · 공구별 · 엑셀)을 둔다 (#79).
+// 공구 매출은 판매자는 모니터링 › 리포트에서, 운영자는 운영자 화면 목록 위에서 본다 (#92).
 
 import { useCallback, useEffect, useState } from "react";
 import { useConsole } from "./provider";
 import type { Camp } from "./types";
 import { CHIP, kst } from "./format";
 import { CampaignDetail } from "./campaign-detail";
-import { SalesPanel } from "./sales";
 
 export function ListTab({ mall, openId, setOpenId, say, goNew }: { mall: string; openId: string | null; setOpenId: (id: string | null) => void; say: (t: string) => void; goNew: () => void }) {
   const a = useConsole();
@@ -26,7 +25,6 @@ export function ListTab({ mall, openId, setOpenId, say, goNew }: { mall: string;
   );
   return (
     <>
-      <SalesPanel say={say} />
       <div className="camps">
         {camps.map((c) => {
           const [label, cls] = CHIP[c.state];
