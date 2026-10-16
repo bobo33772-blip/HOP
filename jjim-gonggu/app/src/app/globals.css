@@ -141,8 +141,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .count { font-size: 26px; font-weight: 750; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; line-height: 1.1; }
 .count small { font-size: 14px; font-weight: 500; color: var(--fg2); }
 .bar { height: 8px; border-radius: 99px; background: var(--soft); overflow: hidden; }
-.bar i { display: block; height: 100%; background: var(--brand); border-radius: 99px; transition: width .5s cubic-bezier(.2, .8, .2, 1); min-width: 8px; }
-.bar.ok i { background: var(--success); }
+/* 공구 진행 막대: 모집 중은 파스텔 로즈, 목표를 채우면 로즈에서 라벤더로 번지는 파스텔 그라디언트 (밝게 · 어둡게 같은 색) */
+.bar i { display: block; height: 100%; background: #f2a5b8; border-radius: 99px; transition: width .5s cubic-bezier(.2, .8, .2, 1); min-width: 8px; }
+.bar.ok i { background: linear-gradient(90deg, #f4a9bc, #b3a9f5); }
 .prog { display: grid; gap: 6px; }
 .prog small { color: var(--fg2); font-size: 13px; font-variant-numeric: tabular-nums; }
 
