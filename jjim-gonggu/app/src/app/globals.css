@@ -366,3 +366,52 @@ details.card[open] > summary::after { transform: rotate(90deg); }
   .appbar.side .tabs [aria-current="page"] { background: var(--brand-soft); color: var(--brand-ink); box-shadow: none; }
   body:has(.appbar.side) main { padding: 36px 32px 80px; }
 } }
+
+/* ================= 여백: 묶음 사이는 넓게, 제목과 그 내용은 가깝게 =================
+   사방넷 서비스 소개 화면처럼 큰 묶음 사이는 확실히 띄우고, 제목 → 내용 · 항목 → 항목은 그보다 가깝게 둬서
+   어디까지가 한 묶음인지 한눈에 보이게 한다. 휴대폰은 한 단계 좁게 */
+main { gap: 20px; }
+.hello { gap: 8px; margin-bottom: 4px; }
+/* 화면에 놓인 구역 제목('내 공구' 등): 앞은 한 번 더 띄우고, 바로 아래 내용과는 가깝게 */
+main > .section-head { margin-top: 14px; }
+main > .section-head + * { margin-top: -6px; }
+.card { padding: 24px; gap: 14px; }
+/* 카드 안의 소제목 줄('매출 추이' · '공구별' 등) 앞은 한 번 더 띄운다. 그래프 아래 기간 줄(.small)은 붙여 둔다 */
+.card > .row:not(:first-child):not(.small), .card > b { margin-top: 10px; }
+.muted { line-height: 1.65; }
+.stats { gap: 14px; }
+.camps { gap: 18px; }
+.steps li { padding: 14px 2px; }
+.item { padding: 18px 20px; }
+.kpi { gap: 12px; }
+.kpi div { padding: 14px 16px; }
+/* 숫자 칸이 여러 개면 칸을 150px보다 좁게 나누지 않는다(7자리 금액이 칸 밖으로 나가던 것). 홈 매출 칸(#93)과 같은 값 */
+.kpi.many { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.tw th, .tw td { padding: 14px 16px; }
+.form { gap: 18px; }
+.form label { gap: 8px; }
+details.card > :not(summary) { margin-top: 14px; }
+.legal { padding-top: 20px; }
+
+@media (max-width: 560px) {
+  main { gap: 18px; }
+  main > .section-head { margin-top: 12px; }
+  .card { padding: 20px; gap: 12px; }
+  .stats { gap: 10px; }
+  .camps { gap: 16px; }
+  .item { padding: 16px 18px; }
+  .tw th, .tw td { padding: 10px 8px; }
+}
+/* 숫자 칸의 7자리 금액이 칸 밖으로 나가지 않게, 칸이 좁아지는 1199px 이하에서는 글자를 한 단계 작게 */
+@media (max-width: 1199px) {
+  .kpi div { padding: 12px 14px; }
+  .kpi strong { font-size: 20px; }
+}
+
+
+@media (min-width: 900px) {
+  main { gap: 24px; }
+  main > .section-head { margin-top: 18px; }
+  .card { padding: 28px; gap: 16px; }
+  @supports selector(:has(a)) { body:has(.appbar.side) main { padding: 44px 40px 96px; } }
+}
