@@ -10,9 +10,12 @@ import { useConsole } from "./provider";
 import type { Sales, SalesBy, SalesRow } from "./types";
 import { chip, kst, won } from "./format";
 import { useNarrow } from "./radar-picker";
+import { Bars } from "./bars";
 
 const BY: [SalesBy, string][] = [["day", "일별"], ["week", "주별"], ["month", "월별"]];
 const nowrap = { whiteSpace: "nowrap" } as const; // 숫자 칸은 한 줄 (#35)
+/** 막대 아래 짧은 이름: 월별은 "10월", 주별 · 일별은 시작일 "10/12" */
+const barName = (key: string, by: SalesBy) => (by === "month" ? `${Number(key.slice(5, 7))}월` : `${Number(key.slice(5, 7))}/${Number(key.slice(8, 10))}`);
 
 /** 지난달 대비. 지난달이 0원이면 비율 대신 말로 */
 function vsLastMonth(now: number, last: number): string {
@@ -38,7 +41,6 @@ export function SalesPanel({ say, compact = false }: { say: (t: string) => void;
 
   const t = s.totals, w = s.waiting, rc = s.recruiting, pts = s.trend.points;
   const file = (kind: "campaigns" | "daily") => `${a.mallBase}/sales?format=csv&kind=${kind}`;
-  const max = Math.max(1, ...pts.map((p) => p.revenue));
   // 고른 막대. 처음에는 가장 최근에 매출이 있었던 칸
   const cur = pts.find((p) => p.key === pick) ?? [...pts].reverse().find((p) => p.revenue > 0) ?? pts[pts.length - 1];
   const sold = s.campaigns.length > 0;
@@ -88,24 +90,9 @@ export function SalesPanel({ say, compact = false }: { say: (t: string) => void;
               </div>
               {!pts.length ? <p className="muted">아직 결제된 주문이 없어요.</p> : (
                 <>
-                  {/* 막대를 누르면 그 기간 숫자가 아래에 보인다 (휴대폰은 마우스를 올릴 수 없어서) */}
-                  <div role="group" aria-label={`${BY.find(([k]) => k === by)![1]} 매출 막대. 막대를 누르면 그 기간 숫자가 아래에 보여요`}
-                    style={{ display: "flex", alignItems: "stretch", gap: 3, height: 140, overflowX: "auto", borderBottom: "1px solid var(--line)" }}>
-                    {pts.map((p) => {
-                      const on = p.key === cur.key;
-                      return (
-                        <button key={p.key} type="button" aria-pressed={on} aria-label={`${p.label} 매출 ${won(p.revenue)}`} onClick={() => setPick(p.key)}
-                          style={{ flex: "1 0 10px", display: "flex", alignItems: "flex-end", justifyContent: "center", padding: 0, border: 0, background: "none", minWidth: 10 }}>
-                          <span style={{
-                            // 셀러박스 '기간별'처럼: 칸 가운데 막대(칸의 60%, 최대 48px), 위쪽만 살짝 둥글게, 나머지는 연회색 · 고른 막대만 연보라
-                            display: "block", width: "min(48px, 60%)", minWidth: 4, height: `${(p.revenue / max) * 100}%`, minHeight: p.revenue > 0 ? 3 : 0, borderRadius: "8px 8px 0 0",
-                            background: on ? "color-mix(in srgb, var(--violet) 30%, var(--surface))" : "color-mix(in srgb, var(--fg) 7%, var(--surface))",
-                          }} />
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <div className="row small"><span>{pts[0].label}</span><span>{pts[pts.length - 1].label}</span></div>
+                  {/* 막대를 누르면 그 기간 숫자가 아래에 보인다 (휴대폰은 마우스를 올릴 수 없어서). 모양은 기간별과 같은 부품 (#99) */}
+                  <Bars label={`${BY.find(([k]) => k === by)![1]} 매출 막대. 막대를 누르면 그 기간 숫자가 아래에 보여요`}
+                    bars={pts.map((p) => ({ key: p.key, name: barName(p.key, by), value: p.revenue }))} picked={cur.key} onPick={setPick} />
                   <p aria-live="polite" style={{ margin: 0 }}>
                     <b>{cur.label}</b> · <b>{won(cur.revenue)}</b> <span className="small">결제 {cur.orders}건 · {cur.qty}개</span>
                   </p>

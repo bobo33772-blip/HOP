@@ -7,9 +7,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useConsole } from "./provider";
 import type { SalesPeriods, SalesSource } from "./types";
 import { won } from "./format";
+import { Bars } from "./bars";
 
-/** 막대 위 짧은 금액: 1만원 이상은 만원 단위(반올림), 그 아래는 원 */
-const short = (n: number) => (n >= 10_000 ? `${Math.round(n / 10_000).toLocaleString("ko-KR")}만원` : won(n));
 const SOURCE: Record<SalesSource, string> = { cart: "장바구니 고객", alert: "재입고 알림 고객", direct: "직접 신청" };
 // 비중 막대 색: 분홍(포인트) 다음 보조색. 칸은 연하게, 목록의 점은 진하게
 const COLORS = ["var(--brand)", "var(--blue)", "var(--amber)", "var(--violet)", "var(--green)"];
@@ -25,7 +24,6 @@ export function PeriodPanel({ say }: { say: (t: string) => void }) {
   useEffect(() => { load(); }, [load]);
   if (!p) return <p className="muted">불러오는 중…</p>;
 
-  const max = Math.max(1, ...p.months.map((m) => m.revenue));
   const d = p.compare.diff;
   const rows = by === "product"
     ? p.byProduct.map((x) => ({ key: String(x.productNo), name: x.name, revenue: x.revenue, qty: x.qty }))
@@ -47,24 +45,10 @@ export function PeriodPanel({ say }: { say: (t: string) => void }) {
           </span>
         </div>
 
-        {/* 최근 6개월. 막대 위에 금액, 아래에 달. 누르면 그 달을 본다 */}
-        <div role="group" aria-label="월별 확정 매출. 막대를 누르면 그 달을 봐요" style={{ display: "flex", gap: 8, alignItems: "stretch", height: 200, marginTop: 6 }}>
-          {p.months.map((m) => {
-            const on = m.key === p.month;
-            return (
-              <button key={m.key} type="button" aria-pressed={on} aria-label={`${m.label} ${won(m.revenue)}`} onClick={() => setMonth(m.key)}
-                style={{ flex: 1, minWidth: 0, display: "grid", gridTemplateRows: "auto 1fr auto", gap: 6, padding: 0, border: 0, background: "none", color: "var(--fg)" }}>
-                <span className="small" style={{ whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums", color: on ? "var(--fg)" : "var(--fg2)", fontWeight: on ? 700 : 500 }}>{short(m.revenue)}</span>
-                <span style={{ display: "flex", alignItems: "flex-end" }}>
-                  <span style={{
-                    display: "block", width: "100%", height: `${(m.revenue / max) * 100}%`, minHeight: 4, borderRadius: "10px 10px 4px 4px",
-                    background: on ? tint("var(--brand)") : "var(--soft)", boxShadow: on ? "inset 0 0 0 1.5px var(--brand)" : undefined,
-                  }} />
-                </span>
-                <span style={{ fontSize: 13.5, fontWeight: on ? 800 : 600, color: on ? "var(--fg)" : "var(--fg2)" }}>{m.label}</span>
-              </button>
-            );
-          })}
+        {/* 최근 6개월. 막대 위에 금액, 아래에 달. 누르면 그 달을 본다. 모양은 매출 추이와 같은 부품 (#99) */}
+        <div style={{ marginTop: 6 }}>
+          <Bars label="월별 확정 매출. 막대를 누르면 그 달을 봐요" picked={p.month} onPick={setMonth}
+            bars={p.months.map((m) => ({ key: m.key, name: m.label, value: m.revenue }))} />
         </div>
       </section>
 
