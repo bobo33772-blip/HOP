@@ -47,9 +47,10 @@ export function SalesPanel({ say, compact = false }: { say: (t: string) => void;
 
   return (
     <section className="card" aria-labelledby="sales-title">
-      <div className="row" style={{ flexWrap: "wrap" }}>
+      {/* 홈(compact)에서는 '내 공구'처럼 구역 제목 줄(section-head)로: '자세히 보기 ›'가 '전체 보기 ›'와 같은 글자 링크 */}
+      <div className={compact ? "section-head" : "row"} style={{ flexWrap: "wrap" }}>
         <h2 id="sales-title" style={{ fontSize: 18, margin: 0 }}>공구 매출</h2>
-        {compact ? <a className="ghost" href="/radar">자세히 보기 ›</a> : sold && (
+        {compact ? <a href="/radar">자세히 보기 ›</a> : sold && (
           <span className="row" style={{ gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
             {/* 엑셀에서 바로 열리는 CSV. 날짜별은 엑셀 피벗으로 원하는 단위의 추이를 볼 수 있다 */}
             <a className="ghost" href={file("campaigns")} download>엑셀 내려받기 · 공구별</a>
