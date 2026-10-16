@@ -56,11 +56,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ no: 
 .photo{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px}
 .demobar{background:#17171c;color:#e8e6ef;font-size:13px}.demobar .muted{color:#a9a6b3}.demobar .btn{background:#26262d;color:#e8e6ef;border-color:#3a3a44;font-size:12.5px;padding:5px 10px}.demobar select{background:#26262d;color:#e8e6ef;border-color:#3a3a44}
 .img{aspect-ratio:4/3;border-radius:12px;background:linear-gradient(140deg,#E7DFD2,#C9BCA8);display:grid;place-items:center;color:#5C5246;font-size:13px}
-select{font:inherit;padding:6px 8px;border-radius:8px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}</style></head><body>
+select{font:inherit;padding:6px 8px;border-radius:8px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.role{position:fixed;right:16px;bottom:16px;z-index:15;display:flex;align-items:center;gap:10px;max-width:calc(100vw - 32px);padding:7px 7px 7px 14px;border-radius:99px;background:#fff;color:var(--fg);font-size:13.5px;border:1.5px solid #a9c8fb;box-shadow:0 2px 6px rgba(0,0,0,.06),0 12px 32px rgba(0,0,0,.1)}
+.role i{width:9px;height:9px;border-radius:50%;background:#3182f6;flex:none}.role b{color:#1b64da}.role a{flex:none;padding:4px 10px;border-radius:99px;background:#f2f4f6;color:var(--fg);font-size:12.5px;font-weight:650;text-decoration:none}</style></head><body>
+<aside class="role" aria-label="데모 역할"><i aria-hidden="true"></i><span><b>소비자 화면</b> <span class="muted">· 쇼핑몰 고객</span></span><a href="/demo">역할 바꾸기</a></aside>
 <div class="demobar"><div class="wrap" style="padding-block:8px;gap:6px">
   <div class="bar"><b>시연용 데모 막대</b><span class="muted">${esc(fmtKst(demo.clock.now()))}</span>
   <button class="btn" data-adv="1">+1시간</button><button class="btn" data-adv="24">+1일</button><button class="btn" data-adv="deadline">마감 시각으로</button><button class="btn" data-adv="payend">결제 기간 끝으로</button>
-  <button class="btn" id="simP">다른 고객 10명 신청</button><button class="btn" id="simPay">쿠폰 받은 고객 60% 결제</button><a class="btn" href="/admin">운영자 화면</a><a class="btn" href="/demo">데모 안내</a></div>
+  <button class="btn" id="simP">다른 고객 10명 신청</button><button class="btn" id="simPay">쿠폰 받은 고객 60% 결제</button><a class="btn" href="/api/cafe24/launch">판매자 화면</a><a class="btn" href="/admin">관리자 화면</a><a class="btn" href="/demo">데모 안내</a></div>
   <div class="bar"><label class="muted" for="member">지금 고객</label><select id="member">${options}</select><span class="muted" id="msg" role="status"></span></div></div></div>
 <div style="background:var(--surface);border-bottom:1px solid var(--line)"><div class="wrap nav" style="padding-block:14px"><div class="shop">${esc(DEMO_BRAND)}</div><span class="muted">BEDDING · TABLEWARE · STORAGE</span><span class="muted" style="margin-left:auto">${member ? `${esc(member)}님` : "로그인"} · 장바구니</span></div></div>
 <nav class="prods" aria-label="데모 상품">${products}</nav>
