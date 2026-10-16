@@ -8,7 +8,7 @@ import { getCampaign } from "@/lib/engine/campaigns";
 import { reconcileCampaign } from "@/lib/engine/payments";
 import { buildReport } from "@/lib/engine/report";
 import { tick } from "@/lib/engine/scheduler";
-import { TREND_MAX, bucketOf, salesCsv, salesOverview } from "@/lib/engine/sales";
+import { PERIOD_MONTHS, TREND_MAX, bucketOf, periodMonth, salesCsv, salesOverview, salesPeriods } from "@/lib/engine/sales";
 import type { CampaignInput } from "@/lib/core/campaign";
 import { csvFile } from "@/lib/http";
 import { chip } from "@/app/console/format";
@@ -21,10 +21,19 @@ const stateName = (s: Parameters<typeof chip>[0], p: boolean) => chip(s, p)[0];
 async function reached(input: Partial<CampaignInput> = {}) {
   const env = await setup();
   const c = await openAndFill(env, range(1, 40), 1, input);
-  expect((await salesOverview(env.ctx, MALL)).campaigns).toEqual([]); // 모집 중 공구는 매출이 없어 표에 없다
+  const before = await salesOverview(env.ctx, MALL);
+  expect(before.campaigns).toEqual([]); // 모집 중 공구는 매출이 없어 표에 없다
+  // 모집 중 신청 금액 (#92): 신청 40개 × 공구가 39,000원. 목표 30개를 넘겼다
+  expect(before.recruiting).toEqual({ campaigns: 1, qty: 40, amount: 40 * 39000, reachedTarget: 1 });
+  expect(before.waiting).toMatchObject({ campaigns: 0, members: 0, amount: 0, payUntil: null });
   env.clock.advance(5 * DAY);
   await tick(env.ctx);
-  return { env, c, cp: (await getCampaign(env.ctx, c.id)).couponNo! };
+  const judged = await getCampaign(env.ctx, c.id);
+  // 달성 직후 (#92): 40명 모두 쿠폰을 받고 아직 안 냈다. 가장 가까운 결제 마감이 함께 온다. 모집 중은 0
+  const after = await salesOverview(env.ctx, MALL);
+  expect(after.waiting).toEqual({ campaigns: 1, members: 40, qty: 40, amount: 40 * 39000, payUntil: judged.payUntil });
+  expect(after.recruiting).toMatchObject({ campaigns: 0, qty: 0, amount: 0 });
+  return { env, c, cp: judged.couponNo! };
 }
 
 /** 10/17(토) m1 결제 · 10/19(월) m2 결제 + m4 결제 후 취소 · 정가 주문 m3 · 결제 기한 뒤 m5 */
@@ -53,10 +62,14 @@ describe("공구 매출 (#79)", () => {
       id: c.id, state: "reached", proceeded: false,
       orders: 2, qty: rep.confirmed.qty, revenue: rep.confirmed.revenue,
       cancelledOrders: 1, lateOrders: 1,
+      // 쿠폰 받은 40명 중 결제 2명. m4는 결제 뒤 취소, m5는 기한 뒤 결제라 아직 쿠폰 받은 상태 → 대기 38명 (#92)
+      couponMembers: 40, paidMembers: 2, waitingMembers: 38, waitingQty: 38,
     });
     expect(rep.confirmed.revenue).toBe(78000);
     expect(s.totals).toEqual({ campaigns: 1, orders: 2, qty: 2, revenue: 78000, thisMonth: 78000, lastMonth: 0 });
     expect(JSON.stringify(s)).not.toMatch(/profit|costPrice/);
+    // 결제 기한이 지났으면 대기 금액은 남아도 가까운 마감은 없다
+    expect(s.waiting).toEqual({ campaigns: 1, members: 38, qty: 38, amount: 38 * 39000, payUntil: null });
     expect((await salesOverview(env.ctx, "other-mall")).campaigns).toEqual([]); // 다른 몰 매출은 보이지 않는다
   });
 
@@ -117,5 +130,45 @@ describe("공구 매출 (#79)", () => {
     expect(r.headers.get("content-type")).toBe("text/csv; charset=utf-8");
     expect(r.headers.get("content-disposition")).toBe('attachment; filename="jjimkkong-linenco-sales-daily-20261020.csv"');
     expect(csvFile('a"b\r\n.csv', "").headers.get("content-disposition")).toBe('attachment; filename="ab.csv"');
+  });
+});
+
+describe("모니터링 › 기간별 (#92)", () => {
+  it("이번 달 확정 매출 · 최근 6개월 막대 · 지난달 같은 기간과 비교 · 상품별 · 유입별", async () => {
+    const { env } = await withOrders(); // 지금 10/20(화) 10:01. 결제 10/17 m1, 10/19 m2 (m4 취소, m5 기한 뒤는 빠짐)
+    const p = await salesPeriods(env.ctx, MALL);
+    expect(p).toMatchObject({ month: "2026-10", label: "2026년 10월", isCurrent: true, revenue: 78000, qty: 2, orders: 2 });
+    expect(p.months.map((m) => [m.key, m.label, m.revenue])).toEqual([
+      ["2026-05", "5월", 0], ["2026-06", "6월", 0], ["2026-07", "7월", 0], ["2026-08", "8월", 0], ["2026-09", "9월", 0], ["2026-10", "10월", 78000],
+    ]);
+    expect(p.months).toHaveLength(PERIOD_MONTHS);
+    // 이번 달이면 지난달 1일 ~ 9/20 10:01(이번 달이 지난 만큼)과 비교
+    expect(p.compare).toEqual({ label: "지난달 같은 기간", revenue: 0, diff: 78000 });
+    expect(p.byProduct).toEqual([{ productNo: 102, name: "스톤웨어 디너 접시 4P", revenue: 78000, qty: 2, orders: 2 }]);
+    // 유입: m2는 장바구니로 초대됨(수신 동의 짝수), m1은 수신 동의가 없어 초대 없이 위젯에서 바로 신청 → 직접 신청
+    expect([...p.bySource].sort((a, b) => a.source.localeCompare(b.source))).toEqual([
+      { source: "cart", revenue: 39000, qty: 1, orders: 1 },
+      { source: "direct", revenue: 39000, qty: 1, orders: 1 },
+    ]);
+  });
+
+  it("지난 달을 고르면 그 달 전체와 전달 전체를 비교하고, 막대는 이번 달까지 그대로(고른 달만 강조)", async () => {
+    const { env } = await withOrders();
+    env.clock.advance(15 * DAY); // 11/4
+    const nov = await salesPeriods(env.ctx, MALL);
+    expect(nov).toMatchObject({ month: "2026-11", isCurrent: true, revenue: 0, compare: { label: "지난달 같은 기간", revenue: 0, diff: 0 } });
+    const oct = await salesPeriods(env.ctx, MALL, "2026-10");
+    expect(oct).toMatchObject({ month: "2026-10", isCurrent: false, revenue: 78000, compare: { label: "전달", revenue: 0, diff: 78000 } });
+    expect(oct.months.map((m) => m.key)).toEqual(["2026-06", "2026-07", "2026-08", "2026-09", "2026-10", "2026-11"]); // 지난 달을 눌러도 막대가 밀리지 않는다
+    expect((await salesPeriods(env.ctx, MALL, "2026-01")).months.map((m) => m.key).at(-1)).toBe("2026-06"); // 6개월보다 앞 달은 그 달이 보이게
+    expect(periodMonth("2026-13", env.clock.now())).toBe("2026-11"); // 형식이 틀리면 이번 달
+    expect(periodMonth("2026-09", env.clock.now())).toBe("2026-09");
+  });
+
+  it("다른 몰 · 매출 없는 몰은 0으로", async () => {
+    const env = await setup();
+    const p = await salesPeriods(env.ctx, "other-mall");
+    expect(p).toMatchObject({ revenue: 0, orders: 0, byProduct: [], bySource: [] });
+    expect(p.months.every((m) => m.revenue === 0)).toBe(true);
   });
 });

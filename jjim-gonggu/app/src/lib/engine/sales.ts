@@ -3,7 +3,7 @@
 // 신청 수량을 넘긴 추가 구매분 · 취소 · 반품은 결제 집계(payments.ts)에서 이미 빠지고, 결제 기간 뒤 결제(late)는 건수만 따로 센다.
 // 매출만 보여 준다. 이익(원가) 칸은 원가를 적기 번거로워 두지 않는다 (#87). 고객 개인정보(회원 ID)는 내보내지 않는다.
 
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { schema } from "@/db";
 import type { CampaignState } from "../core/campaign";
 import { DAY, HOUR, kstDate } from "../time";
@@ -101,11 +101,44 @@ function campaignRows(camps: Awaited<ReturnType<typeof load>>["camps"], orders: 
   });
 }
 
-/** 공구 매출 화면: 합계(전체 · 이번 달 · 지난달) · 추이(일 · 주 · 월) · 공구별 */
+type Head = { members: number; qty: number };
+
+/** 공구별 · 신청 상태별 인원과 수량. 판매자가 궁금한 "결제를 기다리는 사람"과 "모집 중 신청"을 센다 (#92) */
+async function pledgeHeads(ctx: Ctx, ids: string[]) {
+  const P = schema.pledges;
+  const rows = ids.length
+    ? await ctx.db.select({ campaignId: P.campaignId, state: P.state, members: count(), qty: sql<number>`coalesce(sum(${P.qty}), 0)` })
+      .from(P).where(inArray(P.campaignId, ids)).groupBy(P.campaignId, P.state)
+    : [];
+  const by = new Map<string, Head>(rows.map((r) => [`${r.campaignId}|${r.state}`, { members: Number(r.members), qty: Number(r.qty) }]));
+  return (id: string, ...states: string[]): Head => states.reduce((a, s) => {
+    const h = by.get(`${id}|${s}`);
+    return { members: a.members + (h?.members ?? 0), qty: a.qty + (h?.qty ?? 0) };
+  }, { members: 0, qty: 0 });
+}
+
+/** 공구 매출 화면: 합계(전체 · 이번 달 · 지난달) · 결제 대기 · 모집 중 신청 · 추이(일 · 주 · 월) · 공구별 */
 export async function salesOverview(ctx: Ctx, mallId: string, by: SalesBy = "week") {
   const now = ctx.clock.now();
   const { camps, orders } = await load(ctx, mallId);
-  const campaigns = campaignRows(camps, orders);
+  const C = schema.campaigns;
+  const opens = await ctx.db.select().from(C).where(and(eq(C.mallId, mallId), eq(C.state, "open")));
+  const heads = await pledgeHeads(ctx, [...camps, ...opens].map((c) => c.id));
+  // 공구별: 목표 대비 확정은 targetQty · qty로, 결제는 쿠폰 받은 사람 중 몇 명이 냈는지로 본다.
+  // 결제 대기는 결제 기간 중인 공구에서 쿠폰을 받고 아직 안 낸 사람 (확정 뒤에는 기한이 지나 0)
+  const campaigns = campaignRows(camps, orders).map((r) => {
+    const waiting = r.state === "reached" ? heads(r.id, "coupon_issued") : { members: 0, qty: 0 };
+    return {
+      ...r,
+      couponMembers: heads(r.id, "coupon_issued", "paid", "expired").members,
+      paidMembers: heads(r.id, "paid").members,
+      waitingMembers: waiting.members, waitingQty: waiting.qty,
+    };
+  });
+  const waitingRows = campaigns.filter((r) => r.waitingMembers > 0);
+  const dues = waitingRows.map((r) => r.payUntil).filter((d): d is Date => d != null && d.getTime() > now.getTime()).sort((a, b) => a.getTime() - b.getTime());
+  // 모집 중: 지금 신청 수량 × 공구가. 목표를 채우면 그때 결제를 받는다 (모두 결제한다고 칠 때의 최대치)
+  const recruitingRows = opens.map((c) => ({ c, h: heads(c.id, "pledged") }));
   const paid = orders.filter((o) => o.status === "paid");
   const thisMonth = bucketOf(now, "month"), lastMonth = shiftMonth(thisMonth, -1);
   const monthRevenue = (k: string) => paid.filter((o) => bucketOf(o.paidAt, "month") === k).reduce(add, zero()).revenue;
@@ -116,12 +149,91 @@ export async function salesOverview(ctx: Ctx, mallId: string, by: SalesBy = "wee
       campaigns: campaigns.length, ...all,
       thisMonth: monthRevenue(thisMonth), lastMonth: monthRevenue(lastMonth),
     },
+    waiting: {
+      campaigns: waitingRows.length,
+      members: waitingRows.reduce((a, r) => a + r.waitingMembers, 0),
+      qty: waitingRows.reduce((a, r) => a + r.waitingQty, 0),
+      amount: waitingRows.reduce((a, r) => a + r.waitingQty * r.dealPrice, 0),
+      payUntil: dues[0] ?? null, // 가장 가까운 결제 마감
+    },
+    recruiting: {
+      campaigns: recruitingRows.length,
+      qty: recruitingRows.reduce((a, x) => a + x.h.qty, 0),
+      amount: recruitingRows.reduce((a, x) => a + x.h.qty * x.c.dealPrice, 0),
+      reachedTarget: recruitingRows.filter((x) => x.h.qty >= x.c.targetQty).length,
+    },
     trend: trend(paid, by, now),
     campaigns,
   };
 }
 
 export type SalesOverview = Awaited<ReturnType<typeof salesOverview>>;
+
+// ---- 기간별 (모니터링 › 기간별, #92) ----
+
+/** 막대로 보여 줄 달 수 (이번 달까지 최근 6개월) */
+export const PERIOD_MONTHS = 6;
+/** 유입: 공구 초대 이유. 초대 없이 위젯에서 바로 신청한 고객은 '직접 신청'. 찜을 빼기 전 기록(wishlist · both)은 담아 둔 고객이라 장바구니로 센다 */
+export type SalesSource = "cart" | "alert" | "direct";
+const sourceOf = (s: string | undefined): SalesSource => (s === "alert" ? "alert" : s ? "cart" : "direct");
+
+/** ?month=2026-10 형식만 받고, 아니면 이번 달 (한국 시간) */
+export const periodMonth = (v: string | null | undefined, now: Date) => (v && /^\d{4}-(0[1-9]|1[0-2])$/.test(v) ? v : bucketOf(now, "month"));
+const monthStart = (key: string) => new Date(`${key}-01T00:00:00+09:00`);
+
+/** 모니터링 › 기간별: 고른 달의 확정 매출 · 지난달 같은 기간과 비교 · 최근 6개월 막대 · 상품별 · 유입별 */
+export async function salesPeriods(ctx: Ctx, mallId: string, month?: string | null) {
+  const now = ctx.clock.now();
+  const cur = periodMonth(month, now), prev = shiftMonth(cur, -1);
+  const { camps } = await load(ctx, mallId);
+  const ids = camps.map((c) => c.id);
+  const O = schema.orderLinks, I = schema.invitations;
+  const orders = ids.length
+    ? await ctx.db.select({ campaignId: O.campaignId, memberId: O.memberId, qty: O.qty, amount: O.amount, paidAt: O.paidAt }).from(O)
+      .where(and(inArray(O.campaignId, ids), eq(O.status, "paid")))
+    : [];
+  const invs = ids.length
+    ? await ctx.db.select({ campaignId: I.campaignId, memberId: I.memberId, source: I.source }).from(I).where(inArray(I.campaignId, ids))
+    : [];
+  const src = new Map(invs.map((i) => [`${i.campaignId}|${i.memberId}`, i.source]));
+  const byId = new Map(camps.map((c) => [c.id, c]));
+  const sumOf = (os: typeof orders) => os.reduce((a, o) => ({ revenue: a.revenue + o.amount, qty: a.qty + o.qty, orders: a.orders + 1 }), { revenue: 0, qty: 0, orders: 0 });
+
+  // 막대는 이번 달까지 최근 6개월로 고정하고, 고른 달만 강조한다(지난 달을 눌러도 막대가 밀리지 않게). 그보다 앞 달을 고르면 그 달이 맨 오른쪽
+  const last = cur > bucketOf(now, "month") ? cur : [bucketOf(now, "month"), shiftMonth(cur, PERIOD_MONTHS - 1)].sort()[0];
+  const months = Array.from({ length: PERIOD_MONTHS }, (_, i) => shiftMonth(last, i - (PERIOD_MONTHS - 1))).map((key) => ({
+    key, label: `${Number(key.slice(5, 7))}월`, ...sumOf(orders.filter((o) => bucketOf(o.paidAt, "month") === key)),
+  }));
+  const inCur = orders.filter((o) => bucketOf(o.paidAt, "month") === cur);
+  const isCurrent = cur === bucketOf(now, "month");
+  // 비교: 이번 달이면 지난달 1일부터 '이번 달이 지난 만큼'(지난달 같은 기간), 지난 달을 골랐으면 그 전달 전체
+  let compare: { label: string; revenue: number };
+  if (isCurrent) {
+    const from = monthStart(prev), to = new Date(Math.min(from.getTime() + (now.getTime() - monthStart(cur).getTime()), monthStart(cur).getTime()));
+    compare = { label: "지난달 같은 기간", revenue: sumOf(orders.filter((o) => o.paidAt >= from && o.paidAt < to)).revenue };
+  } else {
+    compare = { label: "전달", revenue: sumOf(orders.filter((o) => bucketOf(o.paidAt, "month") === prev)).revenue };
+  }
+
+  const group = <K extends string | number>(key: (o: (typeof orders)[number]) => K) => {
+    const m = new Map<K, typeof orders>();
+    for (const o of inCur) { const k = key(o); const l = m.get(k); if (l) l.push(o); else m.set(k, [o]); }
+    return [...m.entries()].map(([k, os]) => ({ k, ...sumOf(os) })).sort((a, b) => b.revenue - a.revenue);
+  };
+  const byProduct = group((o) => byId.get(o.campaignId)!.productNo).map(({ k, ...s }) => ({
+    productNo: k, name: camps.find((c) => c.productNo === k)!.productName, ...s, // camps는 최근에 연 공구부터라 최신 상품명
+  }));
+  const bySource = group((o) => sourceOf(src.get(`${o.campaignId}|${o.memberId}`))).map(({ k, ...s }) => ({ source: k, ...s }));
+
+  return {
+    month: cur, label: `${cur.slice(0, 4)}년 ${Number(cur.slice(5, 7))}월`, isCurrent,
+    ...sumOf(inCur),
+    compare: { ...compare, diff: sumOf(inCur).revenue - compare.revenue },
+    months, byProduct, bySource,
+  };
+}
+
+export type SalesPeriods = Awaited<ReturnType<typeof salesPeriods>>;
 
 // ---- 엑셀(CSV) ----
 

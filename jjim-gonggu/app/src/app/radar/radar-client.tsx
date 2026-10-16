@@ -1,170 +1,51 @@
 "use client";
 
-// S-03 수요 레이더 + S-E2 첫 수집 중. 숫자(count)만 보여 주고, 도달 가능 인원은 상품을 눌렀을 때만 계산한다.
+// 모니터링 (#92): 판매 통계. 리포트(공구 매출 전체: 숫자 칸 · 그래프 · 공구별 · 엑셀)와 기간별(월별 막대 · 지난달 같은 기간 비교 · 상품별 · 유입별).
+// 고객이 기다리는 상품(예전 모니터링 · 수요 레이더)은 내 공구 화면으로 옮겼다 (console/demand-panel.tsx).
 
 import { useCallback, useEffect, useState } from "react";
 import AppBar from "../components/app-bar";
-import { fmtKst } from "@/lib/time";
+import { SELLER_API } from "../components/home-sales";
+import { ConsoleProvider, useToast } from "../console/provider";
+import { SalesPanel } from "../console/sales";
+import { PeriodPanel } from "../console/period-panel";
 
-type Sort = "total" | "alert" | "cart";
-interface Row { productNo: number; name: string; price: number; alert: number; cart: number }
-interface Run { id: number; status: "running" | "done" | "failed"; total: number; done: number; startedAt: string; finishedAt: string | null }
-interface Radar { run: Run | null; current: Run | null; rows: Row[] }
-interface Reach { productNo: number; interested: number; reachable: number }
-
-const won = (n: number) => `${n.toLocaleString("ko-KR")}원`;
-const when = (s: string) => fmtKst(s); // 한국 시간 고정, 다른 화면과 같은 모양 (#12)
-const SORTS: [Sort, string][] = [["total", "전체"], ["alert", "알림 신청"], ["cart", "장바구니"]];
-/** 수요는 알림 신청(품절 상품)과 장바구니로만 잰다. 찜은 쓰지 않는다 (#81) */
-const counts = (r: Row) => `알림 신청 ${r.alert} · 장바구니 ${r.cart}`;
+type Tab = "report" | "period";
+const TABS: [Tab, string][] = [["report", "리포트"], ["period", "기간별"]];
 
 export default function RadarClient() {
-  const [sort, setSort] = useState<Sort>("total");
-  const [data, setData] = useState<Radar | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [picked, setPicked] = useState<Row | null>(null);
+  const [tab, setTabState] = useState<Tab>("report");
+  const { say, node } = useToast();
+  // 탭을 주소에도 남겨 새로고침 · 뒤로 가기에도 같은 탭 (?tab=period)
+  useEffect(() => { if (new URL(location.href).searchParams.get("tab") === "period") setTabState("period"); }, []);
+  const setTab = useCallback((t: Tab) => {
+    setTabState(t);
+    const u = new URL(location.href);
+    if (t === "report") u.searchParams.delete("tab"); else u.searchParams.set("tab", t);
+    history.replaceState(null, "", u);
+  }, []);
 
-  const load = useCallback(async () => {
-    try {
-      const r = await fetch(`/api/v1/demand?sort=${sort}`, { cache: "no-store" });
-      if (!r.ok) throw new Error(String(r.status));
-      setData(await r.json());
-      setError(null);
-    } catch {
-      setError("수요 데이터를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
-    }
-  }, [sort]);
-
-  const collect = useCallback(async () => {
-    await fetch("/api/v1/demand/collect", { method: "POST" });
-    await load();
-  }, [load]);
-
-  useEffect(() => { load(); }, [load]);
-
-  const running = data?.current?.status === "running";
-  useEffect(() => {
-    if (!running) return;
-    const t = setInterval(load, 1500);
-    return () => clearInterval(t);
-  }, [running, load]);
-
-  if (!data) return <><AppBar current="radar" /><main><h1>모니터링</h1><p className="muted">{error ?? "불러오는 중…"}</p></main></>;
-
-  // 아직 완료된 수집이 없음: 첫 수집 화면(S-E2) 또는 시작 버튼
-  if (!data.run && data.rows.length === 0) {
-    const cur = data.current;
-    return (
-      <><AppBar current="radar" /><main>
-        <h1>모니터링</h1>
-        {cur?.status === "running" ? (
-          <div className="card" aria-live="polite">
-            <strong>관심 데이터를 처음으로 모으고 있어요</strong>
-            <p className="muted">상품마다 하나씩 확인해서 상품이 많으면 몇 분에서 몇 시간 걸릴 수 있어요. 이 화면을 닫아도 수집은 계속돼요.</p>
-            <Progress done={cur.done} total={cur.total} />
-          </div>
-        ) : (
-          <div className="card">
-            <strong>{cur?.status === "failed" ? "수집이 중간에 멈췄어요" : "어떤 상품에 관심이 몰렸는지 확인해 볼까요?"}</strong>
-            <p className="muted">상품별 장바구니 수를 모으고, 위젯의 공구 알림 신청 수와 합쳐 공구를 열 만한 상품을 찾아 드려요. 고객 개인정보는 이 단계에서 보지 않아요.</p>
-            <button className="btn" onClick={collect}>{cur?.status === "failed" ? "다시 수집하기" : "수집 시작"}</button>
-          </div>
-        )}
-        {error && <p className="err">{error}</p>}
-      </main></>
-    );
-  }
-
-  const max = Math.max(1, ...data.rows.map((r) => r.alert + r.cart));
   return (
-    <><AppBar current="radar" /><main>
-      <h1>모니터링</h1>
-      <p className="muted">
-        {data.run ? `${when(data.run.finishedAt ?? data.run.startedAt)} 기준 · 상품 ${data.run.total}개 확인` : "아직 수집 전이에요. 위젯의 공구 알림 신청만 보여요"}
-        {running ? ` · 새로 수집 중 ${data.current!.done}/${data.current!.total}` : ""}
-      </p>
-      <div className="toolbar">
-        <div className="seg" role="radiogroup" aria-label="정렬">
-          {SORTS.map(([k, label]) => (
-            <button key={k} role="radio" aria-checked={sort === k} onClick={() => setSort(k)}>{label}</button>
+    <>
+      <AppBar current="radar" />
+      <main>
+        <div className="hello"><h1>모니터링</h1><p className="muted">공구로 번 돈을 한눈에 보고, 달마다 얼마나 팔렸는지 비교해요.</p></div>
+        {/* 밑줄 탭 두 칸 */}
+        <div role="tablist" aria-label="모니터링" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", borderBottom: "1px solid var(--line)" }}>
+          {TABS.map(([k, l]) => (
+            <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
+              style={{ border: 0, background: "none", padding: "12px 0", fontSize: 16, fontWeight: tab === k ? 800 : 600, color: tab === k ? "var(--fg)" : "var(--muted)", boxShadow: tab === k ? "inset 0 -2.5px 0 var(--fg)" : undefined }}>
+              {l}
+            </button>
           ))}
         </div>
-        <button className="ghost" onClick={collect} disabled={running}>{running ? "수집 중…" : "다시 수집"}</button>
-      </div>
-
-      {data.rows.length === 0 ? (
-        <div className="card"><p className="muted">아직 공구 알림을 신청했거나 장바구니에 담긴 상품이 없어요.</p></div>
-      ) : (
-        <ol className="list">
-          {data.rows.map((r, i) => (
-            <li key={r.productNo}>
-              <button className="item" onClick={() => setPicked(r)}>
-                <span className="rank">{i + 1}</span>
-                <span className="meta">
-                  <b>{r.name}</b>
-                  <small>{won(r.price)} · {counts(r)}</small>
-                  <span className="bars" aria-hidden="true">
-                    <i style={{ width: `${(r.alert / max) * 100}%` }} />
-                    <i className="c" style={{ width: `${(r.cart / max) * 100}%` }} />
-                  </span>
-                </span>
-                <span className="chev" aria-hidden="true">›</span>
-              </button>
-            </li>
-          ))}
-        </ol>
-      )}
-      <p className="legend"><i /> 알림 신청 <i className="c" /> 장바구니 · 알림 신청은 지금 숫자예요. 장바구니는 쇼핑몰 보관 기간이 지나면 사라져 최근 관심만 반영돼요.</p>
-      {error && <p className="err">{error}</p>}
-      {picked && <ReachSheet row={picked} onClose={() => setPicked(null)} />}
-    </main></>
-  );
-}
-
-function Progress({ done, total }: { done: number; total: number }) {
-  const pct = total ? Math.round((done / total) * 100) : 0;
-  return (
-    <div className="prog">
-      <div className="bar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}><i style={{ width: `${pct}%` }} /></div>
-      <small>{total ? `${done} / ${total}개 상품 확인 (${pct}%)` : "상품 목록을 불러오는 중…"}</small>
-    </div>
-  );
-}
-
-function ReachSheet({ row, onClose }: { row: Row; onClose: () => void }) {
-  const [reach, setReach] = useState<Reach | null>(null);
-  const [failed, setFailed] = useState(false);
-  useEffect(() => {
-    fetch(`/api/v1/demand/reach?product_no=${row.productNo}`).then(async (r) => (r.ok ? setReach(await r.json()) : setFailed(true))).catch(() => setFailed(true));
-  }, [row.productNo]);
-  useEffect(() => {
-    const k = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", k);
-    return () => window.removeEventListener("keydown", k);
-  }, [onClose]);
-
-  return (
-    <div className="sheet" role="dialog" aria-modal="true" aria-label={`${row.name} 공구 대상`} onClick={onClose}>
-      <div className="in" onClick={(e) => e.stopPropagation()}>
-        <div className="grab" />
-        <h2>{row.name}</h2>
-        <p className="muted">{counts(row)}</p>
-        {failed ? (
-          <p className="err">대상 고객 수를 확인하지 못했어요.</p>
-        ) : !reach ? (
-          <p className="muted">문자 수신동의 고객을 확인하는 중…</p>
-        ) : (
-          <>
-            <div className="kpi">
-              <div><small>관심 고객 (중복 제외)</small><strong>{reach.interested}명</strong></div>
-              <div className="hl"><small>공구 초대를 받을 수 있는 고객</small><strong>{reach.reachable}명</strong></div>
-            </div>
-            <p className="muted">광고 문자는 수신동의한 고객에게만 보내요. 동의하지 않은 고객도 상품 페이지 위젯으로 공구를 볼 수 있어요.</p>
-          </>
-        )}
-        <a className="btn brand" href="/campaigns?tab=new">이 상품으로 공구 열기</a>
-        <button className="ghost" onClick={onClose}>닫기</button>
-      </div>
-    </div>
+        <ConsoleProvider api={SELLER_API}>
+          <div role="tabpanel" style={{ display: "grid", gap: 14 }}>
+            {tab === "report" ? <SalesPanel say={say} /> : <PeriodPanel say={say} />}
+          </div>
+        </ConsoleProvider>
+      </main>
+      {node}
+    </>
   );
 }

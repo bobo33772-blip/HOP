@@ -29,10 +29,23 @@ export interface SalesRow {
   openedAt: string; deadlineAt: string; payUntil: string | null; settledAt: string | null;
   listPrice: number; dealPrice: number; targetQty: number;
   orders: number; qty: number; revenue: number; cancelledOrders: number; lateOrders: number;
+  couponMembers: number; paidMembers: number; waitingMembers: number; waitingQty: number; // 쿠폰 받은 · 결제한 · 결제 대기 (#92)
 }
 export interface Sales {
   by: SalesBy;
   totals: { campaigns: number; orders: number; qty: number; revenue: number; thisMonth: number; lastMonth: number };
+  waiting: { campaigns: number; members: number; qty: number; amount: number; payUntil: string | null }; // 쿠폰 받고 아직 결제 안 한 금액 (#92)
+  recruiting: { campaigns: number; qty: number; amount: number; reachedTarget: number }; // 모집 중 신청 수량 × 공구가 (#92)
   trend: { points: { key: string; label: string; orders: number; qty: number; revenue: number }[]; truncated: boolean };
   campaigns: SalesRow[];
+}
+/** 모니터링 › 기간별 (#92). 숫자 기준은 공구 매출과 같다(결제 기간 안 쿠폰 결제, 취소 · 반품 뺌) */
+export type SalesSource = "cart" | "alert" | "direct";
+export interface PeriodSum { revenue: number; qty: number; orders: number }
+export interface SalesPeriods extends PeriodSum {
+  month: string; label: string; isCurrent: boolean;
+  compare: { label: string; revenue: number; diff: number }; // 이번 달이면 '지난달 같은 기간', 지난 달이면 '전달'
+  months: ({ key: string; label: string } & PeriodSum)[];
+  byProduct: ({ productNo: number; name: string } & PeriodSum)[];
+  bySource: ({ source: SalesSource } & PeriodSum)[];
 }

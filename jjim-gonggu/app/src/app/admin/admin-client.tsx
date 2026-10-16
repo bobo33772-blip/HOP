@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ConsoleProvider, useToast } from "../console/provider";
 import { ListTab } from "../console/campaign-list";
+import { SalesPanel } from "../console/sales";
 import { NewTab } from "../console/radar-picker";
 import { ProfileCard } from "../console/profile-card";
 import { ScoreTab } from "../console/score-tab";
@@ -58,6 +59,8 @@ export default function AdminClient({ mock }: { mock: boolean }) {
           : (
             <ConsoleProvider key={mall} api={{ role: "admin", mallBase: `/api/admin/malls/${mall}`, campaignBase: "/api/admin/campaigns", now: "/api/admin/now", loginUrl: "/admin" }}>
               <ProfileCard mall={current} onSaved={() => { say("저장했어요"); loadMalls(); }} say={say} />
+              {/* 운영자는 공구 목록 위에서 그 몰의 공구 매출을 본다 (판매자는 모니터링 › 리포트, #92) */}
+              {tab === "list" && <SalesPanel say={say} />}
               {tab === "list" && <ListTab mall={mall} openId={openId} setOpenId={setOpenId} say={say} goNew={() => setTab("new")} />}
               {tab === "new" && <NewTab mall={mall} say={say} onOpened={(id) => { setOpenId(id); setTab("list"); }} />}
               {tab === "score" && <ScoreTab />}

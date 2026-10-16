@@ -1,10 +1,11 @@
-// 판매자 홈: 시작하기 체크리스트 · 숫자 요약 · 내 공구(진행률) · 셀러 가이드라인(권한 안내는 설정 화면).
+// 판매자 홈: 시작하기 체크리스트 · 숫자 요약 · 공구 매출 그래프(#92) · 내 공구(진행률) · 셀러 가이드라인(권한 안내는 설정 화면).
 
 import { eq } from "drizzle-orm";
 import { schema } from "@/db";
 import { fmtKst } from "@/lib/time";
 import WidgetInstallButton from "./components/widget-install-button";
 import AppBar from "./components/app-bar";
+import HomeSales from "./components/home-sales";
 import SellerOnboarding from "./components/seller-onboarding";
 import { env } from "@/lib/env";
 import { launchErrorMessage } from "@/lib/launch-errors";
@@ -87,6 +88,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
         <div className="stats">
           {stats.map(([label, n]) => <div key={label} className="stat"><small>{label}</small><strong>{n}</strong></div>)}
         </div>
+
+        {/* 공구 매출 그래프 (#92). 공구별 표 · 엑셀은 내 공구 화면에 */}
+        <HomeSales />
 
         <div className="section-head"><h2>내 공구</h2>{camps.length > 0 && <a href="/campaigns">전체 보기 ›</a>}</div>
         {camps.length === 0 ? (
