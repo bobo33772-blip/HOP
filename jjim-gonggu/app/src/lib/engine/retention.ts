@@ -5,7 +5,7 @@ import { and, eq, inArray, isNotNull, isNull, like, lt, notLike, or } from "driz
 import { schema } from "@/db";
 import { DAY } from "../time";
 import type { Ctx } from "./context";
-import { MEMBER_WITHDRAWN, forgetMember } from "./withdrawal";
+import { MEMBER_WITHDRAWN, forgetMember, sweepWithdrawn } from "./withdrawal";
 
 export const RETENTION = {
   /** 공구가 끝난(실패 판정, 결제 기간 종료 또는 판매자 취소) 뒤 고객 회원 ID를 지우기까지 */
@@ -38,6 +38,12 @@ export async function purgeExpired(ctx: Ctx) {
       await ctx.db.update(W).set({ error: String(e).slice(0, 500) }).where(eq(W.id, ev.id));
       ctx.log("회원 탈퇴 처리 다시 실패 (다음 파기 때 또 시도)", { event: ev.id, error: String(e) });
     }
+  }
+  // 0-2) 탈퇴 웹훅이 오지 않아도(개인정보 권한이 없으면 등록할 수 없다) 가진 회원 ID를 회원 조회로 확인해 탈퇴 회원을 지운다
+  try {
+    withdrawals += (await sweepWithdrawn(ctx)).forgotten;
+  } catch (e) {
+    ctx.log("탈퇴 회원 확인 실패 (다음 파기 때 다시)", { error: String(e) });
   }
 
   // 1) 끝난 지 오래된 공구: 초대 대상·문자 수신자 목록을 지우고, 신청·주문의 회원 ID를 익명 값으로 바꾼다 (수량·금액 통계만 남긴다)
