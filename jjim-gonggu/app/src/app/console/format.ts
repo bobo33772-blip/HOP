@@ -15,3 +15,10 @@ export const chip = (state: State, proceeded = false): [string, string] => (proc
 /** 공구 상세 문자 표의 종류 이름. 모르는 종류는 '결과 안내'로 보지 않고 종류 값을 그대로 보여 준다 (#66) */
 export const MSG_KIND: Record<string, string> = { invite_ad: "초대 (광고)", result: "결과 안내", pay_reminder: "결제 안내", proceed: "진행 안내", cancel: "취소 안내" };
 export const msgKind = (kind: string) => MSG_KIND[kind] ?? kind;
+
+/** 문자 실패 이유를 판매자 말로. 카페24 원문(영어 · 코드)은 그대로 보여 주지 않는다 */
+export function smsError(error: string, status: string) {
+  if (/SMS quantity is not enough/i.test(error)) return status === "failed" ? "카페24 SMS 잔액이 부족해 보내지 못했어요." : "카페24 SMS 잔액이 부족해요. 카페24 관리자 › SMS 충전을 하면 30분 안에 다시 보내요.";
+  if (/발신번호|마감 후/.test(error)) return error.replace(/^Error: /, "");
+  return status === "failed" ? "문자를 보내지 못했어요." : "문자를 보내지 못해 잠시 뒤 다시 보내요.";
+}

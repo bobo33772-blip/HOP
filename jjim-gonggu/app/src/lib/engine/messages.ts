@@ -8,6 +8,10 @@ import { recordIssue, type Ctx } from "./context";
 
 const MAX_ATTEMPTS = 3;
 const RETRY_AFTER_MS = 10 * 60_000;
+// 카페24 SMS 잔액 부족은 판매자가 충전하면 풀린다. 3번(30분)에 포기하지 않고 30분마다 24시간 동안 다시 보낸다 (판매자는 다시 보내기 버튼이 없다)
+const LOW_BALANCE_ATTEMPTS = 48;
+const LOW_BALANCE_RETRY_MS = 30 * 60_000;
+export const isLowSmsBalance = (e: unknown) => /SMS quantity is not enough/i.test(String(e));
 
 export async function releaseDueMessages(ctx: Ctx): Promise<number> {
   const now = ctx.clock.now();
@@ -63,9 +67,10 @@ export async function releaseDueMessages(ctx: Ctx): Promise<number> {
       sent++;
     } catch (e) {
       const attempts = m.attempts + 1;
-      const final = attempts >= MAX_ATTEMPTS;
+      const low = isLowSmsBalance(e);
+      const final = attempts >= (low ? LOW_BALANCE_ATTEMPTS : MAX_ATTEMPTS);
       await ctx.db.update(schema.messages)
-        .set({ status: final ? "failed" : "scheduled", attempts, error: String(e), sendAfter: new Date(now.getTime() + RETRY_AFTER_MS) })
+        .set({ status: final ? "failed" : "scheduled", attempts, error: String(e), sendAfter: new Date(now.getTime() + (low ? LOW_BALANCE_RETRY_MS : RETRY_AFTER_MS)) })
         .where(eq(schema.messages.id, m.id));
       if (final) await recordIssue(ctx, m.campaignId, "sms_failed", { messageId: m.id, error: String(e) });
       ctx.log("sms 발송 실패", { id: m.id, attempts, error: String(e) });
