@@ -1,10 +1,10 @@
 "use client";
 
-// 판매자 첫 화면 온보딩: 로고가 천천히 나타난 뒤, '찜꽁 사장님 셀러 가이드라인'(품절 상품으로 재입고 공구 여는 법)의
+// 판매자 첫 화면 온보딩: 로고가 천천히 나타난 뒤, '찜꽁 사장님 셀러 가이드라인'(#94, 찜꽁 위젯 기준)의
 // 핵심 원칙과 1~5단계를 여섯 장면으로 보여 준다. 큰 마우스 커서가 직접 움직이고 눌러서 "이렇게 하면 돼요"를 보여 주고, 하트 캐릭터가 말풍선으로 쉽게 설명한다.
 // - 처음 한 번은 저절로 열리고(이 기기에 기록), 홈의 "찜꽁 사용법 보기"로 언제든 다시 본다.
 // - 움직임 줄이기 설정이면 커서 움직임 없이 장면의 마지막 모습만 보여 준다.
-// - 화면 속 쇼핑몰 · 카페24 관리자 화면은 설명용 그림이다(실제 데이터 아님). 메뉴 이름은 가이드라인 표기를 줄여 썼다.
+// - 화면 속 쇼핑몰 · 카페24 관리자 · 찜꽁 화면은 설명용 그림이다(실제 데이터 아님). 카페24 자체 재입고 알림은 쓰지 않는다(#94).
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import s from "./seller-onboarding.module.css";
@@ -29,19 +29,21 @@ interface Scene {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-// ---- 장면 (사장님 가이드: 핵심 원칙 + 1~5단계를 아주 쉽게) ----
+// ---- 장면 (셀러 가이드라인 #94: 핵심 원칙 + 1~5단계를 아주 쉽게) ----
 
-/** 카페24 관리자 모양 틀: 위쪽 메뉴 경로를 커서가 차례로 누르면 아래 설정 칸이 열린다 */
-function Admin({ path, fx, done, children }: { path: string[]; fx: Fx; done?: string; children: React.ReactNode }) {
+/** 관리 화면 모양 틀: 위쪽 경로(메뉴 · 단계)를 커서가 차례로 누르면 아래 칸이 열린다. jj면 찜꽁 화면(분홍 막대), 아니면 카페24 관리자 */
+function Admin({ path, fx, done, jj, children }: { path: string[]; fx: Fx; done?: string; jj?: boolean; children: React.ReactNode }) {
   const m = Number(fx.m ?? 0);
   return (
     <div className={s.admin}>
-      <div className={s.adminBar}><b>카페24 관리자</b>{done && fx.done && <span className={s.barStamp}>{done}</span>}</div>
-      <div className={s.crumbs}>
-        {path.map((p, i) => (
-          <span key={p} data-t={`p${i + 1}`} className={m >= i + 1 ? s.picked : ""}>{i > 0 && <i aria-hidden="true">›</i>}{p}</span>
-        ))}
-      </div>
+      <div className={`${s.adminBar} ${jj ? s.jjBar : ""}`}>{jj && <img src="/logo.svg" alt="" className={s.barLogo} />}<b>{jj ? "찜꽁" : "카페24 관리자"}</b>{done && fx.done && <span className={s.barStamp}>{done}</span>}</div>
+      {path.length > 0 && (
+        <div className={s.crumbs}>
+          {path.map((p, i) => (
+            <span key={p} data-t={`p${i + 1}`} className={m >= i + 1 ? s.picked : ""}>{i > 0 && <i aria-hidden="true">›</i>}{p}</span>
+          ))}
+        </div>
+      )}
       <div className={`${s.panel} ${m >= path.length ? s.show : ""}`}>{children}</div>
     </div>
   );
@@ -62,8 +64,8 @@ const walk = (n: number): Step[] => Array.from({ length: n }, (_, i): Step[] => 
 const SCENES: Scene[] = [
   {
     title: "품절돼도 숨기지 마세요",
-    say: "품절 상품을 그대로 두면, 손님이 '재입고 알림 신청'을 눌러요!",
-    tip: "신청한 사람 수가 곧 '얼마나 팔릴지' 알려 주는 숫자예요.",
+    say: "품절 상품을 그대로 두면, 찜꽁이 '재입고 · 공구 알림 받기' 버튼을 저절로 보여 줘요!",
+    tip: "사장님이 따로 켤 버튼은 없어요. 신청한 사람 수가 곧 '얼마나 팔릴지' 알려 주는 숫자예요.",
     steps: [
       { wait: 500 }, { at: "notify" }, { click: true }, { set: { n: 1, pop: 1 } }, { wait: 700 },
       { set: { n: 2, pop: 2 } }, { wait: 380 }, { set: { n: 3, pop: 3 } }, { wait: 380 }, { set: { n: 4, pop: 4 } }, { wait: 380 },
@@ -77,8 +79,8 @@ const SCENES: Scene[] = [
           <div className={s.pinfo}>
             <b>워싱 린넨 이불</b>
             <span className={s.price}>129,000원</span>
-            <button type="button" tabIndex={-1} data-t="notify" className={`${s.notify} ${fx.n ? s.on : ""}`}>🔔 재입고 알림 신청</button>
-            <span data-t="count" className={`${s.counter} ${fx.glow ? s.glow : ""}`}>신청한 손님 <b key={String(fx.n)} className={s.bump}>{Number(fx.n ?? 0)}</b>명</span>
+            <button type="button" tabIndex={-1} data-t="notify" className={`${s.notify} ${fx.n ? s.on : ""}`}>🔔 재입고 · 공구 알림 받기</button>
+            <span data-t="count" className={`${s.counter} ${fx.glow ? s.glow : ""}`}>기다리는 손님 <b key={String(fx.n)} className={s.bump}>{Number(fx.n ?? 0)}</b>명</span>
           </div>
         </div>
         {Number(fx.pop ?? 0) > 0 && <span key={String(fx.pop)} className={s.heartPop} aria-hidden="true">♥ +1</span>}
@@ -86,113 +88,102 @@ const SCENES: Scene[] = [
     ),
   },
   {
-    title: "1단계 · 품절 상품이 보이게",
-    say: "카페24 관리자에서 품절 상품을 '노출함'으로, 자리는 '맨 뒤로' 바꿔요.",
-    tip: "쇼핑몰 설정 › 상품 설정 › 상품 보기 설정. 상품 분류마다 '품절 상품 맨 뒤로'도 같이 해 주세요.",
-    steps: [{ wait: 300 }, ...walk(3), { wait: 250 }, { at: "o1" }, { click: true }, { set: { o1: true } }, { at: "o2" }, { click: true }, { set: { o2: true } }, { wait: 450 }, { set: { done: true } }],
-    view: (fx) => (
-      <Admin path={["쇼핑몰 설정", "상품 설정", "상품 보기 설정"]} fx={fx} done="보이게 완료! ✓">
-        <Opt t="o1" label="품절 상품 노출" from="노출안함" to="노출함" on={!!fx.o1} />
-        <Opt t="o2" label="품절 상품 진열" from="그대로" to="맨 뒤로" on={!!fx.o2} />
-      </Admin>
-    ),
-  },
-  {
-    title: "2단계 · 재입고 알림 버튼 켜기",
-    say: "버튼을 켜고, 문자는 '수동 발송'으로 해 두세요. 공구 여는 날은 사장님이 정해요!",
-    tip: "상품 › 재입고 알림 › 재입고 알림 상품 설정. 유효 기간은 3개월 이상, 노출 방법은 상품별이에요.",
+    title: "1단계 · 품절 상품 숨기지 않기",
+    say: "할 일은 이것 하나예요. 재고가 0이어도 '진열함' · '판매함'은 그대로, '품절표시'는 체크!",
+    tip: "카페24 관리자 › 상품 › 상품 관리에서 그 상품을 열어 확인해요. 진열안함 · 판매안함이면 손님이 버튼을 못 봐요.",
     steps: [
-      { wait: 300 }, ...walk(3), { wait: 250 }, { at: "sw" }, { click: true }, { set: { sw: true } },
-      { at: "send" }, { click: true }, { set: { send: true } }, { at: "keep" }, { click: true }, { set: { keep: true } }, { wait: 450 }, { set: { done: true } },
+      { wait: 300 }, ...walk(3), { wait: 250 }, { at: "show" }, { click: true }, { set: { show: true } },
+      { at: "sell" }, { click: true }, { set: { sell: true } }, { at: "mark" }, { click: true }, { set: { mark: true } }, { wait: 450 }, { set: { done: true } },
     ],
     view: (fx) => (
-      <Admin path={["상품", "재입고 알림", "상품 설정"]} fx={fx} done="설정 끝! ✓">
-        <div className={s.setRow}><span>버튼 노출</span>
-          <button type="button" tabIndex={-1} data-t="sw" className={`${s.switch} ${fx.sw ? s.swOn : ""}`} aria-label="노출함"><i /></button>
+      <Admin path={["상품", "상품 관리", "상품 수정"]} fx={fx} done="숨기지 않기 완료! ✓">
+        <Opt t="show" label="진열상태" from="진열안함" to="진열함" on={!!fx.show} />
+        <Opt t="sell" label="판매상태" from="판매안함" to="판매함" on={!!fx.sell} />
+        <div className={s.setRow}>
+          <span data-t="mark" className={s.checkAll}><i className={fx.mark ? s.boxOn : s.box} aria-hidden="true">{fx.mark ? "✓" : ""}</i>품절표시 (재고 0이면 품절로 보여요)</span>
         </div>
-        <Opt t="send" label="발송 방법" from="자동 발송" to="수동 발송" on={!!fx.send} />
-        <Opt t="keep" label="알림 유효 기간" from="1개월" to="3개월" on={!!fx.keep} />
       </Admin>
     ),
   },
   {
-    title: "3단계 · 휴대폰으로 직접 확인",
-    say: "손님처럼 휴대폰으로 열어 봐요. 품절 표시 · 버튼 · 신청까지 되면 성공!",
-    tip: "PC로도 한 번 더 보고, 테스트로 넣은 신청은 신청 내역에서 지워 주세요.",
+    title: "2단계 · 쇼핑몰에서 위젯 확인",
+    say: "손님처럼 휴대폰으로 품절 상품을 열어 봐요. 구매 버튼 아래에 찜꽁 버튼이 있으면 성공!",
+    tip: "회원으로 로그인해야 신청돼요. 신청하면 찜꽁 모니터링의 알림 신청 수가 +1 돼요.",
     steps: [
-      { wait: 400 }, { at: "item" }, { click: true }, { set: { c1: true, open: true } }, { wait: 500 },
-      { at: "pbtn" }, { click: true }, { set: { c2: true, ok: true } }, { wait: 500 }, { set: { c3: true } },
+      { wait: 400 }, { set: { c1: true } }, { wait: 500 }, { at: "pbtn" }, { click: true }, { set: { c2: true, ok: true } }, { wait: 500 }, { set: { c3: true } },
     ],
     view: (fx) => (
       <div className={s.checkScene}>
         <div className={s.phone}>
           <div className={s.notch} aria-hidden="true" />
-          {!fx.open ? (
-            <ul className={s.plist}>
-              <li><i style={{ background: "#c9d6e3" }} />린넨 앞치마</li>
-              <li><i style={{ background: "#e3d9c9" }} />라탄 바구니</li>
-              <li data-t="item" className={s.soldItem}><i style={{ background: "#d9c3a5" }} />워싱 린넨 이불 <em>품절</em></li>
-            </ul>
-          ) : (
-            <div className={s.pdetail}>
-              <i className={s.pphoto} />
-              <b>워싱 린넨 이불</b>
-              <span data-t="pbtn" className={`${s.pbtn} ${fx.ok ? s.on : ""}`}>{fx.ok ? "신청 완료!" : "🔔 재입고 알림 신청"}</span>
-            </div>
-          )}
+          <div className={s.pdetail}>
+            <i className={s.pphoto} />
+            <b>워싱 린넨 이불 · 품절</b>
+            <span className={s.pbuy}>구매하기 (품절)</span>
+            <span data-t="pbtn" className={`${s.pbtn} ${fx.ok ? s.on : ""}`}>{fx.ok ? "알림 신청 완료!" : "🔔 재입고 · 공구 알림 받기"}</span>
+          </div>
         </div>
         <ul className={s.checks}>
-          <li className={fx.c1 ? s.ticked : ""}>목록 맨 뒤에 품절 표시</li>
-          <li className={fx.c2 ? s.ticked : ""}>상세에 신청 버튼</li>
-          <li className={fx.c3 ? s.ticked : ""}>신청이 끝까지 됨</li>
+          <li className={fx.c1 ? s.ticked : ""}>구매 버튼 아래에 찜꽁 버튼</li>
+          <li className={fx.c2 ? s.ticked : ""}>회원으로 신청됨</li>
+          <li className={fx.c3 ? s.ticked : ""}>모니터링에 +1</li>
         </ul>
       </div>
     ),
   },
   {
-    title: "4단계 · 매주 신청 수 확인",
-    say: "일주일에 한 번, 상품 이름으로 검색해요. '미발송' 숫자가 기다리는 손님이에요!",
-    tip: "상품 › 재입고 알림 › 신청 내역 조회. 엑셀로 받아 같은 번호는 한 번만 세요.",
+    title: "3단계 · 매주 모니터링 보기",
+    say: "일주일에 한 번, 찜꽁 모니터링에서 '다시 수집'을 눌러요. 알림 신청과 장바구니가 많은 상품이 위에 와요!",
+    tip: "장바구니 숫자는 '다시 수집'을 누를 때만 바뀌어요.",
     steps: [
-      { wait: 300 }, ...walk(3), { at: "q" }, { click: true }, { set: { focus: true } }, { type: "린넨 이불", into: "q" },
-      { at: "find" }, { click: true }, { set: { found: true } }, { wait: 500 }, { at: "wait" }, { set: { glow: true } },
+      { wait: 400 }, { at: "find" }, { click: true }, { set: { found: true } }, { wait: 600 }, { at: "top" }, { set: { glow: true } },
     ],
     view: (fx) => (
-      <Admin path={["상품", "재입고 알림", "신청 내역 조회"]} fx={fx}>
+      <Admin path={[]} fx={fx} jj>
         <div className={s.searchRow}>
-          <span data-t="q" className={`${s.input} ${fx.focus ? s.focus : ""}`}>{String(fx.q ?? "")}<i className={fx.focus && !fx.found ? s.caret : ""} /></span>
-          <span data-t="find" className={s.findBtn}>검색</span>
+          <span className={s.monTitle}>모니터링</span>
+          <span data-t="find" className={s.findBtn}>다시 수집</span>
         </div>
         {fx.found && (
           <div className={s.result}>
-            <div className={s.resRow}><span>워싱 린넨 이불</span><span data-t="wait" className={`${s.waitBadge} ${fx.glow ? s.glow : ""}`}>미발송 <b>32</b>건</span></div>
-            <p className={s.resNote}>= 이 상품을 기다리는 손님 32명</p>
+            <div className={s.resRow}><span>1 워싱 린넨 이불</span><span data-t="top" className={`${s.waitBadge} ${fx.glow ? s.glow : ""}`}>알림 <b>32</b> · 장바구니 <b>14</b></span></div>
+            <div className={s.resRow}><span>2 스톤웨어 접시</span><span className={s.waitBadge}>알림 <b>18</b> · 장바구니 <b>9</b></span></div>
+            <p className={s.resNote}>{fx.glow ? "이 상품부터 공구를 열면 좋아요" : ""}</p>
           </div>
         )}
       </Admin>
     ),
   },
   {
-    title: "5단계 · 공구 열고 알림 보내기",
-    say: "목표만큼 모이면 재고를 넣고, 미발송 신청을 모두 골라 '일괄 발송'! 손님에게 문자가 가요.",
-    tip: "공급처 주문 → 재고 입력 → 미발송 전체 선택 → 일괄 발송 → '발송 완료'인지 확인.",
+    title: "4단계 · 공구 열기",
+    say: "상품을 고르고, 몇 개 모이면 만들지 정해 '공구 열기'! 기다리던 손님에게 초대 문자가 저절로 가요.",
+    tip: "새 공구 › 상품 고르기 › 조건 정하기 › 미리보기에서 초대 대상을 확인하고 열어요. 결제는 아직 받지 않아요.",
     steps: [
-      { wait: 300 }, { at: "stock" }, { click: true }, { set: { sf: true } }, { type: "30", into: "stock" }, { wait: 250 },
-      { at: "all" }, { click: true }, { set: { all: true } }, { at: "send" }, { click: true }, { set: { sent: true } }, { wait: 1100 }, { set: { done: true } },
+      { wait: 300 }, ...walk(3), { at: "qty" }, { click: true }, { set: { sf: true } }, { type: "30", into: "qty" }, { wait: 250 },
+      { at: "open" }, { click: true }, { set: { sent: true } }, { wait: 1100 }, { set: { done: true } },
     ],
     view: (fx) => (
-      <div className={s.admin}>
-        <div className={s.adminBar}><b>카페24 관리자</b></div>
-        <div className={`${s.panel} ${s.show}`}>
-          <div className={s.setRow}><span>① 재고 수량</span><span data-t="stock" className={`${s.input} ${s.small} ${fx.sf ? s.focus : ""}`}>{String(fx.stock ?? "0")}<i className={fx.sf && !fx.all ? s.caret : ""} />개</span></div>
-          <div className={s.setRow}>
-            <span data-t="all" className={s.checkAll}><i className={fx.all ? s.boxOn : s.box} aria-hidden="true">{fx.all ? "✓" : ""}</i>② 미발송 32건 전체 선택</span>
-          </div>
-          <span data-t="send" className={s.sendBtn}>③ 일괄 발송</span>
-          {fx.done && <div className={s.statusOk}><b>발송 완료</b> · 손님 32명에게 문자가 갔어요 ✓</div>}
-        </div>
+      <Admin path={["상품 고르기", "조건 정하기", "미리보기"]} fx={fx} jj>
+        <div className={s.setRow}><span>목표 수량</span><span data-t="qty" className={`${s.input} ${s.small} ${fx.sf ? s.focus : ""}`}>{String(fx.qty ?? "")}<i className={fx.sf && !fx.sent ? s.caret : ""} />개</span></div>
+        <span data-t="open" className={s.sendBtn}>공구 열기</span>
+        {fx.done && <div className={s.statusOk}><b>공구 열림</b> · 초대 문자 46명 예약 ✓</div>}
         {fx.sent && !fx.done && <span className={s.plane} aria-hidden="true">✉️</span>}
-      </div>
+      </Admin>
+    ),
+  },
+  {
+    title: "5단계 · 마감 전에 재고 넣기",
+    say: "목표를 채웠어요! 마감 날, 마감 시각 전에 재고를 넣어 주세요. 그래야 쿠폰 받은 손님이 주문할 수 있어요.",
+    tip: "결제 기간이 끝나면 다시 품절로 돌려 두세요. 결제된 만큼만 만들면 재고 걱정 끝!",
+    steps: [
+      { wait: 300 }, ...walk(3), { at: "stock" }, { click: true }, { set: { sf: true } }, { type: "30", into: "stock" }, { wait: 400 }, { set: { done: true } },
+    ],
+    view: (fx) => (
+      <Admin path={["상품", "상품 관리", "상품 수정"]} fx={fx} done="주문 받을 준비 ✓">
+        <div className={s.goalBadge}>🎉 공구 목표 달성 · 30 / 30개</div>
+        <div className={s.setRow}><span>재고 수량</span><span data-t="stock" className={`${s.input} ${s.small} ${fx.sf ? s.focus : ""}`}>{String(fx.stock ?? "0")}<i className={fx.sf && !fx.done ? s.caret : ""} />개</span></div>
+        {fx.done && <div className={s.statusOk}>쿠폰 받은 손님이 이제 주문할 수 있어요 ✓</div>}
+      </Admin>
     ),
   },
 ];
@@ -356,11 +347,11 @@ export default function SellerOnboarding() {
                 <img src="/logo.svg" alt="" className={s.endLogo} />
                 <h2>준비 끝! 이제 사장님 차례예요</h2>
                 <ol className={s.recap}>
-                  <li>품절 상품이 보이게 (노출함 · 맨 뒤로)</li>
-                  <li>재입고 알림 버튼 켜기 (수동 발송)</li>
-                  <li>휴대폰 · PC로 직접 확인</li>
-                  <li>매주 미발송 신청 수 보기</li>
-                  <li>재고 넣고 일괄 발송으로 공구 열기</li>
+                  <li>품절 상품 숨기지 않기 (진열함 · 판매함)</li>
+                  <li>쇼핑몰에서 찜꽁 위젯 확인</li>
+                  <li>매주 모니터링 보기</li>
+                  <li>공구 열기</li>
+                  <li>마감 전에 재고 넣기</li>
                 </ol>
                 <button type="button" className={s.start} onClick={close}>시작하기 →</button>
                 <button type="button" className={s.ghost} onClick={() => go(0)}>처음부터 다시 보기</button>
