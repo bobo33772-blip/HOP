@@ -24,6 +24,7 @@ export class MockCafe24 {
   /** 몇 번을 다시 발급해도 빠지는 회원 (영구 실패 테스트용) */
   blockIssue = new Set<string>();
   failNextSms = false;
+  smsBalanceEmpty = false;
   /** 다음 쿠폰 발급 내역 조회를 한 번 실패시킨다 (판정 뒤 카페24 오류 재시도 테스트용) */
   failNextCouponHolders = false;
   /** 다음 회원 조회를 한 번 실패시킨다 (탈퇴 웹훅 재시도 테스트용) */
@@ -138,6 +139,7 @@ export class MockCafe24 {
       },
       async sendSms(spec: SmsSpec) {
         if (w.failNextSms) { w.failNextSms = false; throw new Error("SMS 발송 실패 (모의)"); }
+        if (w.smsBalanceEmpty) throw new Error(`cafe24 422 /sms: {"error":{"code":422,"message":"Available SMS quantity is not enough."}}`); // 테스트몰에서 실제로 받은 응답
         const ids = spec.memberIds.filter((id) => m().members.get(id)?.sms); // 카페24의 수신거부자 자동 제외
         w.smsLog.push({ mallId, memberIds: ids, content: spec.content, isAd: spec.isAd, at: w.clock.now() });
         return { queueRef: `Q-${++w.seq}` };

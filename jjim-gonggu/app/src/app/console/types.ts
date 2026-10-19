@@ -6,7 +6,7 @@ export interface Camp { id: string; state: State; productName: string; targetQty
 export interface Report {
   campaign: { id: string; productName: string; state: State; listPrice: number; dealPrice: number; targetQty: number; deadlineAt: string; payUntil: string | null; shipEta: string; decision: { qty: number; note: string; at: string } | null; proceededAt: string | null };
   funnel: { invited: number; invitedSent: number; pledgers: number; invitedPledgers: number; pledgedQty: number; couponIssued: number; paidMembers: number };
-  confirmed: { qty: number; revenue: number; unpaidMembers: number; cancelledOrders: number; lateOrders: number; successFee: number; expected: number | null };
+  confirmed: { qty: number; revenue: number; unpaidMembers: number; cancelledOrders: number; lateOrders: number; expected: number | null };
   rates: { inviteToPledge: number | null; pledgeToPaid: number | null };
 }
 export interface Detail {

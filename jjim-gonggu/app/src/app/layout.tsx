@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { THEME_BOOT, THEME_COLOR } from "@/lib/theme";
 
-export const metadata: Metadata = { title: "찜꽁", description: "찜·장바구니 고객과 함께 여는 결제 없는 예약 공동구매 — 카페24 판매자 앱" };
+export const metadata: Metadata = { title: "찜꽁", description: "알림 신청·장바구니 고객과 함께 여는 결제 없는 예약 공동구매 — 카페24 판매자 앱" };
 export const viewport: Viewport = {
   width: "device-width", initialScale: 1, viewportFit: "cover",
   themeColor: THEME_COLOR.light, // 기본 밝게. 어둡게를 고르면 화면에서 바꾼다 (#85)

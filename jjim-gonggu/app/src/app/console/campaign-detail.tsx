@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useConsole } from "./provider";
 import type { Detail } from "./types";
-import { chip, kst, msgKind, pct, won } from "./format";
+import { chip, kst, msgKind, pct, smsError, won } from "./format";
 import { DECISION_CONFIRM_RATIO, decisionNeedsConfirm } from "@/lib/core/campaign";
 import { CancelSheet } from "./cancel-sheet";
 
@@ -125,7 +125,7 @@ export function CampaignDetail({ id, say, onChanged }: { id: string; say: (t: st
           <tr key={m.id}>
             <td style={{ whiteSpace: "nowrap" }}>{msgKind(m.kind)}</td>
             <td className="mono" style={{ whiteSpace: "nowrap" }}>{m.recipients}명</td>
-            <td><span className={`chip ${MSG_STATUS[m.status][1]}`}>{MSG_STATUS[m.status][0]}</span>{m.error && <div className="small">{m.error}</div>}</td>
+            <td><span className={`chip ${MSG_STATUS[m.status][1]}`}>{MSG_STATUS[m.status][0]}</span>{m.error && <div className="small" title={isAdmin ? m.error : undefined}>{smsError(m.error, m.status)}</div>}</td>
             <td>{kst(m.sentAt ?? m.sendAfter)}</td>
             {isAdmin && <td>{(m.status === "failed" || m.status === "sending") && <button className="ghost" onClick={() => act(`/api/admin/messages/${m.id}/retry`, () => "다시 보내도록 예약했어요")}>다시 보내기</button>}</td>}
           </tr>

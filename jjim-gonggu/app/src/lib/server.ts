@@ -3,7 +3,7 @@
 
 import { getDb, schema } from "@/db";
 import { env } from "./env";
-import { realShopApi } from "./malls";
+import { keepTokensFresh, realShopApi } from "./malls";
 import { DEMO_BRAND, DEMO_MALL, MockCafe24, seedDemoMall } from "./cafe24/mock";
 import { offsetClock, systemClock, type ManualClock } from "./time";
 import type { Ctx } from "./engine/context";
@@ -25,6 +25,7 @@ async function create(): Promise<Ctx> {
       // VERIFY: 독립 도메인을 쓰는 몰은 상품 주소가 다르다. 파일럿 몰별로 확인한다.
       productUrl: (mall, no) => `https://${mall}.cafe24.com/product/detail.html?product_no=${no}`,
       log: (m, x) => console.log(new Date().toISOString(), m, x ?? ""),
+      keepTokensFresh,
     };
   }
   const clock = offsetClock();
