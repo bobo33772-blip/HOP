@@ -8,7 +8,8 @@ export const GET = handle(async (_req: Request, { params }: { params: Promise<{ 
   const { mall, no } = await params;
   const ctx = await getCtx();
   const c = Number.isInteger(Number(no)) ? await activeCampaignForProduct(ctx, mall, Number(no)) : null;
-  if (!c) return json({ error: "none", message: "진행 중인 공구가 없어요." }, 404, CORS);
+  // 공구가 없는 상품이 대부분이라 404를 쓰면 쇼핑몰 화면 콘솔에 오류가 찍힌다. 정상 응답으로 '없음'을 알린다 (심사 기준: 설치한 쇼핑몰에 영향 없음)
+  if (!c) return json({ campaign: null }, 200, CORS);
   return json({ campaign: await publicView(ctx, c) }, 200, CORS);
 }, CORS);
 

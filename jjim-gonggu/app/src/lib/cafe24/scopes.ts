@@ -11,7 +11,7 @@ const PRIVACY: ScopeInfo = { scope: "mall.read_privacy", why: "문자 수신동�
 const BASE: ScopeInfo[] = [
   { scope: "mall.read_product", why: "공구를 열 상품 이름·가격을 불러옵니다." },
   { scope: "mall.read_personal", why: "상품을 장바구니에 담은 회원을 찾아 공구 초대 대상으로 삼습니다." },
-  { scope: "mall.read_customer", why: "상품 페이지 위젯에서 로그인한 회원 본인인지 확인(암호화 회원 ID)해, 본인만 공구에 신청할 수 있게 합니다." },
+  { scope: "mall.read_customer", why: "탈퇴한 회원인지 회원 조회로 확인해, 탈퇴 회원의 회원 ID를 공구 기록에서 바로 지웁니다." },
   { scope: "mall.read_promotion", why: "공구 쿠폰 발급 상태를 확인합니다." },
   { scope: "mall.write_promotion", why: "목표를 달성하면 신청 회원에게만 쓸 수 있는 1회용 할인 쿠폰을 만들고 발급합니다." },
   { scope: "mall.read_order", why: "공구 쿠폰으로 결제된 주문만 집계해 확정 수량을 계산합니다." },

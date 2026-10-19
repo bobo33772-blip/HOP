@@ -66,9 +66,12 @@
     '.jjg-due{background:#FDECF0;color:#C22D4D;border-radius:4px;padding:10px 12px;font-weight:700}' +
     '.jjg-pulse{outline:3px solid #E94162!important;outline-offset:3px;border-radius:6px}';
   var HEART = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21c-.4 0-.7-.1-1-.4C7.4 17.5 3 14 3 9.5 3 6.9 5 5 7.4 5c1.8 0 3.3 1 4.1 2.3h1C13.3 6 14.8 5 16.6 5 19 5 21 6.9 21 9.5 21 14 16.6 17.5 13 20.6c-.3.3-.6.4-1 .4z"/></svg>';
+  // 스크립트태그가 <head>에서 먼저 실행돼도 구매 버튼 영역을 찾을 수 있게, 문서가 준비된 뒤 시작한다 (카페24 심사: 쇼핑몰에 영향 없음)
+  function boot() {
   var style = document.createElement('style'); style.textContent = css; document.head.appendChild(style);
 
   var root = document.createElement('div'); root.className = 'jjg'; root.setAttribute('aria-live', 'polite');
+  root.style.display = 'none'; // 보여 줄 내용이 생길 때까지 숨긴다 (빈 상자가 깜빡이며 아래 내용을 밀지 않게)
   var anchorSel = script.getAttribute('data-anchor');
   var anchor = (anchorSel && document.querySelector(anchorSel)) || document.getElementById('jjim-gonggu');
   // 카페24 기본 스킨: 구매 버튼 영역(.xans-product-action) 바로 아래. 없으면 스크립트 자리(보통 페이지 끝)
@@ -121,7 +124,7 @@
 
   function load() {
     return api('GET', '/api/public/malls/' + encodeURIComponent(MALL) + '/products/' + productNo + '/campaign')
-      .then(function (j) { state.c = j.campaign; }, function (e) { if (!e || e.error !== 'none') throw e; state.c = null; })
+      .then(function (j) { state.c = j.campaign || null; }, function (e) { if (!e || e.error !== 'none') throw e; state.c = null; })
       .then(function () { return alertable() ? api('GET', ALERTS).then(function (j) { state.a = { waiting: j.waiting, mine: false }; state.soldOut = !!j.soldOut; }) : null; })
       .then(memberToken)
       .then(function (t) {
@@ -355,7 +358,11 @@
 
   load().then(loadOthers);
   setInterval(function () {
-    if (!state.c || state.c.state !== 'open' || state.step === 'form') return;
+    if (document.hidden || !state.c || state.c.state !== 'open' || state.step === 'form') return; // 숨은 탭에서는 묻지 않는다
     api('GET', '/api/public/campaigns/' + state.c.id + '/progress').then(function (j) { state.c = j.campaign; render(); }).catch(function () { });
   }, 30000);
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
 })();

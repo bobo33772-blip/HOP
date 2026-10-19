@@ -59,7 +59,8 @@ describe("공개 API (위젯)", () => {
     expect(JSON.parse(text).campaign.payWindowHours).toBe(72);
     expect(text).not.toMatch(/couponNo|costPrice|reportToken/);
     const none = await campaignRoute.GET(new Request("http://t/x"), params({ mall: DEMO_MALL, no: "999" }));
-    expect(none.status).toBe(404);
+    expect(none.status).toBe(200); // 쇼핑몰 콘솔에 404가 찍히지 않게 (카페24 심사)
+    expect(await none.json()).toEqual({ campaign: null });
   });
 
   it("결제 없는 신청: 같은 Idempotency-Key 재전송은 한 번만, 위조 토큰은 401", async () => {

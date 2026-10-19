@@ -1,6 +1,6 @@
 // 몰 설치·토큰 관리와 실제 카페24 ShopApi 생성.
 
-import { eq } from "drizzle-orm";
+import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import { env, requireReal } from "./env";
 import { decrypt, encrypt } from "./crypto";
@@ -107,6 +107,31 @@ export async function confirmUninstall(mallId: string): Promise<boolean> {
     .where(eq(schema.malls.mallId, mallId));
   await db.insert(schema.auditLogs).values({ mallId, actor: "cafe24", action: "app.uninstalled", detail: {} });
   return true;
+}
+
+/**
+ * 매일 한 번: 설치된 몰마다 토큰을 미리 갱신한다. 판매자가 14일 동안 앱을 쓰지 않아도 리프레시 토큰이 만료되지 않게 한다
+ * (만료되면 위젯의 품절 확인 · 알림 신청이 소리 없이 멈춘다). 갱신을 카페24가 거절(4xx)하면 앱 삭제 웹훅을 놓친 것으로 보고
+ * confirmUninstall로 삭제를 확정한다(토큰 즉시 삭제, 30일 뒤 전체 삭제). 카페24 장애(5xx · 네트워크)는 다음 날 다시 한다.
+ */
+export async function keepTokensFresh(): Promise<{ refreshed: number; uninstalled: number }> {
+  const db = await getDb();
+  const malls = await db.select({ mallId: schema.malls.mallId }).from(schema.malls)
+    .where(and(isNull(schema.malls.uninstalledAt), isNotNull(schema.malls.refreshTokenEnc)));
+  let refreshed = 0, uninstalled = 0;
+  for (const { mallId } of malls) {
+    try {
+      await refreshOnce(mallId, "always");
+      refreshed++;
+    } catch (err) {
+      if (err instanceof TokenError && err.status < 500) {
+        if (await confirmUninstall(mallId).catch(() => false)) uninstalled++;
+      } else {
+        console.log(new Date().toISOString(), "토큰 미리 갱신 실패 (내일 다시)", mallId, String(err));
+      }
+    }
+  }
+  return { refreshed, uninstalled };
 }
 
 export async function realShopApi(mallId: string): Promise<ShopApi> {

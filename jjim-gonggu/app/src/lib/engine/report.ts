@@ -2,7 +2,6 @@
 
 import { and, count, countDistinct, eq, inArray, ne, sql, sum } from "drizzle-orm";
 import { schema } from "@/db";
-import { successFee } from "../core/billing";
 import { expectedConfirmed } from "../core/pledge";
 import type { CampaignState } from "../core/campaign";
 import type { Ctx } from "./context";
@@ -50,7 +49,6 @@ export async function buildReport(ctx: Ctx, campaignId: string) {
     confirmed: {
       qty: confirmedQty, revenue, unpaidMembers: Math.max(0, couponIssued - paidMembers),
       cancelledOrders: n(cancelled.v), lateOrders: n(late.v),
-      successFee: successFee("starter", revenue), // 스타터 요금제 기준. 4주 파일럿은 무료라 표시만 한다
       expected: state === "reached" ? expectedConfirmed(pledged, confirmedQty) : null,
     },
     rates: {

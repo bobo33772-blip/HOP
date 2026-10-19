@@ -12,6 +12,8 @@ export interface Ctx {
   /** 고객이 문자 링크로 들어갈 상품 페이지 주소 */
   productUrl(mallId: string, productNo: number): string;
   log(msg: string, extra?: unknown): void;
+  /** 실제 카페24일 때만: 설치된 몰의 토큰을 미리 갱신하고, 거절되면 앱 삭제로 확정한다 (매일 03:00) */
+  keepTokensFresh?(): Promise<{ refreshed: number; uninstalled: number }>;
 }
 
 /** 사람이 읽을 수 있는 이유와 HTTP 상태를 함께 담은 오류. 라우트가 그대로 응답한다 */

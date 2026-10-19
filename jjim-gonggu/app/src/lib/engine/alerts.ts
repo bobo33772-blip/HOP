@@ -45,6 +45,7 @@ export async function isSoldOut(ctx: Ctx, mallId: string, productNo: number): Pr
 
 /** 위젯용: 기다리는 회원 수와 품절 여부. 알림 버튼은 품절 상품에만 보인다 (#67) */
 export async function publicAlertView(ctx: Ctx, mallId: string, no: unknown) {
+  await getMall(ctx, mallId); // 연결된 몰만 (설치하지 않은 몰 이름으로 카페24 상품 조회를 부르지 않게)
   const productNo = productNoOf(no);
   return { productNo, waiting: await waitingCount(ctx, mallId, productNo), soldOut: await isSoldOut(ctx, mallId, productNo) };
 }

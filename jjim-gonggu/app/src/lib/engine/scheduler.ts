@@ -38,6 +38,8 @@ export async function runScheduled(ctx: Ctx, state: { lastReconcileDay: string; 
     state.lastReconcileHour = hour;
     reconciled = await reconcileRecent(ctx);
     await purgeExpired(ctx);
+    // 토큰 미리 갱신 · 놓친 앱 삭제 확정 (실제 카페24일 때만). 실패해도 다른 정기 작업에는 영향 없음
+    if (ctx.keepTokensFresh) await ctx.keepTokensFresh().catch((e) => ctx.log("토큰 미리 갱신 실패", String(e)));
   } else if (hour !== state.lastReconcileHour) {
     state.lastReconcileHour = hour;
     reconciled = await reconcilePaying(ctx);
