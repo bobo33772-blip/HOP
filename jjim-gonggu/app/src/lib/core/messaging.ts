@@ -35,4 +35,5 @@ export function formatAdMessage({ mallName, body, optOutNumber }: AdMessageInput
   return `(광고)${mallName}\n${clean}\n무료수신거부 ${optOutNumber}`;
 }
 
-export const isValidOptOutNumber = (s: string | null | undefined) => /^[0-9-]{8,20}$/.test(s ?? "");
+/** 광고 문자의 수신거부는 받는 사람이 돈을 내지 않아야 한다(정보통신망법 시행령 제61조) → 080 무료 수신거부 번호만 받는다. 휴대폰 · 일반 전화번호는 거부 (카페24 심사) */
+export const isValidOptOutNumber = (s: string | null | undefined) => /^080-?[0-9]{3,4}-?[0-9]{4}$/.test((s ?? "").trim());

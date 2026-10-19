@@ -94,7 +94,7 @@ export function DemandPanel() {
       </div>
 
       {data.rows.length === 0 ? (
-        <div className="card"><p className="muted">아직 공구 알림을 신청했거나 장바구니에 담긴 상품이 없어요.</p></div>
+        <div className="card"><p className="muted">아직 공구 알림을 신청했거나 장바구니에 담긴 상품이 없어요. 고객이 쇼핑몰에 로그인한 뒤 상품을 장바구니에 담거나, 품절 상품의 '재입고 · 공구 알림 받기'를 누르면 여기에 나와요. 처음 설치했다면 테스트 회원으로 직접 담아 보고 '다시 수집'을 누르세요.</p></div>
       ) : (
         <ol className="list">
           {data.rows.map((r, i) => (

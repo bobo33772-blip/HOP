@@ -73,9 +73,15 @@ describe("광고 문자 규칙", () => {
     expect(nextAllowedSendTime(new Date("2026-10-06T12:30:00Z")).toISOString()).toBe("2026-10-06T23:00:00.000Z");
     expect(nextAllowedSendTime(new Date("2026-10-06T17:00:00Z")).toISOString()).toBe("2026-10-06T23:00:00.000Z"); // 02:00 KST
   });
-  it("무료수신거부 번호 형식", () => {
+  it("무료수신거부 번호는 080만", () => {
     expect(isValidOptOutNumber("080-000-0000")).toBe(true);
     expect(isValidOptOutNumber("")).toBe(false);
+    expect(isValidOptOutNumber("0801234567")).toBe(true);
+    expect(isValidOptOutNumber("080-123-4567")).toBe(true);
+    // 고객이 돈을 내는 번호는 무료수신거부가 아니다 (카페24 심사 · 정보통신망법)
+    expect(isValidOptOutNumber("010-1234-5678")).toBe(false);
+    expect(isValidOptOutNumber("02-000-0000")).toBe(false);
+    expect(isValidOptOutNumber("1588-0000")).toBe(false);
   });
   it("(광고) 표기와 수신거부 안내 강제", () => {
     const m = formatAdMessage({ mallName: "도윤백", body: "(광고) 장바구니에 담아 두신 숄더백 공구가 열렸어요", optOutNumber: "080-000-0000" });

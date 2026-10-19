@@ -65,6 +65,7 @@ export function CampaignForm({ mall, p, say, onOpened }: { mall: string; p: Rada
           {!pv.audience.consentChecked && <p className="small">문자 수신을 거부한 고객은 카페24가 발송할 때 자동으로 빼요. 실제 받는 사람은 이보다 적을 수 있어요.</p>}
           {pv.marginPerUnit != null && <p className="muted">개당 마진 {won(pv.marginPerUnit)}</p>}
           <p className="muted">초대 문자 발송: {kst(pv.sendAt)} (밤 9시~오전 8시는 자동으로 미뤄요)</p>
+          <p className="small">문자는 판매자님의 카페24 SMS로 보내요. 충전 잔액이 초대 인원보다 적으면 충전할 때까지 30분마다 다시 보내요.</p>
           <p className="msg">{pv.message}</p>
           {pv.warnings.map((w) => <p key={w} className="warn">{w}</p>)}
           {pv.errors.length ? <div className="err" role="alert">{pv.errors.map((e) => <div key={e}>{e}</div>)}</div> : (
