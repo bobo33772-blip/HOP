@@ -113,11 +113,11 @@ export function isActiveProductConflict(e: unknown): boolean {
 export async function openCampaign(ctx: Ctx, actor: string, mallId: string, input: CampaignInput) {
   const pv = await prepare(ctx, mallId, input);
   if (!pv.mall.brandName || !pv.mall.smsSender || !isValidOptOutNumber(pv.mall.optOutNumber)) {
-    throw new UserError("profile_required", "브랜드명·문자 발신번호·무료수신거부 번호를 먼저 등록해 주세요. 광고 문자에 반드시 들어가야 해요.");
+    throw new UserError("profile_required", "설정에서 브랜드명 · 문자 발신번호 · 무료수신거부 번호(080)를 먼저 등록해 주세요. 광고 문자에 반드시 들어가야 해요.");
   }
   const errors = errorMessages(pv.issues);
   if (errors.length) throw new UserError("invalid_input", errors.join(" "));
-  if (pv.aud.reachable === 0) throw new UserError("no_audience", pv.aud.consentChecked ? "문자를 받을 수 있는 알림 신청·장바구니 고객이 없어요." : "이 상품에 공구 알림을 신청했거나 장바구니에 담은 고객이 없어요.");
+  if (pv.aud.reachable === 0) throw new UserError("no_audience", pv.aud.consentChecked ? "문자를 받을 수 있는 알림 신청·장바구니 고객이 없어요." : "이 상품에 공구 알림을 신청했거나 장바구니에 담은 고객이 없어요. 로그인한 고객이 상품을 장바구니에 담거나 품절 상품에서 '재입고 · 공구 알림 받기'를 누르면 초대할 수 있어요.");
   const [dup] = await ctx.db.select({ id: schema.campaigns.id }).from(schema.campaigns)
     .where(and(eq(schema.campaigns.mallId, mallId), eq(schema.campaigns.productNo, pv.product.productNo), inArray(schema.campaigns.state, ["open", "reached"])));
   if (dup) throw new UserError("duplicate", "이 상품은 이미 진행 중인 공구가 있어요.", 409);

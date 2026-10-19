@@ -44,7 +44,7 @@ export function NewTab({ mall, say, onOpened }: { mall: string; say: (t: string)
         <div className="row" style={{ flexWrap: "wrap" }}><h2 className="step-title" style={{ flexWrap: "wrap", rowGap: 2 }}><span className="n">1</span>상품 고르기 <span className="small">알림 신청·장바구니 많은 순 상위 20개</span></h2>
           <button className="ghost" style={{ flex: "none", whiteSpace: "nowrap" }} onClick={collect} disabled={running}>{running ? `수집 중 ${radar.current!.done}/${radar.current!.total}` : radar.run ? "다시 수집" : "관심 데이터 모으기"}</button></div>
         <p className="muted">{a.role === "admin" ? "판매자와 통화하며 함께 고르세요. 이 목록은 숫자만 있어 판매자에게 그대로 보여 줘도 괜찮아요." : "공구 알림 신청과 장바구니가 많은 상품부터 보여 드려요. 재생산을 고민 중인 상품을 골라 보세요."}{radar.run && ` · ${kst(radar.run.finishedAt ?? radar.run.startedAt)} 기준`}</p>
-        {!radar.run && radar.rows.length === 0 ? <p className="muted">{running ? "상품마다 하나씩 확인하는 중이에요. 상품이 많으면 몇 분에서 몇 시간 걸려요." : "아직 모은 데이터가 없어요. 위 버튼으로 시작하세요."}</p> : narrow ? (
+        {!radar.run && radar.rows.length === 0 ? <p className="muted">{running ? "상품마다 하나씩 확인하는 중이에요. 상품이 많으면 몇 분에서 몇 시간 걸려요." : "아직 모은 데이터가 없어요. 위 버튼으로 시작하세요."}</p> : radar.run && radar.rows.length === 0 ? <p className="muted">{"아직 공구 알림 신청이나 장바구니에 담긴 상품이 없어요. 고객이 쇼핑몰에 로그인한 뒤 상품을 장바구니에 담거나, 품절 상품의 '재입고 · 공구 알림 받기'를 누르면 여기에 나와요. 처음 설치했다면 테스트 회원으로 직접 담아 보고 '다시 수집'을 누르세요."}</p> : narrow ? (
           // 휴대폰: 열 7개짜리 표는 카드보다 넓어 '선택'이 잘린다 → 수요 레이더와 같은 목록. 줄 전체가 버튼이라 어디를 눌러도 고른다 (#9)
           <ol className="list" style={{ wordBreak: "keep-all" }}>{radar.rows.map((p, i) => {
             const on = pick?.productNo === p.productNo;

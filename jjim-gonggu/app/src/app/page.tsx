@@ -47,7 +47,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
   const widgetDone = !!mall?.scriptTagNo || mock;
   // '첫 공구 열기'는 온보딩(#89)에서 안내해서 시작하기에서는 뺐다
   const steps = [
-    { done: profileDone, title: "쇼핑몰 정보 등록", hint: "브랜드명·문자 발신번호·무료수신거부 번호", href: "/campaigns?tab=profile" },
+    { done: profileDone, title: "쇼핑몰 정보 등록", hint: "브랜드명·문자 발신번호·080 무료수신거부 번호", href: "/campaigns?tab=profile" },
     { done: widgetDone, title: "상품 페이지 위젯 설치", hint: "공구 중인 상품에 진행률과 참여 버튼이 보여요", href: null },
   ];
   const allDone = steps.every((s) => s.done);

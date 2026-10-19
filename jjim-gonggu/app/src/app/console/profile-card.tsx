@@ -32,7 +32,8 @@ export function ProfileCard({ mall, onSaved, say, always = false }: { mall: Mall
             <span className="hint">{mall.senders ? "카페24에 등록된 발신번호가 없어요. 카페24 관리자 › SMS 발신번호 관리에서 먼저 등록해 주세요" : "카페24에 등록된 번호여야 해요"}</span>
           </label>
         )}
-        <label>무료수신거부 번호<input value={v.optOutNumber} placeholder="080-000-0000" onChange={(e) => setV({ ...v, optOutNumber: e.target.value })} /></label>
+        <label>무료수신거부 번호<input value={v.optOutNumber} placeholder="080-000-0000" onChange={(e) => setV({ ...v, optOutNumber: e.target.value })} />
+          <span className="hint">080으로 시작하는 무료 번호여야 해요. 카페24 관리자 › SMS 설정에서 080 수신거부 번호를 받을 수 있어요</span></label>
       </div>
       <div><button className="btn" onClick={save}>저장</button></div>
     </div>

@@ -208,7 +208,7 @@ export default function SellerGuide() {
         <p>알림 버튼은 위젯이 알아서 보여 주지만, 공구를 열려면 아래 준비가 필요합니다. 쇼핑몰 정보를 등록하지 않으면 공구 열기가 막히고, SMS를 충전하지 않으면 공구가 열려도 초대 문자가 나가지 않습니다.</p>
         <ul className={s.checks}>
           <CheckItem id="c-prep1" checked={on("c-prep1")} onToggle={toggle}>카페24 SMS 서비스를 신청 · 충전하고, 카페24 관리자의 <strong>SMS 발신번호 관리</strong>에 문자 발신번호를 등록했다 (문자 비용은 SMS 잔여 건수에서 빠짐)</CheckItem>
-          <CheckItem id="c-prep2" checked={on("c-prep2")} onToggle={toggle}>찜꽁 홈 <strong>시작하기</strong>에서 쇼핑몰 정보(브랜드명 · 문자 발신번호 · 무료수신거부 번호)를 등록했다 (발신번호는 카페24에 등록한 번호 중에서 고름)</CheckItem>
+          <CheckItem id="c-prep2" checked={on("c-prep2")} onToggle={toggle}>찜꽁 홈 <strong>시작하기</strong>에서 쇼핑몰 정보(브랜드명 · 문자 발신번호 · 080 무료수신거부 번호)를 등록했다 (발신번호는 카페24에 등록한 번호 중에서 고름)</CheckItem>
           <CheckItem id="c-prep3" checked={on("c-prep3")} onToggle={toggle}>찜꽁 홈 <strong>시작하기</strong>의 상품 페이지 위젯 설치가 끝나 있다 (앱을 설치하면 자동으로 들어감. <strong>설치하기</strong> 버튼이 보일 때만 누르기)</CheckItem>
         </ul>
         <div className={s.tip}><b>메뉴 경로 읽는 법</b> <Path items={["상품", "상품 목록"]} />처럼 쓴 것은 카페24 관리자 왼쪽 메뉴를 차례로 누르는 순서입니다. <Path items={["찜꽁", "내 공구"]} />처럼 찜꽁으로 시작하는 것은 찜꽁 화면의 메뉴(홈 · 내 공구 · 새 공구 · 모니터링 · 설정)입니다.</div>

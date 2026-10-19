@@ -32,7 +32,9 @@ export async function saveMallProfile(ctx: Ctx, actor: string, mallId: string, b
   const optOutNumber = String(b.optOutNumber ?? "").trim().slice(0, 20);
   const smsSender = String(b.smsSender ?? "").trim().slice(0, 20);
   if (!brandName || !isValidOptOutNumber(optOutNumber) || !/^[0-9-]{8,20}$/.test(smsSender)) {
-    throw new UserError("bad_profile", "브랜드명, 문자 발신번호, 무료수신거부 번호를 확인해 주세요.");
+    throw new UserError("bad_profile", !isValidOptOutNumber(optOutNumber) && brandName && /^[0-9-]{8,20}$/.test(smsSender)
+      ? "무료수신거부 번호는 080으로 시작하는 번호여야 해요. 휴대폰 · 일반 전화번호는 고객이 돈을 내야 해서 광고 문자에 쓸 수 없어요."
+      : "브랜드명, 문자 발신번호, 무료수신거부 번호(080)를 확인해 주세요.");
   }
   // 카페24는 등록된 발신번호로만 문자를 보낸다 → 목록을 받을 수 있으면 그 안의 번호인지 확인한다
   const senders = await registeredSenders(ctx, mallId);
