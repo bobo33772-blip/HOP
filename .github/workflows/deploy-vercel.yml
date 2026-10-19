@@ -44,10 +44,29 @@ jobs:
         with:
           # 검사를 통과한 바로 그 커밋을 배포한다
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      # 배포 전에 토큰 · 계정(ORG) · 프로젝트가 서로 맞는지 Vercel API로 확인한다. 틀린 값을 짚어 주고, 값 자체는 찍지 않는다 (#114)
+      - name: Vercel 연결 확인
+        if: steps.secrets.outputs.ok == 1
+        run: |
+          api() { curl -s -o /dev/null -w %{http_code} -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com$1"; }
+          u=$(api /v2/user)
+          # 403이면 토큰이 틀렸거나 만료. 팀 전용 토큰은 /v2/user가 막혀 다른 코드가 올 수 있어 프로젝트로 다시 확인한다
+          [ "$u" != 403 ] || { echo "::error::VERCEL_TOKEN이 맞지 않아요 (HTTP $u). Vercel › Account Settings › Tokens에서 새로 만들어 다시 넣어 주세요."; exit 1; }
+          case "$VERCEL_ORG_ID" in team_*) q="?teamId=$VERCEL_ORG_ID" ;; *) q="" ;; esac
+          p=$(api "/v9/projects/$VERCEL_PROJECT_ID$q")
+          if [ "$p" != 200 ]; then
+            any=$(api "/v9/projects/$VERCEL_PROJECT_ID")
+            echo "::error::토큰은 맞지만 프로젝트를 찾지 못했어요 (계정 지정 $p · 지정 없이 $any). VERCEL_PROJECT_ID(prj_…)와 VERCEL_ORG_ID(team_… 또는 개인 계정 ID)가 .vercel/project.json 값과 같은지, 토큰의 Scope가 그 프로젝트가 있는 계정인지 확인해 주세요."
+            exit 1
+          fi
+          echo "토큰 · 계정 · 프로젝트가 맞아요 (사용자 확인 $u)."
       - name: Vercel 운영 배포
         if: steps.secrets.outputs.ok == '1'
         working-directory: jjim-gonggu/app
-        run: npx --yes vercel@37.14.0 deploy --prod --yes --token="$VERCEL_TOKEN" | tee "$RUNNER_TEMP/url.txt"
+        # pipefail: vercel이 실패하면 tee 뒤에서도 이 단계가 실패로 끝나게 (#114)
+        run: |
+          set -o pipefail
+          npx --yes vercel@62.2.0 deploy --prod --yes --token="$VERCEL_TOKEN" | tee "$RUNNER_TEMP/url.txt"
       - name: 배포 주소
         if: steps.secrets.outputs.ok == '1'
         run: echo "### 배포 완료 · $(git rev-parse --short HEAD) → $(tail -1 "$RUNNER_TEMP/url.txt")" >> "$GITHUB_STEP_SUMMARY"
