@@ -8,6 +8,7 @@ import AppBar from "./components/app-bar";
 import HomeSales from "./components/home-sales";
 import SellerOnboarding from "./components/seller-onboarding";
 import { env } from "@/lib/env";
+import { DemoRoleBadge } from "./components/demo-role";
 import { launchErrorMessage } from "@/lib/launch-errors";
 import { getSession } from "@/lib/session";
 import { getCtx } from "@/lib/server";
@@ -33,7 +34,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
         {notice && <p className="err" role="alert">{notice}</p>}
         <p className="muted">알림 신청·장바구니 고객과 함께 여는 결제 없는 예약 공동구매<br />카페24 관리자 › 앱 › 마이앱에서 &lsquo;찜꽁&rsquo;을 실행하면 이 화면이 열려요.</p>
         {mock && <a className="btn brand" href="/api/cafe24/launch">데모 쇼핑몰로 시작하기</a>}
-        {mock && <a className="ghost" href="/demo">데모 안내 (운영자·고객 화면)</a>}
+        {mock && <a className="ghost" href="/demo">데모 안내 (판매자 · 소비자 · 관리자)</a>}
         <nav className="legal"><a href="/privacy">개인정보 처리방침</a><a href="/terms">이용약관</a></nav>
       </main>
     );
@@ -124,6 +125,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
         </details>
         <nav className="legal"><a href="/privacy">개인정보 처리방침</a><a href="/terms">이용약관</a></nav>
       </main>
+      {mock && <DemoRoleBadge role="seller" />}
     </>
   );
 }

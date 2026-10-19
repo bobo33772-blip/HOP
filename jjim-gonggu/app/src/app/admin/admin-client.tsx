@@ -11,6 +11,7 @@ import { ProfileCard } from "../console/profile-card";
 import { ScoreTab } from "../console/score-tab";
 import type { Mall } from "../console/types";
 import { ThemeButton } from "../components/theme-toggle";
+import { DemoRoleBadge } from "../components/demo-role";
 
 async function get<T>(path: string): Promise<T> {
   const r = await fetch(path, { cache: "no-store" });
@@ -68,6 +69,7 @@ export default function AdminClient({ mock }: { mock: boolean }) {
           )}
       </main>
       {node}
+      {mock && <DemoRoleBadge role="admin" />}
     </>
   );
 }
