@@ -50,7 +50,8 @@ jobs:
         run: |
           api() { curl -s -o /dev/null -w %{http_code} -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com$1"; }
           u=$(api /v2/user)
-          [ "$u" = 200 ] || { echo "::error::VERCEL_TOKEN이 맞지 않아요 (HTTP $u). Vercel › Account Settings › Tokens에서 새로 만들어 다시 넣어 주세요."; exit 1; }
+          # 403이면 토큰이 틀렸거나 만료. 팀 전용 토큰은 /v2/user가 막혀 다른 코드가 올 수 있어 프로젝트로 다시 확인한다
+          [ "$u" != 403 ] || { echo "::error::VERCEL_TOKEN이 맞지 않아요 (HTTP $u). Vercel › Account Settings › Tokens에서 새로 만들어 다시 넣어 주세요."; exit 1; }
           case "$VERCEL_ORG_ID" in team_*) q="?teamId=$VERCEL_ORG_ID" ;; *) q="" ;; esac
           p=$(api "/v9/projects/$VERCEL_PROJECT_ID$q")
           if [ "$p" != 200 ]; then
@@ -58,7 +59,7 @@ jobs:
             echo "::error::토큰은 맞지만 프로젝트를 찾지 못했어요 (계정 지정 $p · 지정 없이 $any). VERCEL_PROJECT_ID(prj_…)와 VERCEL_ORG_ID(team_… 또는 개인 계정 ID)가 .vercel/project.json 값과 같은지, 토큰의 Scope가 그 프로젝트가 있는 계정인지 확인해 주세요."
             exit 1
           fi
-          echo "토큰 · 계정 · 프로젝트가 맞아요."
+          echo "토큰 · 계정 · 프로젝트가 맞아요 (사용자 확인 $u)."
       - name: Vercel 운영 배포
         if: steps.secrets.outputs.ok == '1'
         working-directory: jjim-gonggu/app
