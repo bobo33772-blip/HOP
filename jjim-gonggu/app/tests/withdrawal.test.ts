@@ -9,7 +9,7 @@ import { tick } from "@/lib/engine/scheduler";
 import { buildReport } from "@/lib/engine/report";
 import { requestAlert } from "@/lib/engine/alerts";
 import { purgeExpired } from "@/lib/engine/retention";
-import { MEMBER_WITHDRAWN, forgetMember } from "@/lib/engine/withdrawal";
+import { MEMBER_WITHDRAWN, forgetMember, sweepWithdrawn } from "@/lib/engine/withdrawal";
 import { MALL, PRODUCT, openAndFill, range, setup, type Env } from "./helpers";
 
 /** m1~m40 신청 → 달성 → m2가 쿠폰으로 결제, m2는 다른 상품(103)에 공구 알림도 신청 */
@@ -75,5 +75,39 @@ describe("회원 탈퇴 (#29)", () => {
     expect(ev.processedAt).not.toBeNull();
     expect(JSON.stringify(ev.payload)).not.toContain('"m2"'); // 웹훅 원문의 회원 ID도 지운다
     expect((await purgeExpired(env.ctx)).withdrawals).toBe(0); // 한 번만
+  });
+
+  it("탈퇴 웹훅이 오지 않아도(개인정보 권한 없음) 매일 파기 때 회원 조회로 확인해 지운다", async () => {
+    const { env, c } = await reachedWithM2();
+    const before = await buildReport(env.ctx, c.id);
+    env.world.withdrawMember(MALL, "m2"); // 웹훅 없이 탈퇴만
+    expect((await purgeExpired(env.ctx)).withdrawals).toBe(1);
+    expect(await traces(env, "m2")).toEqual(none);
+    expect(await traces(env, "m3")).not.toEqual(none); // 아직 회원은 그대로
+    expect((await buildReport(env.ctx, c.id)).confirmed).toEqual(before.confirmed);
+    expect((await purgeExpired(env.ctx)).withdrawals).toBe(0); // 한 번만
+  });
+
+  it("회원이 많으면 하루 상한만큼 확인하고, 날마다 다음 묶음으로 돌아가며 모두 본다", async () => {
+    const { env } = await reachedWithM2();
+    env.world.withdrawMember(MALL, "m2");
+    env.world.withdrawMember(MALL, "m39");
+    let found = 0;
+    // 확인 대상: 알림 신청 · 신청 · 초대(장바구니) 회원. 하루 10명씩이면 한 바퀴에 (대상 수 / 10)일
+    const people = new Set([...(await env.db.select({ m: schema.pledges.memberId }).from(schema.pledges)), ...(await env.db.select({ m: schema.invitations.memberId }).from(schema.invitations))].map((r) => r.m)).size;
+    for (let d = 0; d <= 2 * Math.ceil(people / 10) && found < 2; d++) {
+      found += (await sweepWithdrawn(env.ctx, { max: 10 })).forgotten;
+      env.clock.advance(24 * HOUR);
+    }
+    expect(found).toBe(2);
+    expect(await traces(env, "m39")).toEqual(none);
+  });
+
+  it("탈퇴로 보이는 회원이 지나치게 많으면(회원 조회 응답 이상) 지우지 않고 멈춘다", async () => {
+    const { env } = await reachedWithM2();
+    for (const m of range(1, 40)) env.world.withdrawMember(MALL, m); // 신청자 전원이 '없음'으로 읽히는 상황
+    const r = await sweepWithdrawn(env.ctx);
+    expect(r).toMatchObject({ forgotten: 0, suspended: [MALL] });
+    expect(await traces(env, "m2")).not.toEqual(none); // 아무것도 지우지 않았다
   });
 });
