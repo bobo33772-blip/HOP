@@ -101,17 +101,22 @@ async function finishJudged(ctx: Ctx, c: Campaign): Promise<boolean> {
   }
 }
 
-/** 100명씩 나눠 발급하고, 발급 내역과 대조해 빠진 회원은 한 번 더 발급한다. 그래도 빠지면 이슈로 남긴다.
+/** 100명씩 나눠 발급하고, 발급 내역과 대조해 빠진 회원은 한 번 더 발급한다(이때 실패한 묶음은 1명씩). 그래도 빠지면 이슈로 남긴다.
  *  이미 쿠폰을 가진 회원(앞선 시도에서 발급됨)에게는 다시 발급하지 않는다.
  *  from: 쿠폰을 받으면 coupon_issued로 바꿀 신청 상태 (판정 때는 pledged, 미달 뒤 그래도 진행할 때는 still_wanted) */
 export async function issueCoupons(ctx: Ctx, c: Campaign, memberIds: string[], from: PledgeState = "pledged") {
   if (!memberIds.length) return;
   const now = ctx.clock.now();
   const api = await ctx.shop(c.mallId);
-  const issue = async (ids: string[]) => {
+  // oneByOne: 묶음이 실패하면 1명씩 다시 보낸다. 발급이 거절되는 회원(탈퇴 등) 한 명 때문에 같은 묶음 99명이 빠지지 않게 (#26)
+  const issue = async (ids: string[], oneByOne = false) => {
     for (let i = 0; i < ids.length; i += 100) {
-      try { await api.issueCoupon(c.couponNo!, ids.slice(i, i + 100)); }
-      catch (e) { ctx.log("쿠폰 발급 묶음 실패", { campaign: c.id, error: String(e) }); }
+      const batch = ids.slice(i, i + 100);
+      try { await api.issueCoupon(c.couponNo!, batch); }
+      catch (e) {
+        ctx.log("쿠폰 발급 묶음 실패", { campaign: c.id, size: batch.length, error: String(e) });
+        if (oneByOne && batch.length > 1) for (const m of batch) await api.issueCoupon(c.couponNo!, [m]).catch(() => undefined);
+      }
     }
   };
   let holders = new Set(await api.listCouponHolders(c.couponNo!));
@@ -119,7 +124,7 @@ export async function issueCoupons(ctx: Ctx, c: Campaign, memberIds: string[], f
   holders = new Set(await api.listCouponHolders(c.couponNo!));
   let missing = memberIds.filter((m) => !holders.has(m));
   if (missing.length) {
-    await issue(missing);
+    await issue(missing, true);
     holders = new Set(await api.listCouponHolders(c.couponNo!));
     missing = memberIds.filter((m) => !holders.has(m));
   }
