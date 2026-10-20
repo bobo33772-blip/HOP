@@ -10,7 +10,7 @@ export default function Terms() {
       <p className="muted">시행일 {OPERATOR.effective}</p>
 
       <h2>제1조 (목적)</h2>
-      <p>이 약관은 {OPERATOR.name}(이하 &lsquo;운영자&rsquo;)이 카페24 앱스토어로 제공하는 찜꽁(이하 &lsquo;서비스&rsquo;)을 판매자가 이용하는 조건을 정합니다.</p>
+      <p>이 약관은 {OPERATOR.name}(이하 &lsquo;운영자&rsquo;)이 카페24 앱스토어 또는 운영자가 안내한 설치 링크로 제공하는 찜꽁(이하 &lsquo;서비스&rsquo;)을 판매자가 이용하는 조건을 정합니다.</p>
 
       <h2>제2조 (서비스 내용)</h2>
       <ul>
