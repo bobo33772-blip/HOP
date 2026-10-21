@@ -55,9 +55,12 @@ jobs:
       - name: 열리는지 확인
         if: steps.secrets.outputs.ok == '1'
         run: |
-          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 60 "$url/demo" || echo 000)
+          out=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' --max-time 60 "$url/demo" || echo 000)
+          code=${out%% *}; to=${out#* }
+          # Vercel 로그인 보호는 vercel.com 로그인 쪽으로 돌려보낸다(302)
+          case "$to" in *vercel.com*) code=401 ;; esac
           echo "code=$code" >> "$GITHUB_ENV"
-          echo "미리보기 /demo 응답: $code"
+          echo "미리보기 /demo 응답: $out"
       - name: PR 댓글에 주소 남기기
         if: steps.secrets.outputs.ok == '1'
         uses: actions/github-script@v7
