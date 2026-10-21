@@ -1,7 +1,7 @@
 "use client";
 
 // 매출 막대그래프 (#99): 셀러박스 '기간별' 그래프처럼 막대 위에 금액, 아래에 기간 이름.
-// 시안 3: 옅은 그라디언트 유리판 위에 반투명 라벤더 막대(폭 24px), 고른 칸만 반투명 분홍.
+// 시안 3: 옅은 그라디언트 유리판 위에 반투명 라벤더 막대(폭 48px, 일별 · 주별 · 월별 같게), 고른 칸만 반투명 분홍.
 // 막대(칸 전체)를 누르면 그 칸을 고른다. 공구 매출의 '매출 추이'와 모니터링 › 판매 통계의 '기간별'이 같이 써서 모양이 늘 같다.
 
 import { useEffect, useRef } from "react";
@@ -16,6 +16,8 @@ const GRAY = "color-mix(in srgb, var(--lav) 30%, transparent)";
 const PICK = "color-mix(in srgb, var(--brand) 75%, transparent)";
 /** 그래프 뒤 판: 보라 → 분홍 → 주황이 아주 옅게 비치는 유리 */
 const PANEL = "linear-gradient(135deg, rgba(185, 166, 255, .14), rgba(243, 166, 208, .10) 55%, rgba(255, 159, 128, .08))";
+/** 막대 폭: 일별 · 주별 · 월별 모두 같게 (#121). 칸이 많으면 옆으로 밀어 본다 */
+const BAR = 48;
 const TEXT = 22; // 막대 위 금액 한 줄 높이(px). 가장 긴 막대도 이만큼 아래에서 멈춘다
 
 /** 칸이 많으면(일별 등) 글자가 겹치지 않게 금액은 고른 칸만, 이름은 몇 칸 걸러 보여 준다 */
@@ -53,13 +55,13 @@ export function Bars({ bars, picked, onPick, label, height = 150, axis = false }
         const named = !many || i % every === 0 || i === bars.length - 1;
         return (
           <button key={b.key} type="button" aria-pressed={on} aria-label={`${b.name} 매출 ${won(b.value)}`} onClick={() => onPick(b.key)}
-            style={{ flex: `1 0 ${many ? 10 : 44}px`, minWidth: 0, display: "grid", gridTemplateRows: `${height}px auto`, padding: 0, border: 0, background: "none", color: "var(--fg2)" }}>
+            style={{ flex: `1 0 ${BAR + 16}px`, minWidth: 0, display: "grid", gridTemplateRows: `${height}px auto`, padding: 0, border: 0, background: "none", color: "var(--fg2)" }}>
             <span style={{ display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", borderBottom: "1px solid color-mix(in srgb, var(--fg) 8%, transparent)" }}>
               {!axis && b.value > 0 && (!many || on) && (
                 <span style={{ height: TEXT, lineHeight: `${TEXT}px`, fontSize: 12.5, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>{shortWon(b.value)}</span>
               )}
               <span style={{
-                display: "block", width: many ? "min(14px, 70%)" : 24, minWidth: 4, height: `calc((100% - ${text}px) * ${b.value / max})`, minHeight: b.value > 0 ? 4 : 0,
+                display: "block", width: BAR, minWidth: 4, height: `calc((100% - ${text}px) * ${b.value / max})`, minHeight: b.value > 0 ? 4 : 0,
                 borderRadius: "8px 8px 2px 2px", background: on ? PICK : GRAY,
               }} />
             </span>
