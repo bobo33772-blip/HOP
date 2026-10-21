@@ -1,5 +1,6 @@
 // 판매자 대시보드(예전 홈, 시안 3 웹 시안 그대로): 가장 급한 일 한 줄 → 숫자 4칸(이번 달 확정 매출 · 결제 대기 · 모집 중 신청 금액 · 공구 성사율)
 // → 주별 확정 매출(최근 8주) · 다음 공구 후보(알림 신청 · 장바구니) → 공구 관리 표(상품 · 상태 · 신청 · 목표 · 달성률 · 공구가 · 마감).
+// 휴대폰(560px 이하)은 C 시안 대시보드: 공구로 번 돈(확정 매출 · 지난달/지난주 대비) → 작은 숫자 3칸 → 주별 확정 매출 → 진행 중인 공구.
 // 숫자는 매출 리포트(lib/engine/sales.ts), 후보는 공구 열기와 같은 관심 데이터(radar)에서 읽는다.
 
 import { eq } from "drizzle-orm";
@@ -109,15 +110,31 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
   const summary = [`전체 ${camps.length}`, ...([["open", "모집 중"], ["reached", "결제 기간"], ["settled", "확정"], ["failed", "진행 안 됨"], ["cancelled", "취소"]] as const)
     .filter(([st]) => count(st) > 0).map(([st, l]) => `${l} ${count(st)}`)].join(" · ");
 
+  // 휴대폰 시안용: 짧은 금액(₩654K · ₩2.03M), 대비 %(↑ · ↓), 진행 중인 공구(모집 중 · 결제 기간)
+  const won = (n: number) => (n >= 1_000_000 ? `₩${(n / 1_000_000).toFixed(2)}M` : n >= 1_000 ? `₩${Math.round(n / 1_000)}K` : `₩${num(n)}`);
+  const delta = (cur: number, prev: number) => {
+    if (!prev) return { text: "–", cls: "" };
+    const r = ((cur - prev) / prev) * 100;
+    return { text: `${r >= 0 ? "↑" : "↓"}${Math.abs(r).toFixed(1)}%`, cls: r >= 0 ? "up" : "down" };
+  };
+  const vsMonth = delta(t?.thisMonth ?? 0, t?.lastMonth ?? 0), vsWeek = delta(weeks[7].value, weeks[6].value);
+  const weekTop = Math.max(1, top);
+  // 결제 기간인 공구를 먼저, 그다음 마감이 가까운 순
+  const live = camps.filter((c) => c.state === "open" || c.state === "reached")
+    .sort((x, y) => Number(y.state === "reached") - Number(x.state === "reached") || (x.payUntil ?? x.deadlineAt).getTime() - (y.payUntil ?? y.deadlineAt).getTime());
+  const today = fmtKst(nowD).split(" ")[0].replace(/^(\d+)\/(\d+)\((.)\)$/, (_, m, d, wd) => `${m}월 ${d}일 ${wd}요일`);
+
   return (
     <>
       <AppBar current="home" shop={mall?.brandName ?? session.mallId} />
       <main className="wide dash">
         {notice && <p className="err" role="alert">{notice}</p>}
+        {/* 넓은 화면 (웹 시안) */}
+        <div className="dash-w">
         <div className="dash-head">
           <div className="hello">
             <h1>대시보드</h1>
-            <p className="muted">{mall?.brandName ?? session.mallId} · {fmtKst(nowD).split(" ")[0].replace(/^(\d+)\/(\d+)\((.)\)$/, (_, m, d, wd) => `${m}월 ${d}일 ${wd}요일`)}{mock ? " · 데모 모드" : ""}</p>
+            <p className="muted">{mall?.brandName ?? session.mallId} · {today}{mock ? " · 데모 모드" : ""}</p>
           </div>
           <a className="btn dark compact" href="/campaigns?tab=new">＋ 공구 열기</a>
         </div>
@@ -201,7 +218,63 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
           )}
         </section>
 
-        <details className="card">
+        </div>
+
+        {/* 휴대폰 (C 시안) */}
+        <div className="dash-m">
+          <div className="m-head">
+            <span className="m-shop"><img src="/logo.svg" alt="" width={20} height={20} />{mall?.brandName ?? session.mallId} · <span className="ok">● 연결됨</span></span>
+            <h1>대시보드</h1>
+            <span className="muted">{today} · 지금 공구 현황{mock ? " · 데모" : ""}</span>
+          </div>
+
+          {urgent && <a className="callout m-alert" href={urgent.href}><b>{urgent.title}</b><span>{paying ? <>{paying.productName} · 아직 결제 안 한 고객 {waitingOf(paying.id)}명 · {fmtKst(paying.payUntil!)} 마감</> : urgent.text}</span></a>}
+
+          {!allDone && (
+            <a className="card m-start" href="/campaigns?tab=profile"><b>시작하기 {steps.filter((s) => s.done).length} / {steps.length}</b><span className="muted">{steps.find((s) => !s.done)?.title}만 하면 공구를 열 수 있어요 ›</span></a>
+          )}
+
+          <div className="m-sec"><span className="tag lav"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16M7 16V10M12 16V5M17 16v-4" /></svg>이번 달</span><h2>공구로 번 돈</h2></div>
+          <section className="m-money" aria-label="이번 달 확정 매출">
+            <span className="key"><i />확정 매출</span>
+            <b>₩{num(t?.thisMonth ?? 0)}</b>
+            <div className="vs">
+              <span className="on"><small>지난달 대비</small><span className={vsMonth.cls}>{vsMonth.text}</span></span>
+              <span><small>지난주 대비</small><span className={vsWeek.cls}>{vsWeek.text}</span></span>
+            </div>
+          </section>
+          <section className="m-mini" aria-label="그 밖의 숫자">
+            <div><small>결제 대기</small><b>{won(w?.amount ?? 0)}</b><span>{w?.members ?? 0}명</span></div>
+            <div><small>모집 중</small><b>{won(rc?.amount ?? 0)}</b><span>{rc?.campaigns ?? 0}건 · {rc?.qty ?? 0}개</span></div>
+            <div><small>성사율</small><b>{judged.length ? `${Math.round((succeeded / judged.length) * 100)}%` : "–"}</b><span>{succeeded} / {judged.length}건</span></div>
+          </section>
+
+          <section className="m-chart" aria-label={`주별 확정 매출: ${weeks.map((x) => `${x.name} ${num(x.value)}원`).join(", ")}`}>
+            <div className="in">
+              <div className="row"><span>주별 확정 매출</span><span className="mono">이번 주 ₩{num(weeks[7].value)}</span></div>
+              <div className="bars" aria-hidden="true">{weeks.map((x, i) => <span key={x.key} className={i === 7 ? "on" : undefined} style={{ height: `${Math.max(2, (x.value / weekTop) * 112)}px` }} />)}</div>
+              <div className="xs mono" aria-hidden="true">{weeks.map((x) => <span key={x.key}>{x.name}</span>)}</div>
+            </div>
+          </section>
+
+          <div className="m-sec">
+            <span className="tag peach"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" /></svg>공구 관리</span>
+            <div className="row"><h2>진행 중인 공구</h2><a className="pill" href="/campaigns">전체 {camps.length} ›</a></div>
+          </div>
+          <section className="m-live">
+            {live.length ? live.map((c) => {
+              const ratio = c.pledgedQty / c.targetQty, hot = c.state === "reached";
+              return (
+                <a key={c.id} href={`/campaigns?open=${c.id}`}>
+                  <span className="top"><span className="nm">{c.productName}</span><span className={hot ? "dd hot" : "dd"}>{hot && c.payUntil ? `결제 ${dday(c.payUntil)}` : dday(c.deadlineAt)}</span></span>
+                  <span className="bot"><span className="track"><i className={ratio >= 1 ? "done" : undefined} style={{ width: `${Math.min(100, ratio * 100)}%` }} /></span><span className="mono">{c.pledgedQty}/{c.targetQty} · {Math.round(ratio * 100)}%</span></span>
+                </a>
+              );
+            }) : <p className="muted">진행 중인 공구가 없어요. 아래 &lsquo;공구 열기&rsquo;에서 첫 공구를 열어 보세요.</p>}
+          </section>
+        </div>
+
+        <details className="card dash-w">
           <summary>셀러 가이드라인 자세히 보기</summary>
           <SellerGuide />
         </details>

@@ -647,3 +647,69 @@ details.card > summary::before { background-color: var(--soft); }
   .dash-table td:nth-child(2) { grid-column: 1; grid-row: 2; font-size: 12.5px; color: var(--fg2); }
   .dash-table td:nth-child(3) { grid-column: 2; grid-row: 2; }
 }
+/* ================= 대시보드 휴대폰 (C 시안 그대로) =================
+   넓은 화면 묶음(.dash-w)과 휴대폰 묶음(.dash-m) 중 하나만 보인다 */
+div.dash-w { display: contents; }
+.dash-m { display: none; }
+@media (max-width: 560px) {
+  .dash-w { display: none !important; }
+  .dash { gap: 14px; padding-top: 0; }
+  .dash-m { display: grid; gap: 14px; }
+  .dash-m .mono { font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0; }
+  .dash-m .m-head { display: grid; gap: 2px; margin: 0 -16px; padding: 14px 20px 16px; background: var(--glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid color-mix(in srgb, var(--fg) 7%, transparent); }
+  .dash-m .m-head .m-shop { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--fg2); }
+  .dash-m .m-head .m-shop img { border-radius: 6px; margin-right: 2px; }
+  .dash-m .m-head .m-shop .ok { color: var(--green-ink); }
+  .dash-m .m-head h1 { margin: 4px 0 0; font-size: 24px; font-weight: 600; }
+  .dash-m .m-head .muted { font-size: 13px; }
+  .dash-m .m-alert { padding: 13px 14px; }
+  .dash-m .m-alert span { font-size: 12.5px; line-height: 1.5; }
+  .dash-m .m-start { display: grid; gap: 2px; text-decoration: none; color: var(--fg); padding: 14px 16px; }
+  .dash-m .m-start .muted { font-size: 13px; }
+  .dash-m .m-sec { display: grid; gap: 8px; margin-top: 6px; }
+  .dash-m .m-sec h2 { margin: 0; font-size: 22px; font-weight: 500; letter-spacing: -0.03em; }
+  .dash-m .m-sec .row { display: flex; justify-content: space-between; align-items: baseline; }
+  .dash-m .tag { justify-self: start; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; color: var(--fg2); border-radius: 6px; padding: 3px 8px; border: 1px solid; }
+  .dash-m .tag svg { width: 13px; height: 13px; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .dash-m .tag.lav { background: var(--lav-soft); border-color: var(--lav-line); } .dash-m .tag.lav svg { stroke: var(--lav); }
+  .dash-m .tag.peach { background: color-mix(in srgb, #ff9f80 12%, var(--surface)); border-color: color-mix(in srgb, #ff9f80 40%, var(--surface)); } .dash-m .tag.peach svg { stroke: #d2552f; }
+  .dash-m .pill { display: inline-flex; align-items: center; min-height: 34px; padding: 0 12px; border-radius: 99px; background: color-mix(in srgb, var(--fg) 9%, transparent); font-size: 12.5px; font-weight: 500; color: var(--fg); text-decoration: none; }
+  .dash-m .m-money { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 12px; }
+  .dash-m .m-money .key { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 500; color: var(--fg2); }
+  .dash-m .m-money .key i { width: 12px; height: 12px; border-radius: 3px; background: var(--lav-line); border: 1px solid color-mix(in srgb, var(--lav) 60%, transparent); }
+  .dash-m .m-money > b { font-size: 34px; font-weight: 600; letter-spacing: -0.03em; text-align: center; font-variant-numeric: tabular-nums; }
+  .dash-m .vs { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; padding: 3px; border-radius: 8px; background: var(--soft); }
+  .dash-m .vs > span { display: grid; justify-items: center; gap: 1px; padding: 6px 0; border-radius: 6px; }
+  .dash-m .vs > span.on { background: var(--surface); box-shadow: 0 1px 2px rgba(0, 0, 0, .06); }
+  .dash-m .vs small { font-size: 11px; font-weight: 500; color: var(--fg2); }
+  .dash-m .vs span span { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12px; color: var(--fg2); }
+  .dash-m .vs .up { color: var(--green-ink); } .dash-m .vs .down { color: var(--danger); }
+  .dash-m .m-mini { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .dash-m .m-mini > div { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; gap: 4px; }
+  .dash-m .m-mini small { font-size: 11.5px; font-weight: 500; color: var(--fg2); }
+  .dash-m .m-mini b { font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .dash-m .m-mini span { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11px; color: var(--muted); }
+  .dash-m .m-chart { border-radius: 16px; padding: 12px; border: 1px solid color-mix(in srgb, var(--lav) 18%, transparent);
+    background: linear-gradient(135deg, color-mix(in srgb, #b9a6ff 16%, transparent), color-mix(in srgb, #f3a6d0 12%, transparent) 55%, color-mix(in srgb, #ff9f80 10%, transparent)); }
+  .dash-m .m-chart .in { display: grid; gap: 8px; padding: 14px; border-radius: 12px; background: color-mix(in srgb, var(--surface) 55%, transparent); border: 1px solid color-mix(in srgb, var(--surface) 80%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+  .dash-m .m-chart .row { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; font-weight: 500; }
+  .dash-m .m-chart .row .mono { font-size: 12px; font-weight: 400; color: var(--fg2); }
+  .dash-m .m-chart .bars, .dash-m .m-chart .xs { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 0 8px; }
+  .dash-m .m-chart .bars { height: 120px; align-items: end; border-bottom: 1px solid color-mix(in srgb, var(--fg) 6%, transparent); }
+  .dash-m .m-chart .bars span { justify-self: center; width: 10px; border-radius: 99px 99px 2px 2px; background: color-mix(in srgb, var(--lav) 30%, transparent); }
+  .dash-m .m-chart .bars span.on { background: color-mix(in srgb, var(--brand) 75%, transparent); }
+  .dash-m .m-chart .xs { font-size: 10px; color: var(--fg2); text-align: center; }
+  .dash-m .m-live { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 0 16px; display: grid; }
+  .dash-m .m-live > p { padding: 16px 0; margin: 0; font-size: 13.5px; }
+  .dash-m .m-live a { display: grid; gap: 7px; padding: 13px 0; color: var(--fg); text-decoration: none; }
+  .dash-m .m-live a + a { border-top: 1px solid var(--line); }
+  .dash-m .m-live .top { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
+  .dash-m .m-live .nm { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dash-m .m-live .dd { flex: none; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12px; color: var(--fg2); }
+  .dash-m .m-live .dd.hot { color: var(--brand-ink); border: 1px solid color-mix(in srgb, var(--brand) 35%, transparent); border-radius: 99px; padding: 1px 8px; }
+  .dash-m .m-live .bot { display: flex; align-items: center; gap: 10px; }
+  .dash-m .m-live .track { flex: 1; height: 4px; border-radius: 99px; background: var(--soft); overflow: hidden; }
+  .dash-m .m-live .track i { display: block; height: 100%; border-radius: 99px; background: var(--brand); }
+  .dash-m .m-live .track i.done { background: color-mix(in srgb, var(--lav) 70%, transparent); }
+  .dash-m .m-live .bot .mono { width: 92px; text-align: right; font-size: 11.5px; color: var(--fg2); }
+}
