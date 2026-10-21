@@ -49,7 +49,7 @@ export default function RadarClient() {
         </div>
         <ConsoleProvider api={SELLER_API}>
           <div role="tabpanel" className="rp">
-            {tab === "report" ? <SalesPanel say={say} excel={false} /> : <PeriodPanel say={say} />}
+            {tab === "report" ? <SalesPanel say={say} excel={false} report /> : <PeriodPanel say={say} />}
           </div>
         </ConsoleProvider>
       </main>
