@@ -1023,3 +1023,15 @@ div.dash-w { display: contents; }
 .rp-chart .pick span { color: var(--fg2); }
 .rp-chart .mono { font-variant-numeric: tabular-nums; }
 @media (max-width: 560px) { .rp-chart { padding: 16px; } }
+
+/* ================= 쇼핑몰 설정 (시안 3: 웹 W-Settings) ================= */
+.st-grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; align-items: start; }
+.st-main, .st-side { display: grid; gap: 16px; min-width: 0; }
+.card.pf { padding: 24px 28px; gap: 14px; }
+.pf .pf-t { font-size: 16px; }
+.pf-form { grid-template-columns: minmax(0, 1fr); }
+.pf-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 16px; border-top: 1px solid var(--line); }
+.pf-foot .muted { font-size: 13px; }
+.pf-foot .btn { flex: none; min-width: 96px; }
+@media (max-width: 1099px) { .st-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 560px) { .card.pf { padding: 18px; } .pf-foot { flex-direction: column; align-items: stretch; } }

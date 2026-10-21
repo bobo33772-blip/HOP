@@ -40,7 +40,7 @@ export default function SellerConsole({ mallId, initialTab, initialOpen, scopes 
   const TITLE: Record<Tab, [string, string]> = {
     list: ["공구 관리", "진행 상황을 보고, 고객이 기다리는 상품으로 다음 공구를 정하세요."],
     new: ["공구 열기", "고객이 많이 담아 둔 상품을 고르고 조건을 정하면 끝이에요."],
-    profile: ["쇼핑몰 설정", "광고 문자에 들어가는 정보예요."],
+    profile: ["쇼핑몰 설정", "광고 문자에 들어가는 정보와 앱 연결 상태예요."],
   };
 
   return (
@@ -59,23 +59,30 @@ export default function SellerConsole({ mallId, initialTab, initialOpen, scopes 
         </div>
         {!mall ? <p className="muted">불러오는 중…</p> : (
           <ConsoleProvider api={API}>
-            <ProfileCard mall={mall} always={tab === "profile"} onSaved={() => { say("저장했어요"); load(); }} say={say} />
+            {tab !== "profile" && <ProfileCard mall={mall} onSaved={() => { say("저장했어요"); load(); }} say={say} />}
             {tab === "list" && <ListTab mall={mallId} openId={openId} setOpenId={setOpenId} say={say} goNew={() => setTab("new")} />}
             {/* 고객이 기다리는 상품 (#92): 예전 모니터링(수요 레이더). 모니터링은 매출 통계로 바뀌었다 */}
             {tab === "list" && <div className="only-w"><DemandPanel /></div>}
             {tab === "new" && <NewTab mall={mallId} say={say} onOpened={(id) => { setOpenId(id); setTab("list"); }} />}
-            {tab === "profile" && <p className="note">광고 문자 맨 앞에 브랜드명이, 끝에 무료수신거부 번호가 자동으로 붙어요. 발신번호는 카페24 관리자 › SMS 발신번호 관리에 등록된 번호여야 해요.</p>}
-            {/* 앱이 쓰는 카페24 권한 안내(예전 홈 토글). 목록은 서버 설정(CAFE24_PRIVACY_SCOPE)에 따라 달라서 서버 페이지에서 받는다 */}
+            {/* 쇼핑몰 설정 (시안 3): 왼쪽 쇼핑몰 정보 · 카페24 권한, 오른쪽 화면 밝기 */}
             {tab === "profile" && (
-              <details className="card">
-                <summary>찜꽁이 쓰는 카페24 권한 {scopes.length}개</summary>
-                {scopes.map((s) => <p key={s.scope} className="small"><code>{s.scope}</code> · {s.why}</p>)}
-              </details>
+              <div className="st-grid">
+                <div className="st-main">
+                  <ProfileCard mall={mall} always foot="광고 문자 맨 앞에 브랜드명이, 끝에 무료수신거부 번호가 자동으로 붙어요." onSaved={() => { say("저장했어요"); load(); }} say={say} />
+                  {/* 앱이 쓰는 카페24 권한 안내(예전 홈 토글). 목록은 서버 설정(CAFE24_PRIVACY_SCOPE)에 따라 달라서 서버 페이지에서 받는다 */}
+                  <details className="card">
+                    <summary>찜꽁이 쓰는 카페24 권한 {scopes.length}개</summary>
+                    {scopes.map((s) => <p key={s.scope} className="small"><code>{s.scope}</code> · {s.why}</p>)}
+                  </details>
+                </div>
+                <aside className="st-side">
+                  {/* 화면 밝기 (#85): 휴대폰에서는 상단바 버튼이 없어서 여기서 바꾼다 */}
+                  <ThemeSetting />
+                </aside>
+              </div>
             )}
           </ConsoleProvider>
         )}
-        {/* 화면 밝기 (#85): 휴대폰에서는 상단바 버튼이 없어서 여기서 바꾼다 */}
-        {tab === "profile" && <ThemeSetting />}
       </main>
       {node}
     </>
