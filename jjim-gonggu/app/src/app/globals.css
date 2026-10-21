@@ -1035,3 +1035,12 @@ div.dash-w { display: contents; }
 .pf-foot .btn { flex: none; min-width: 96px; }
 @media (max-width: 1099px) { .st-grid { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 560px) { .card.pf { padding: 18px; } .pf-foot { flex-direction: column; align-items: stretch; } }
+.st-conn { gap: 4px; }
+.st-conn h2 { margin: 0 0 6px; font-size: 16px; font-weight: 600; }
+.st-conn ul { list-style: none; margin: 0; padding: 0; display: grid; }
+.st-conn li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 13px 0; font-size: 14.5px; }
+.st-conn li + li { border-top: 1px solid var(--line); }
+.st-conn b { font-weight: 600; font-size: 14px; white-space: nowrap; }
+.st-conn b.ok { color: var(--green-ink); }
+.st-conn b.need { color: var(--amber-ink); }
+.st-conn .callout { margin: 8px 0 0; font-size: 13.5px; color: var(--fg); }

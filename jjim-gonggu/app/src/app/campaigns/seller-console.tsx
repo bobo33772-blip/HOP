@@ -10,12 +10,13 @@ import type { Mall } from "../console/types";
 import type { ScopeInfo } from "@/lib/cafe24/scopes";
 import AppBar, { type Section } from "../components/app-bar";
 import { ThemeSetting } from "../components/theme-toggle";
+import WidgetInstallButton from "../components/widget-install-button";
 
 const API = { role: "seller", mallBase: "/api/seller", campaignBase: "/api/seller/campaigns", now: "/api/seller/now", loginUrl: "/" } as const;
 type Tab = "list" | "new" | "profile";
 const isTab = (s: string | null): s is Tab => s === "list" || s === "new" || s === "profile";
 
-export default function SellerConsole({ mallId, initialTab, initialOpen, scopes }: { mallId: string; initialTab?: string; initialOpen?: string; scopes: ScopeInfo[] }) {
+export default function SellerConsole({ mallId, initialTab, initialOpen, scopes, widget = false }: { mallId: string; initialTab?: string; initialOpen?: string; scopes: ScopeInfo[]; widget?: boolean }) {
   const [mall, setMall] = useState<Mall | null>(null);
   const [tab, setTabState] = useState<Tab>(isTab(initialTab ?? null) ? (initialTab as Tab) : "list");
   const [openId, setOpenId] = useState<string | null>(initialOpen ?? null);
@@ -76,6 +77,15 @@ export default function SellerConsole({ mallId, initialTab, initialOpen, scopes 
                   </details>
                 </div>
                 <aside className="st-side">
+                  <section className="card st-conn" aria-labelledby="st-conn-t">
+                    <h2 id="st-conn-t">연결 상태</h2>
+                    <ul>
+                      <li><span>카페24 앱</span><b className="ok">● 연결됨</b></li>
+                      <li><span>상품 페이지 위젯</span>{widget ? <b className="ok">● 설치됨</b> : <WidgetInstallButton />}</li>
+                      <li><span>무료수신거부 번호</span>{/^080/.test(mall.optOutNumber ?? "") ? <b className="ok">● 등록됨</b> : <b className="need">● 등록 필요</b>}</li>
+                    </ul>
+                    {!/^080/.test(mall.optOutNumber ?? "") && <p className="callout">080 번호를 등록해야 초대 문자를 보낼 수 있어요.</p>}
+                  </section>
                   {/* 화면 밝기 (#85): 휴대폰에서는 상단바 버튼이 없어서 여기서 바꾼다 */}
                   <ThemeSetting />
                 </aside>
