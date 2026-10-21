@@ -1014,3 +1014,12 @@ div.dash-w { display: contents; }
 .rp-table li .top { display: flex; justify-content: space-between; gap: 10px; }
 .rp-table li small { font-size: 12.5px; color: var(--fg2); }
 .rp-table .foot { margin: 0; padding: 14px 20px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--fg2); line-height: 1.6; }
+.rp-chart { display: grid; gap: 16px; padding: 20px 24px; border-radius: var(--r); border: 1px solid color-mix(in srgb, var(--lav) 22%, transparent);
+  background: linear-gradient(135deg, rgba(185, 166, 255, .16), rgba(243, 166, 208, .10) 55%, rgba(255, 159, 128, .08)), var(--surface); }
+.rp-chart .row { flex-wrap: wrap; gap: 10px; }
+.rp-chart h2 { margin: 0; font-size: 17px; font-weight: 600; }
+.rp-chart .seg { background: var(--surface); border: 1px solid var(--line); }
+.rp-chart .pick { margin: 0; font-size: 14.5px; }
+.rp-chart .pick span { color: var(--fg2); }
+.rp-chart .mono { font-variant-numeric: tabular-nums; }
+@media (max-width: 560px) { .rp-chart { padding: 16px; } }

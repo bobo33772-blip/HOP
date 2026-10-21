@@ -84,25 +84,23 @@ export function SalesPanel({ say, compact = false, excel = true, report = false 
   const cur = pts.find((p) => p.key === pick) ?? [...pts].reverse().find((p) => p.revenue > 0) ?? pts[pts.length - 1];
   const sold = s.campaigns.length > 0;
   const num = (n: number) => Math.round(n).toLocaleString("ko-KR");
+  // 매출 추이 (리포트): 그라디언트 판 안에 제목 · 단위 고르기, 세로 눈금 그래프, 아래에 고른 기간 한 줄
   const trend = (
-    <>
-      <div className="row" style={{ flexWrap: "wrap" }}>
-        <b style={{ fontSize: 15 }}>매출 추이</b>
+    <section className="rp-chart" aria-labelledby="rp-chart-t">
+      <div className="row"><h2 id="rp-chart-t">매출 추이</h2>
         <div className="seg" role="radiogroup" aria-label="추이 단위">
           {BY.map(([k, l]) => <button key={k} type="button" role="radio" aria-checked={by === k} onClick={() => { setBy(k); setPick(null); }}>{l}</button>)}
         </div>
       </div>
       {!pts.length ? <p className="muted">아직 결제된 주문이 없어요.</p> : (
         <>
-          <Bars label={`${BY.find(([k]) => k === by)![1]} 매출 막대. 막대를 누르면 그 기간 숫자가 아래에 보여요`}
+          <Bars axis height={260} label={`${BY.find(([k]) => k === by)![1]} 매출 막대. 막대를 누르면 그 기간 숫자가 아래에 보여요`}
             bars={pts.map((p) => ({ key: p.key, name: barName(p.key, by), value: p.revenue }))} picked={cur.key} onPick={setPick} />
-          <p aria-live="polite" style={{ margin: 0 }}>
-            <b>{cur.label}</b> · <b>{won(cur.revenue)}</b> <span className="small">결제 {cur.orders}건 · {cur.qty}개</span>
-          </p>
+          <p aria-live="polite" className="pick"><b>{cur.label}</b> · <b className="mono">{won(cur.revenue)}</b> <span>결제 {cur.orders}건 · {cur.qty}개</span></p>
           {s.trend.truncated && <p className="small">최근 {pts.length}칸만 보여요. 전체는 엑셀 날짜별로 받아 보세요.</p>}
         </>
       )}
-    </>
+    </section>
   );
   // 공구별 표 (시안 3): 상태는 점 + 이름, 숫자는 고정폭. 휴대폰은 목록
   const DOT: Record<string, string> = { open: "var(--brand)", reached: "var(--warning)", settled: "var(--lav)", failed: "var(--muted)", cancelled: "var(--muted)" };
@@ -149,7 +147,7 @@ export function SalesPanel({ say, compact = false, excel = true, report = false 
           <div><small>모집 중 신청 금액</small><strong>{num(rc.amount)}</strong><span>공구 {rc.campaigns}건 · {rc.qty}개</span></div>
           <div className="hl"><small>누적 확정 매출</small><strong>{num(t.revenue)}</strong><span>공구 {t.campaigns}건 · {t.qty}개</span></div>
         </section>
-        <section className="card">{trend}</section>
+        {sold && trend}
         {table}
       </>
     );
