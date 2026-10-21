@@ -1,7 +1,7 @@
 "use client";
 
 // 매출 막대그래프 (#99): 셀러박스 '기간별' 그래프처럼 막대 위에 금액, 아래에 기간 이름.
-// 시안 3: 옅은 그라디언트 유리판 위에 가는 반투명 라벤더 막대, 고른 칸만 반투명 분홍.
+// 시안 3: 옅은 그라디언트 유리판 위에 반투명 라벤더 막대(폭 24px), 고른 칸만 반투명 분홍.
 // 막대(칸 전체)를 누르면 그 칸을 고른다. 공구 매출의 '매출 추이'와 모니터링 › 판매 통계의 '기간별'이 같이 써서 모양이 늘 같다.
 
 import { useEffect, useRef } from "react";
@@ -43,8 +43,8 @@ export function Bars({ bars, picked, onPick, label, height = 150 }: {
                 <span style={{ height: TEXT, lineHeight: `${TEXT}px`, fontSize: 12.5, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>{shortWon(b.value)}</span>
               )}
               <span style={{
-                display: "block", width: many ? "min(8px, 60%)" : 12, minWidth: 4, height: `calc((100% - ${TEXT}px) * ${b.value / max})`, minHeight: b.value > 0 ? 4 : 0,
-                borderRadius: "99px 99px 2px 2px", background: on ? PICK : GRAY,
+                display: "block", width: many ? "min(14px, 70%)" : 24, minWidth: 4, height: `calc((100% - ${TEXT}px) * ${b.value / max})`, minHeight: b.value > 0 ? 4 : 0,
+                borderRadius: "8px 8px 2px 2px", background: on ? PICK : GRAY,
               }} />
             </span>
             <span style={{ fontSize: 13, paddingTop: 8, whiteSpace: "nowrap", visibility: named ? "visible" : "hidden" }}>{b.name}</span>
