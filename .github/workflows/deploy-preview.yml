@@ -1,0 +1,78 @@
+# PR에 푸시할 때마다 그 커밋을 Vercel 미리보기 서버에 데모 모드로 띄우고, 주소를 PR 댓글 하나에 적어 둔다.
+# 운영 배포(deploy-vercel)와 같은 비밀값(VERCEL_TOKEN · VERCEL_ORG_ID · VERCEL_PROJECT_ID)을 쓰고, --prod 없이 미리보기로만 배포한다.
+# 미리보기는 늘 데모 모드(CAFE24_MOCK=1): 모의 쇼핑몰 + 메모리 DB라 운영 DB(DATABASE_URL)와 실제 카페24에 닿지 않는다(src/db/index.ts).
+# 메모리 DB라 서버가 잠들었다 깨면 데이터가 처음으로 돌아간다. /demo에서 '데모 쇼핑몰로 시작하기'로 다시 들어가면 된다.
+# 다른 저장소에서 온 PR(포크)은 비밀값을 받지 못해 건너뛴다.
+name: deploy-preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "jjim-gonggu/app/**"
+      - ".github/workflows/deploy-preview.yml"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+# 같은 PR에 새 푸시가 오면 앞선 미리보기 배포는 끊는다
+concurrency:
+  group: vercel-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - name: 비밀값 확인
+        id: secrets
+        run: |
+          if [ -n "$VERCEL_TOKEN" ] && [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then
+            echo "ok=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::VERCEL_TOKEN · VERCEL_ORG_ID · VERCEL_PROJECT_ID 비밀값이 없어 미리보기 배포를 건너뛰어요."
+          fi
+      - uses: actions/checkout@v4
+        if: steps.secrets.outputs.ok == '1'
+      - name: Vercel 미리보기 배포 (데모 모드)
+        if: steps.secrets.outputs.ok == '1'
+        working-directory: jjim-gonggu/app
+        # --env는 이 배포에만 붙는 실행 환경변수. 프로젝트의 Preview 환경변수보다 앞선다
+        run: |
+          set -o pipefail
+          npx --yes vercel@62.2.0 deploy --yes --token="$VERCEL_TOKEN" \
+            --build-env CAFE24_MOCK=1 --env CAFE24_MOCK=1 --env SCHEDULER=inline \
+            | tee "$RUNNER_TEMP/url.txt"
+          echo "url=$(tail -1 "$RUNNER_TEMP/url.txt")" >> "$GITHUB_ENV"
+      - name: PR 댓글에 주소 남기기
+        if: steps.secrets.outputs.ok == '1'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const url = process.env.url;
+            const sha = context.payload.pull_request.head.sha.slice(0, 7);
+            const mark = "<!-- jjim-preview -->";
+            const body = [
+              mark,
+              `### 미리보기 서버 (데모 모드) · \`${sha}\``,
+              ``,
+              `- 데모 시작: ${url}/api/cafe24/launch`,
+              `- 데모 안내: ${url}/demo`,
+              ``,
+              `모의 쇼핑몰 + 메모리 DB라 운영 데이터와 실제 카페24에는 닿지 않아요. 서버가 잠들었다 깨면 데이터가 처음으로 돌아가요.`,
+              `이 PR에 새로 푸시하면 몇 분 뒤 이 댓글의 주소가 새 커밋으로 바뀌어요.`,
+            ].join("\n");
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+            const all = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number, per_page: 100 });
+            const old = all.find((c) => c.user.type === "Bot" && c.body.includes(mark));
+            if (old) await github.rest.issues.updateComment({ owner, repo, comment_id: old.id, body });
+            else await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            await core.summary.addHeading(`미리보기 · ${sha}`, 3).addRaw(url).write();

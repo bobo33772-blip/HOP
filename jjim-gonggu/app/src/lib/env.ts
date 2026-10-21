@@ -26,7 +26,9 @@ export const env = () => {
   const e = schema.parse(process.env);
   const mock = e.CAFE24_MOCK === "1";
   const adminToken = e.ADMIN_TOKEN || (mock ? (g.__jjimDemoAdmin ??= randomBytes(18).toString("base64url")) : "");
-  return { ...e, mock, adminToken, redirectUri: `${e.APP_BASE_URL}/api/cafe24/callback` };
+  // Vercel 미리보기(데모 모드, deploy-preview 워크플로)는 배포마다 주소가 달라서 그 배포 주소를 쓴다. 운영(실제 모드)은 APP_BASE_URL 그대로
+  const base = mock && process.env.VERCEL_ENV === "preview" && process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : e.APP_BASE_URL;
+  return { ...e, APP_BASE_URL: base, mock, adminToken, redirectUri: `${base}/api/cafe24/callback` };
 };
 
 export function requireReal() {
