@@ -38,8 +38,8 @@ export default function SellerConsole({ mallId, initialTab, initialOpen, scopes 
 
   const nav = (s: Section) => (isTab(s) ? (setTab(s), true) : false);
   const TITLE: Record<Tab, [string, string]> = {
-    list: ["내 공구", "진행 상황을 보고, 고객이 기다리는 상품으로 다음 공구를 정하세요."],
-    new: ["새 공구 열기", "고객이 많이 담아 둔 상품을 고르고 조건을 정하면 끝이에요."],
+    list: ["공구 관리", "진행 상황을 보고, 고객이 기다리는 상품으로 다음 공구를 정하세요."],
+    new: ["공구 열기", "고객이 많이 담아 둔 상품을 고르고 조건을 정하면 끝이에요."],
     profile: ["쇼핑몰 설정", "광고 문자에 들어가는 정보예요."],
   };
 

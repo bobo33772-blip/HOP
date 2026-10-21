@@ -1,4 +1,5 @@
-// 판매자 홈: 시작하기 체크리스트 · 숫자 요약 · 공구 매출 그래프(#92) · 내 공구(진행률) · 셀러 가이드라인(권한 안내는 설정 화면).
+// 판매자 대시보드(예전 홈): 가장 급한 일 한 줄 · 시작하기 · 숫자 요약 · 공구 매출 그래프(#92) · 최근 공구 · 셀러 가이드라인.
+// 메뉴 이름(공구 관리 · 공구 열기 · 매출 리포트)과 구역 이름을 맞춰, 구역을 누르면 같은 이름의 화면으로 간다.
 
 import { eq } from "drizzle-orm";
 import { schema } from "@/db";
@@ -57,19 +58,36 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
     ["모집된 수량", open.reduce((n, c) => n + c.pledgedQty, 0)],
     ["달성한 공구", camps.filter((c) => c.state === "reached" || c.state === "settled").length],
   ] as const;
+  // 가장 급한 일 한 줄: 결제 기간 중 결제 마감이 가장 가까운 공구, 없으면 모집 마감이 가장 가까운 공구
+  const now = ctx.clock.now().getTime();
+  const daysLeft = (d: Date) => Math.max(0, Math.ceil((d.getTime() - now) / 86_400_000));
+  const dday = (d: Date) => (daysLeft(d) === 0 ? "D-DAY" : `D-${daysLeft(d)}`);
+  const paying = camps.filter((c) => c.state === "reached" && c.payUntil).sort((x, y) => x.payUntil!.getTime() - y.payUntil!.getTime())[0];
+  const closing = [...open].sort((x, y) => x.deadlineAt.getTime() - y.deadlineAt.getTime())[0];
+  const urgent = paying
+    ? { href: `/campaigns?open=${paying.id}`, title: `결제 마감 ${dday(paying.payUntil!)}`, text: `${paying.productName} · 결제 마감 ${fmtKst(paying.payUntil!)}` }
+    : closing
+      ? { href: `/campaigns?open=${closing.id}`, title: `모집 마감 ${dday(closing.deadlineAt)}`, text: `${closing.productName} · ${closing.pledgedQty} / ${closing.targetQty}개 · 마감 ${fmtKst(closing.deadlineAt)}` }
+      : null;
+  const today = fmtKst(new Date(now)).split(" ")[0];
 
   return (
     <>
       <AppBar current="home" shop={mall?.brandName ?? session.mallId} />
       <main>
         {notice && <p className="err" role="alert">{notice}</p>}
-        <div className="hello">
-          <span className="eyebrow">{mock ? "데모 모드" : "카페24 연결됨"}</span>
-          <h1>{mall?.brandName ?? session.mallId}님, 안녕하세요</h1>
-          <p className="muted">장바구니에 담아 둔 고객이 모이면, 그때 만들고 파세요.</p>
-          {/* 처음 들어오면 로고 인트로 + 사용법 장면이 저절로 열린다. 이 버튼으로 다시 본다 */}
-          <SellerOnboarding />
+        <div className="dash-head">
+          <div className="hello">
+            <span className="eyebrow">{mock ? "데모 모드" : "카페24 연결됨"}</span>
+            <h1>대시보드</h1>
+            <p className="muted">{mall?.brandName ?? session.mallId} · {today} · 지금 공구 현황이에요.</p>
+            {/* 처음 들어오면 로고 인트로 + 사용법 장면이 저절로 열린다. 이 버튼으로 다시 본다 */}
+            <SellerOnboarding />
+          </div>
+          <a className="btn dark compact" href="/campaigns?tab=new">＋ 공구 열기</a>
         </div>
+
+        {urgent && <a className="callout" href={urgent.href}><b>{urgent.title}</b><span>{urgent.text}</span></a>}
 
         {!allDone && (
           <div className="card">
@@ -86,14 +104,15 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
           </div>
         )}
 
+        <div className="section-head"><h2>공구 현황</h2><a href="/radar">매출 리포트 ›</a></div>
         <div className="stats">
           {stats.map(([label, n]) => <div key={label} className="stat"><small>{label}</small><strong>{n}</strong></div>)}
         </div>
 
-        {/* 공구 매출 그래프 (#92). 공구별 표 · 엑셀은 내 공구 화면에 */}
+        {/* 공구 매출 그래프 (#92). 공구별 표 · 엑셀은 매출 리포트에 */}
         <HomeSales />
 
-        <div className="section-head"><h2>내 공구</h2>{camps.length > 0 && <a href="/campaigns">전체 보기 ›</a>}</div>
+        <div className="section-head"><h2>최근 공구</h2>{camps.length > 0 && <a href="/campaigns">공구 관리 ›</a>}</div>
         {camps.length === 0 ? (
           <div className="card empty">
             <img src="/logo.svg" alt="" />
@@ -101,23 +120,26 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
             <p className="muted">고객이 많이 담아 둔 상품으로 첫 공구를 열어 보세요.</p>
           </div>
         ) : (
-          <div className="camps">
+          <ul className="list camp-rows">
             {camps.map((c) => {
               const [label, cls] = CHIP[c.state as State] ?? [c.state, ""];
               const ratio = Math.min(1, c.pledgedQty / c.targetQty);
+              const due = c.state === "reached" && c.payUntil ? `결제 마감 ${fmtKst(c.payUntil)}` : `마감 ${fmtKst(c.deadlineAt)}`;
               return (
-                <a key={c.id} className="card camp" href={`/campaigns?open=${c.id}`}>
-                  <div className="row"><span className="name">{c.productName}</span><span className={`chip ${cls}`}>{label}</span></div>
-                  <div className="count">{c.pledgedQty}<small> / {c.targetQty}개</small></div>
-                  <div className={`bar${ratio >= 1 ? " ok" : ""}`}><i style={{ width: `${ratio * 100}%` }} /></div>
-                  <span className="small">마감 {fmtKst(c.deadlineAt)}</span>
-                </a>
+                <li key={c.id}>
+                  <a className="item" href={`/campaigns?open=${c.id}`}>
+                    <span className="meta">
+                      <b>{c.productName}</b>
+                      <span className={`bar${ratio >= 1 ? " ok" : ""}`}><i style={{ width: `${ratio * 100}%` }} /></span>
+                      <small>{c.pledgedQty} / {c.targetQty}개 · {Math.round((c.pledgedQty / c.targetQty) * 100)}% · {due}</small>
+                    </span>
+                    <span className={`chip ${cls}`}>{label}</span>
+                  </a>
+                </li>
               );
             })}
-          </div>
+          </ul>
         )}
-
-        <a className="btn dark compact" href="/campaigns?tab=new">＋ 새 공구 열기</a>
 
         <details className="card">
           <summary>셀러 가이드라인 자세히 보기</summary>

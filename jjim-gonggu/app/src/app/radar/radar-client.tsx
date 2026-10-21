@@ -29,12 +29,12 @@ export default function RadarClient() {
     <>
       <AppBar current="radar" />
       <main>
-        <div className="hello"><h1>모니터링</h1><p className="muted">공구로 번 돈을 한눈에 보고, 달마다 얼마나 팔렸는지 비교해요.</p></div>
+        <div className="hello"><h1>매출 리포트</h1><p className="muted">공구로 번 돈을 한눈에 보고, 달마다 얼마나 팔렸는지 비교해요.</p></div>
         {/* 밑줄 탭 두 칸 */}
-        <div role="tablist" aria-label="모니터링" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", borderBottom: "1px solid var(--line)" }}>
+        <div role="tablist" aria-label="매출 리포트" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", borderBottom: "1px solid var(--line)" }}>
           {TABS.map(([k, l]) => (
             <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
-              style={{ border: 0, background: "none", padding: "12px 0", fontSize: 16, fontWeight: tab === k ? 800 : 600, color: tab === k ? "var(--fg)" : "var(--muted)", boxShadow: tab === k ? "inset 0 -2.5px 0 var(--fg)" : undefined }}>
+              style={{ border: 0, background: "none", padding: "12px 0", fontSize: 15, fontWeight: tab === k ? 600 : 500, color: tab === k ? "var(--fg)" : "var(--muted)", boxShadow: tab === k ? "inset 0 -2px 0 var(--fg)" : undefined }}>
               {l}
             </button>
           ))}

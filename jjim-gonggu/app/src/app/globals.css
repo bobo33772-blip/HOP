@@ -416,3 +416,93 @@ details.card > :not(summary) { margin-top: 14px; }
   .card { padding: 28px; gap: 16px; }
   @supports selector(:has(a)) { body:has(.appbar.side) main { padding: 44px 40px 96px; } }
 }
+
+/* ================= 시안 3: 투명하고 얇게 (Mixpanel풍) =================
+   위(시안 2)를 덮어쓴다. 연회색 바탕 + 가는 테두리 카드, 가볍고 큰 제목, 알약 버튼,
+   반투명 유리 메뉴(넓은 화면 사이드바 · 휴대폰 아래 탭 바), 옅은 라벤더 선택색, 보라→주황 그라디언트 테두리 안내 상자.
+   진한 먹색 칸 · 굵은 막대는 쓰지 않는다. 포인트 분홍은 진행 막대 · 고른 막대 · 급한 D-day에만 */
+:root {
+  --bg: #f7f7f7; --line: #e8e8e8; --fg: #1f1f1f; --fg2: #4a4a4a; --muted: #5f5f5f; --soft: #f2f2f2; --ink: #1f1f1f; --btn-dark: #1f1f1f;
+  --lav: #8f7ff0; --lav-soft: #f1edff; --lav-line: #ddd3ff; --lav-ink: #3b2a99;
+  --call-a: #f6f1ff; --call-b: #fff3ee; --glass: rgba(255, 255, 255, .72);
+  --r: 14px; --r-sm: 10px; --side: 220px;
+}
+:root[data-theme="dark"] {
+  --lav: #9d92ff; --lav-soft: #26213d; --lav-line: #3a3360; --lav-ink: #c3bbff;
+  --call-a: #221d33; --call-b: #2b211f; --glass: rgba(27, 30, 37, .78);
+}
+body { letter-spacing: -0.02em; }
+h1 { font-size: 28px; font-weight: 500; letter-spacing: -0.03em; }
+.section-head h2 { font-size: 20px; font-weight: 500; letter-spacing: -0.03em; }
+.card, .stat, .list, .tw, .kpi div { border: 1px solid var(--line); box-shadow: none; }
+.card { border-radius: var(--r); }
+.camp:hover { border-color: var(--lav-line); transform: none; }
+.stat strong, .count, .kpi strong { font-weight: 600; }
+.stat::before { background-color: var(--soft); }
+
+/* 버튼: 알약 */
+.btn, .btn.compact { border-radius: 99px; font-weight: 500; }
+.btn { min-height: 46px; }
+.ghost { border-radius: 99px; font-weight: 500; background: var(--surface); }
+.ghost:hover { background: var(--soft); }
+
+/* 칩 · 머리 태그: 작은 사각 + 옅은 테두리 */
+.pill, .chip { border-radius: 6px; padding: 3px 8px; font-weight: 500; border: 1px solid color-mix(in srgb, currentColor 22%, transparent); }
+.chip.ok { color: var(--lav-ink); background: var(--lav-soft); }
+.hello .eyebrow { border-radius: 6px; background: var(--lav-soft); color: var(--lav-ink); border: 1px solid var(--lav-line); font-weight: 500; }
+
+/* 고른 칸: 옅은 라벤더 */
+.seg { background: var(--soft); }
+.seg button[aria-checked="true"] { background: var(--lav-soft); color: var(--lav-ink); box-shadow: inset 0 0 0 1px var(--lav-line); }
+.camp[aria-pressed="true"] { border-color: var(--lav); box-shadow: 0 0 0 3px var(--lav-soft); }
+
+/* 안내 상자: 보라→주황 그라디언트 테두리 */
+.callout { display: grid; gap: 4px; padding: 13px 16px; border-radius: var(--r-sm); border: 1px solid transparent; color: var(--fg); text-decoration: none;
+  background: linear-gradient(90deg, var(--call-a), var(--call-b)) padding-box, linear-gradient(90deg, #c4b2ff, #ffb199) border-box; }
+.callout b { font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
+.callout span { font-size: 13px; color: var(--fg2); }
+.warn, .note { border-radius: var(--r-sm); }
+
+/* 진행 막대: 얇게 */
+.bar { height: 6px; background: var(--soft); }
+.bar i { background: color-mix(in srgb, var(--brand) 70%, transparent); }
+
+/* 표: 가는 선 */
+.tw thead th { background: var(--surface); }
+details.card > summary::before { background-color: var(--soft); }
+
+/* 메뉴: 반투명 유리 */
+.appbar { background: var(--glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom-color: color-mix(in srgb, var(--fg) 8%, transparent); }
+.tabs [aria-current="page"], .tabs [aria-selected="true"] { box-shadow: inset 0 -2px 0 var(--fg); }
+@media (min-width: 900px) { @supports selector(:has(a)) {
+  .appbar.side { border-right: 1px solid color-mix(in srgb, var(--fg) 8%, transparent); }
+  .appbar.side .shop { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; margin: 0 0 10px; background: var(--surface); }
+  .appbar.side .tabs a { font-weight: 500; color: var(--fg2); border-radius: 10px; }
+  .appbar.side .tabs a svg { stroke-width: 1.5; }
+  .appbar.side .tabs [aria-current="page"] { background: color-mix(in srgb, var(--lav) 10%, transparent); color: var(--fg); font-weight: 600; box-shadow: none; }
+} }
+
+/* 휴대폰(560px 이하): 판매자 메뉴를 화면 아래 탭 바로. 큰 아이콘 위 · 글자 아래 */
+@media (max-width: 560px) {
+  .appbar.side { position: fixed; top: auto; bottom: 0; left: 0; right: 0; z-index: 12; background: color-mix(in srgb, var(--surface) 92%, transparent); border-bottom: 0; border-top: 1px solid color-mix(in srgb, var(--fg) 8%, transparent); }
+  .appbar.side .in { padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px)); gap: 0; }
+  .appbar.side .logo, .appbar.side .shop { display: none; }
+  .appbar.side .tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); flex: 1; gap: 0; }
+  .appbar.side .tabs a { display: grid; justify-items: center; gap: 3px; padding: 6px 0; font-size: 11px; font-weight: 500; border-radius: 12px; box-shadow: none; }
+  .appbar.side .tabs svg { display: block; width: 24px; height: 24px; stroke-width: 1.6; }
+  .appbar.side .tabs [aria-current="page"] { background: color-mix(in srgb, var(--lav) 10%, transparent); color: var(--fg); font-weight: 600; box-shadow: none; }
+  body:has(.appbar.side) { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+  body:has(.appbar.side) .toast { bottom: calc(92px + env(safe-area-inset-bottom, 0px)); }
+  h1 { font-size: 24px; }
+}
+
+/* 대시보드 머리: 제목 왼쪽 · '공구 열기' 오른쪽 위 (예전 홈 아래 버튼을 위로) */
+.dash-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.dash-head .btn { flex: none; }
+/* 진행 중인 공구: 큰 카드 대신 한 줄씩 (이름 · 얇은 진행 막대 · 수량 · 마감) */
+.camp-rows .item { text-decoration: none; }
+.camp-rows .meta { gap: 6px; }
+.camp-rows .bar { width: 100%; }
+/* 휴대폰 아래 탭 바 위로 데모 역할 배지를 올린다 (배지는 인라인 bottom: 16px) */
+@media (max-width: 560px) { body:has(.appbar.side) .demo-role { bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important; } }
+.kpi div { background: var(--surface); }
