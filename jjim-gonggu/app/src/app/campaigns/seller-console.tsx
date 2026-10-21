@@ -47,13 +47,21 @@ export default function SellerConsole({ mallId, initialTab, initialOpen, scopes 
     <>
       <AppBar current={tab} shop={mall?.brandName ?? mallId} onNavigate={nav} />
       <main className="wide">
-        <div className="hello"><h1>{TITLE[tab][0]}</h1><p className="muted">{TITLE[tab][1]}</p></div>
+        {/* 머리 (시안 3): 대시보드 › 화면 이름, 제목, 설명. 공구 관리는 오른쪽 위에 '공구 열기' (휴대폰은 제목 옆 작은 버튼) */}
+        <div className={`page-head${tab === "list" ? " ph-list" : ""}`}>
+          <div className="hello">
+            <span className="crumb only-w"><a href="/">대시보드</a> › {TITLE[tab][0]}</span>
+            <h1>{TITLE[tab][0]}</h1>
+            <p className={tab === "list" ? "muted only-w" : "muted"}>{TITLE[tab][1]}</p>
+          </div>
+          {tab === "list" && <button type="button" className="btn dark compact ph-new" onClick={() => setTab("new")}>＋ 공구 열기</button>}
+        </div>
         {!mall ? <p className="muted">불러오는 중…</p> : (
           <ConsoleProvider api={API}>
             <ProfileCard mall={mall} always={tab === "profile"} onSaved={() => { say("저장했어요"); load(); }} say={say} />
             {tab === "list" && <ListTab mall={mallId} openId={openId} setOpenId={setOpenId} say={say} goNew={() => setTab("new")} />}
             {/* 고객이 기다리는 상품 (#92): 예전 모니터링(수요 레이더). 모니터링은 매출 통계로 바뀌었다 */}
-            {tab === "list" && <DemandPanel />}
+            {tab === "list" && <div className="only-w"><DemandPanel /></div>}
             {tab === "new" && <NewTab mall={mallId} say={say} onOpened={(id) => { setOpenId(id); setTab("list"); }} />}
             {tab === "profile" && <p className="note">광고 문자 맨 앞에 브랜드명이, 끝에 무료수신거부 번호가 자동으로 붙어요. 발신번호는 카페24 관리자 › SMS 발신번호 관리에 등록된 번호여야 해요.</p>}
             {/* 앱이 쓰는 카페24 권한 안내(예전 홈 토글). 목록은 서버 설정(CAFE24_PRIVACY_SCOPE)에 따라 달라서 서버 페이지에서 받는다 */}

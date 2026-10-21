@@ -713,3 +713,153 @@ div.dash-w { display: contents; }
   .dash-m .m-live .track i.done { background: color-mix(in srgb, var(--lav) 70%, transparent); }
   .dash-m .m-live .bot .mono { width: 92px; text-align: right; font-size: 11.5px; color: var(--fg2); }
 }
+
+/* ================= 공구 관리 (시안 3: 웹 W-Campaigns · 휴대폰 C-Campaigns / C-Detail) ================= */
+/* 넓은 화면 전용 · 휴대폰 전용 */
+@media (max-width: 560px) { .only-w { display: none !important; } }
+@media (min-width: 561px) { .only-m { display: none !important; } }
+
+/* 머리: 대시보드 › 공구 관리 · 제목 · 설명, 오른쪽 위 공구 열기 */
+.page-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.page-head .crumb { font-size: 13px; color: var(--fg2); }
+.page-head .crumb a { color: var(--fg2); text-decoration: none; }
+.page-head .crumb a:hover { color: var(--fg); text-decoration: underline; }
+.page-head h1 { font-size: 30px; }
+.page-head .ph-new { flex: none; justify-self: auto; }
+
+/* 목록 카드: 필터 칩 · 검색 + 표 */
+.cm { display: grid; gap: 18px; }
+.cm-list { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.cm-tools { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.cm-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.cm-chips button { border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 8px; padding: 6px 12px; font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+.cm-chips button span { font-variant-numeric: tabular-nums; }
+.cm-chips button[aria-checked="true"] { background: var(--lav-soft); border-color: var(--lav-line); color: var(--lav-ink); }
+.cm-search { position: relative; display: flex; align-items: center; min-width: 220px; flex: 0 1 300px; }
+.cm-search svg { position: absolute; left: 12px; width: 14px; height: 14px; fill: none; stroke: var(--muted); stroke-width: 2.2; stroke-linecap: round; pointer-events: none; }
+.cm-search input { width: 100%; min-height: 38px; padding: 0 12px 0 32px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font: inherit; font-size: 13.5px; color: var(--fg); }
+.cm-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.cm-table th { background: var(--soft); font-size: 12.5px; font-weight: 500; color: var(--muted); text-align: left; padding: 11px 16px; white-space: nowrap; }
+.cm-table td { padding: 12px 16px; border-top: 1px solid var(--line); vertical-align: middle; }
+.cm-table tbody tr { cursor: pointer; }
+.cm-table tbody tr:hover { background: color-mix(in srgb, var(--soft) 60%, transparent); }
+.cm-table tbody tr.on { background: color-mix(in srgb, var(--brand) 7%, var(--surface)); box-shadow: inset 3px 0 0 var(--brand); }
+.cm-table .n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cm-table .nm { border: 0; background: none; padding: 0; font: inherit; font-weight: 600; color: var(--fg); text-align: left; cursor: pointer; }
+.cm-table .st { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+.cm-table .st i { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+.cm-table .rate { display: flex; align-items: center; gap: 12px; min-width: 170px; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.cm-table .rate .track { flex: 1; height: 3px; border-radius: 99px; background: var(--soft); overflow: hidden; }
+.cm-table .rate i { display: block; height: 100%; }
+.cm-table .rate > span:last-child { width: 40px; text-align: right; }
+.cm-table .due { font-size: 13px; color: var(--fg2); }
+
+/* 상세: 왼쪽 숫자 · 결제 · 문자, 오른쪽 이 공구에서 할 일 */
+.card.cd { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); gap: 0; padding: 0; overflow: hidden; }
+.cd-main { display: grid; gap: 16px; align-content: start; padding: 22px 24px; }
+.cd-side { display: grid; gap: 12px; align-content: start; padding: 22px 24px; background: color-mix(in srgb, var(--soft) 55%, transparent); border-left: 1px solid var(--line); }
+.cd-side > b { font-size: 15px; }
+.cd-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.cd-head .row { justify-content: flex-start; gap: 10px; flex-wrap: wrap; }
+.cd-head h2 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
+.cd-head p { margin: 4px 0 0; font-size: 13.5px; }
+.cd-head .ghost { flex: none; border: 1px solid var(--line); border-radius: 10px; }
+.cd .mono { font-variant-numeric: tabular-nums; }
+.cd-kpis { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.cd-kpis > div { display: grid; gap: 4px; padding: 10px 14px; }
+.cd-kpis > div + div { border-left: 1px solid var(--line); }
+.cd-kpis span { font-size: 12px; color: var(--fg2); }
+.cd-kpis b { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.cd-pay { display: grid; gap: 8px; }
+.cd-pay .row { flex-wrap: wrap; gap: 6px 12px; font-size: 13.5px; }
+.cd-pay .row b em { font-style: normal; color: var(--lav-ink); }
+.cd-pay .bar2 { display: flex; height: 8px; border-radius: 99px; background: var(--soft); overflow: hidden; }
+.cd-pay .bar2 i { display: block; height: 100%; background: color-mix(in srgb, var(--lav) 70%, transparent); }
+.cd-pay .bar2 i.w { background: color-mix(in srgb, var(--warning) 28%, transparent); }
+.cd-pay .legend { display: flex; gap: 14px; font-size: 12.5px; color: var(--fg2); }
+.cd-pay .legend span { display: inline-flex; align-items: center; gap: 6px; }
+.cd-pay .legend i { width: 9px; height: 9px; border-radius: 2px; background: color-mix(in srgb, var(--lav) 70%, transparent); }
+.cd-pay .legend i.w { background: color-mix(in srgb, var(--warning) 35%, transparent); }
+.cd-msgs { display: grid; gap: 8px; }
+.cd-msgs h3 { margin: 0; font-size: 15px; }
+.cd-msgs .n { text-align: right; }
+.cd-msgs .ms { font-weight: 600; font-size: 13px; }
+.cd-msgs .ms-ok { color: var(--green-ink); } .cd-msgs .ms-warn { color: var(--amber-ink); } .cd-msgs .ms-bad { color: var(--danger); } .cd-msgs .ms-open { color: var(--fg2); }
+.cd-msgs details summary { font-size: 13.5px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.cd-now b { color: var(--amber-ink); text-decoration: none; }
+.cd-now span { font-size: 13.5px; color: var(--fg); line-height: 1.55; }
+.cd-box { display: grid; gap: 8px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.cd-box .muted { font-size: 13px; line-height: 1.55; }
+.cd-box .form { grid-template-columns: 1fr 1fr; }
+.cd-ph { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cd-ph span { border: 1px dashed var(--line); border-radius: 8px; padding: 9px 12px; font-size: 12.5px; color: var(--muted); }
+.cd-foot { margin-top: auto; }
+.cd-sum { display: contents; }
+@media (max-width: 1099px) { .card.cd { grid-template-columns: minmax(0, 1fr); } .cd-side { border-left: 0; border-top: 1px solid var(--line); } .cd-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } .cd-kpis > div:nth-child(4) { border-left: 0; } .cd-kpis > div:nth-child(n+4) { border-top: 1px solid var(--line); } }
+
+/* 고객이 기다리는 상품: 제목 · 정렬, 순위 카드 4칸 */
+.waitp { display: grid; gap: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 20px 24px; }
+.wait-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.wait-head h2 { margin: 0 0 4px; font-size: 17px; font-weight: 600; }
+.wait-head .muted { font-size: 13px; }
+.wait-head .ghost { border: 1px solid var(--line); border-radius: 10px; }
+.wait-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.wait-grid button { width: 100%; display: grid; gap: 10px; text-align: left; padding: 16px 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--fg); font: inherit; cursor: pointer; }
+.wait-grid button:hover { border-color: var(--lav-line); }
+.wait-grid .rk { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.wait-grid .tot { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.wait-grid .nm { font-size: 15px; font-weight: 600; }
+.wait-grid .bars { display: flex; height: 6px; border-radius: 99px; background: var(--soft); overflow: hidden; }
+.wait-grid .bars i { display: block; height: 100%; background: var(--brand); }
+.wait-grid .bars i.c { background: color-mix(in srgb, var(--brand) 40%, var(--surface)); }
+.wait-grid small { font-size: 13px; color: var(--fg2); }
+.wait-grid .go { font-size: 13.5px; font-weight: 600; color: var(--brand-ink); }
+@media (max-width: 1099px) { .wait-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* 휴대폰: 제목 줄 + 작은 공구 열기, 숫자 상태 탭, 공구 카드 */
+@media (max-width: 560px) {
+  .page-head { align-items: center; margin: -24px -16px 0; padding: 14px 20px; background: var(--glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid color-mix(in srgb, var(--fg) 7%, transparent); }
+  .page-head h1 { font-size: 22px; font-weight: 600; margin: 0; }
+  .page-head .ph-new { min-height: 44px; padding: 0 16px; background: var(--lav-soft); color: var(--lav-ink); border: 1px solid var(--lav-line); font-weight: 500; }
+  main:has(.cm-open) > .page-head.ph-list { display: none; }
+  .cm-open .cm-m { display: none; }
+  .cm-m { display: grid; gap: 10px; }
+  .cm-mtabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: -16px -16px 6px; padding: 0 8px; background: var(--surface); border-bottom: 1px solid var(--line); }
+  .cm-mtabs button { border: 0; background: none; display: grid; justify-items: center; gap: 2px; min-height: 64px; padding: 8px 0 10px; font: inherit; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; }
+  .cm-mtabs button b { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 22px; font-weight: 700; line-height: 1.1; }
+  .cm-mtabs button[aria-checked="true"] { color: var(--fg); box-shadow: inset 0 -3px 0 var(--fg); }
+  .cm-card { display: grid; gap: 10px; width: 100%; text-align: left; padding: 16px 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--fg); font: inherit; cursor: pointer; }
+  .cm-card .top { display: flex; align-items: flex-start; gap: 10px; }
+  .cm-card .t { display: grid; gap: 3px; flex: 1; min-width: 0; }
+  .cm-card .t b { font-size: 16px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cm-card .st { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--fg2); }
+  .cm-card .st i { width: 8px; height: 8px; border-radius: 50%; }
+  .cm-card .dd { flex: none; font-size: 13px; font-weight: 600; padding: 5px 11px; border-radius: 99px; white-space: nowrap; background: var(--soft); color: var(--fg2); }
+  .cm-card .dd.hot { background: transparent; color: var(--brand-ink); border: 1px solid color-mix(in srgb, var(--brand) 35%, transparent); }
+  .cm-card .big { display: flex; align-items: baseline; gap: 10px; }
+  .cm-card .big b { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 28px; font-weight: 700; line-height: 1; }
+  .cm-card .big span { font-size: 13.5px; font-weight: 600; color: var(--fg2); }
+  .cm-card .track { display: block; height: 4px; border-radius: 99px; background: var(--soft); overflow: hidden; }
+  .cm-card .track i { display: block; height: 100%; border-radius: 99px; background: color-mix(in srgb, var(--lav) 70%, transparent); }
+  .cm-card .track i.open { background: var(--brand); } .cm-card .track i.failed, .cm-card .track i.cancelled { background: var(--muted); opacity: .5; }
+  .cm-wait { grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; margin-top: 4px; }
+  .cm-wait .ic { width: 48px; height: 48px; border-radius: 16px; background: var(--soft); display: grid; place-items: center; }
+  .cm-wait .ic svg { width: 26px; height: 26px; fill: none; stroke: var(--fg); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .cm-wait .t span { font-size: 13px; color: var(--fg2); }
+  .cm-wait .chev { font-size: 24px; color: var(--muted); }
+  /* 상세: ‹ 공구 상세 머리, 카드 하나에 상태 · 이름 · 결제 · 표, 그 아래 NEXT TO DO */
+  .cm-back { margin: -24px -16px 0; padding: 14px 16px; display: flex; align-items: center; gap: 6px; border: 0; border-bottom: 1px solid color-mix(in srgb, var(--fg) 7%, transparent); background: var(--glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); font: inherit; font-size: 17px; font-weight: 600; color: var(--fg); text-align: left; cursor: pointer; }
+  .cm-back span { font-size: 26px; line-height: 1; margin-top: -3px; }
+  .card.cd { background: none; border: 0; box-shadow: none; gap: 14px; overflow: visible; }
+  .cd-main { padding: 0; gap: 14px; }
+  .cd-side { padding: 0; background: none; border: 0; }
+  .cd-mhead { display: grid; gap: 6px; }
+  .cd-mhead .row { justify-content: space-between; }
+  .cd-mhead .dd { font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 99px; color: var(--brand-ink); border: 1px solid color-mix(in srgb, var(--brand) 35%, transparent); }
+  .cd-mhead > b { font-size: 22px; font-weight: 600; letter-spacing: -0.03em; }
+  .cd-mhead .muted { font-size: 13.5px; }
+  .cd-sum { display: grid; gap: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  .cd-mact { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .cd-mact > * { min-height: 50px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); font: inherit; font-size: 14.5px; font-weight: 600; color: var(--fg); text-decoration: none; cursor: pointer; }
+  .cd-box .form { grid-template-columns: 1fr; }
+}

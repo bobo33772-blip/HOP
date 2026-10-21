@@ -78,44 +78,47 @@ export function DemandPanel() {
 
   const max = Math.max(1, ...data.rows.map((r) => r.alert + r.cart));
   return (
-    <section aria-labelledby="demand-title" style={{ display: "grid", gap: 10 }}>
-      {head}
-      <p className="muted">
-        {data.run ? `${when(data.run.finishedAt ?? data.run.startedAt)} 기준 · 상품 ${data.run.total}개 확인` : "아직 수집 전이에요. 위젯의 공구 알림 신청만 보여요"}
-        {running ? ` · 새로 수집 중 ${data.current!.done}/${data.current!.total}` : ""}
-      </p>
-      <div className="toolbar">
-        <div className="seg" role="radiogroup" aria-label="정렬">
-          {SORTS.map(([k, label]) => (
-            <button key={k} role="radio" aria-checked={sort === k} onClick={() => setSort(k)}>{label}</button>
-          ))}
+    <section className="waitp" aria-labelledby="demand-title">
+      {/* 시안 3: 제목 · 기준 시각 왼쪽, 정렬 · 다시 수집 오른쪽. 상품은 순위 카드 4칸씩 */}
+      <div className="wait-head">
+        <div>
+          <h2 id="demand-title">고객이 기다리는 상품</h2>
+          <span className="muted">
+            {data.run ? `${when(data.run.finishedAt ?? data.run.startedAt)} 기준 · 상품 ${data.run.total}개 확인` : "아직 수집 전이에요. 위젯의 공구 알림 신청만 보여요"}
+            {running ? ` · 새로 수집 중 ${data.current!.done}/${data.current!.total}` : ""}
+          </span>
         </div>
-        <button className="ghost" onClick={collect} disabled={running}>{running ? "수집 중…" : "다시 수집"}</button>
+        <div className="toolbar">
+          <div className="seg" role="radiogroup" aria-label="정렬">
+            {SORTS.map(([k, label]) => (
+              <button key={k} role="radio" aria-checked={sort === k} onClick={() => setSort(k)}>{label}</button>
+            ))}
+          </div>
+          <button className="ghost" onClick={collect} disabled={running}>{running ? "수집 중…" : "다시 수집"}</button>
+        </div>
       </div>
 
       {data.rows.length === 0 ? (
-        <div className="card"><p className="muted">아직 공구 알림을 신청했거나 장바구니에 담긴 상품이 없어요. 고객이 쇼핑몰에 로그인한 뒤 상품을 장바구니에 담거나, 품절 상품의 '재입고 · 공구 알림 받기'를 누르면 여기에 나와요. 처음 설치했다면 테스트 회원으로 직접 담아 보고 '다시 수집'을 누르세요.</p></div>
+        <p className="muted">아직 공구 알림을 신청했거나 장바구니에 담긴 상품이 없어요. 고객이 쇼핑몰에 로그인한 뒤 상품을 장바구니에 담거나, 품절 상품의 '재입고 · 공구 알림 받기'를 누르면 여기에 나와요. 처음 설치했다면 테스트 회원으로 직접 담아 보고 '다시 수집'을 누르세요.</p>
       ) : (
-        <ol className="list">
-          {data.rows.map((r, i) => (
+        <ol className="wait-grid">
+          {data.rows.slice(0, 4).map((r, i) => (
             <li key={r.productNo}>
-              <button className="item" onClick={() => setPicked(r)}>
-                <span className="rank">{i + 1}</span>
-                <span className="meta">
-                  <b>{r.name}</b>
-                  <small>{won(r.price)} · {counts(r)}</small>
-                  <span className="bars" aria-hidden="true">
-                    <i style={{ width: `${(r.alert / max) * 100}%` }} />
-                    <i className="c" style={{ width: `${(r.cart / max) * 100}%` }} />
-                  </span>
+              <button type="button" onClick={() => setPicked(r)}>
+                <span className="row"><span className="rk">#{i + 1}</span><b className="tot">{r.alert + r.cart}명</b></span>
+                <b className="nm">{r.name}</b>
+                <span className="bars" aria-hidden="true">
+                  <i style={{ width: `${(r.alert / max) * 100}%` }} />
+                  <i className="c" style={{ width: `${(r.cart / max) * 100}%` }} />
                 </span>
-                <span className="chev" aria-hidden="true">›</span>
+                <small>알림 {r.alert} · 장바구니 {r.cart}</small>
+                <span className="go">이 상품으로 공구 열기 →</span>
               </button>
             </li>
           ))}
         </ol>
       )}
-      <p className="legend"><i /> 알림 신청 <i className="c" /> 장바구니 · 알림 신청은 지금 숫자예요. 장바구니는 쇼핑몰 보관 기간이 지나면 사라져 최근 관심만 반영돼요.</p>
+      <p className="small">알림 신청은 지금 숫자예요. 장바구니는 쇼핑몰 보관 기간이 지나면 사라져 최근 관심만 반영돼요.</p>
       {error && <p className="err">{error}</p>}
       {picked && <ReachSheet row={picked} onClose={() => setPicked(null)} />}
     </section>
