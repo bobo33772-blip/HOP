@@ -981,3 +981,11 @@ div.dash-w { display: contents; }
   .op-mopen { display: flex; justify-content: center; align-items: center; min-height: 60px; border: 0; border-radius: 99px; background: var(--btn-dark); color: var(--on-btn-dark); font: inherit; font-size: 16px; font-weight: 500; cursor: pointer; }
   .op-mopen:disabled { opacity: .45; cursor: default; }
 }
+
+/* ================= 매출 리포트 (시안 3: 웹 W-Report) ================= */
+.rp-tabs { display: flex; gap: 28px; border-bottom: 1px solid var(--line); }
+.rp-tabs button { border: 0; background: none; padding: 10px 2px; font: inherit; font-size: 15px; font-weight: 500; color: var(--fg2); cursor: pointer; }
+.rp-tabs button[aria-selected="true"] { color: var(--fg); font-weight: 600; box-shadow: inset 0 -2px 0 var(--brand); }
+.rp { display: grid; gap: 14px; }
+.page-head > div:last-child:not(.hello) { flex: none; }
+.page-head .ghost[aria-expanded] { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }

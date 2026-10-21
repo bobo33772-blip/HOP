@@ -29,11 +29,11 @@ const payLine = (r: SalesRow) => `결제 ${r.paidMembers} / ${r.couponMembers}�
 const dueLine = (r: SalesRow) => (r.state === "settled" ? `확정 ${kst(r.settledAt)}` : `결제 마감 ${kst(r.payUntil)}`);
 const extra = (r: SalesRow) => (r.cancelledOrders + r.lateOrders ? ` · 취소 ${r.cancelledOrders}건 · 기한 뒤 결제 ${r.lateOrders}건` : "");
 
-type CsvKind = "campaigns" | "daily";
+export type CsvKind = "campaigns" | "daily";
 const EXCEL: [CsvKind, string][] = [["daily", "날짜별"], ["campaigns", "공구별"]];
 
 /** '엑셀 내려받기' 버튼 하나를 누르면 아래에 날짜별 · 공구별 목록이 뜬다. 하나를 고르거나 바깥 · Esc를 누르면 닫힌다 */
-function ExcelMenu({ file }: { file: (kind: CsvKind) => string }) {
+export function ExcelMenu({ file }: { file: (kind: CsvKind) => string }) {
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   const btn = useRef<HTMLButtonElement>(null);
@@ -68,7 +68,7 @@ function ExcelMenu({ file }: { file: (kind: CsvKind) => string }) {
   );
 }
 
-export function SalesPanel({ say, compact = false }: { say: (t: string) => void; compact?: boolean }) {
+export function SalesPanel({ say, compact = false, excel = true }: { say: (t: string) => void; compact?: boolean; excel?: boolean }) {
   const a = useConsole();
   const narrow = useNarrow();
   const [by, setBy] = useState<SalesBy>("week");
@@ -89,7 +89,7 @@ export function SalesPanel({ say, compact = false }: { say: (t: string) => void;
       {/* 홈(compact)에서는 '내 공구'처럼 구역 제목 줄(section-head)로: '자세히 보기 ›'가 '전체 보기 ›'와 같은 글자 링크 */}
       <div className={compact ? "section-head" : "row"} style={{ flexWrap: "wrap" }}>
         <h2 id="sales-title" style={{ fontSize: 18, margin: 0 }}>공구 매출</h2>
-        {compact ? <a href="/radar">자세히 보기 ›</a> : sold && (
+        {compact ? <a href="/radar">자세히 보기 ›</a> : sold && excel && (
           <span className="row" style={{ gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
             {/* 엑셀에서 바로 열리는 CSV. 날짜별은 엑셀 피벗으로 원하는 단위의 추이를 볼 수 있다 */}
             <ExcelMenu file={file} />
