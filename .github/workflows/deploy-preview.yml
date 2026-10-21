@@ -51,12 +51,23 @@ jobs:
             --build-env CAFE24_MOCK=1 --env CAFE24_MOCK=1 --env SCHEDULER=inline \
             | tee "$RUNNER_TEMP/url.txt"
           echo "url=$(tail -1 "$RUNNER_TEMP/url.txt")" >> "$GITHUB_ENV"
+      # 배포한 주소가 실제로 열리는지 한 번 확인한다. 401/403이면 Vercel 미리보기 보호(로그인)가 켜져 있는 것
+      - name: 열리는지 확인
+        if: steps.secrets.outputs.ok == '1'
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 60 "$url/demo" || echo 000)
+          echo "code=$code" >> "$GITHUB_ENV"
+          echo "미리보기 /demo 응답: $code"
       - name: PR 댓글에 주소 남기기
         if: steps.secrets.outputs.ok == '1'
         uses: actions/github-script@v7
         with:
           script: |
             const url = process.env.url;
+            const code = process.env.code;
+            const state = code === "200" ? "열려요 (확인 완료)"
+              : code === "401" || code === "403" ? `Vercel 로그인으로 막혀 있어요 (HTTP ${code}). 프로젝트 주인이 Vercel › Settings › Deployment Protection에서 미리보기 보호를 꺼야 누구나 열 수 있어요`
+              : `확인하지 못했어요 (HTTP ${code})`;
             const sha = context.payload.pull_request.head.sha.slice(0, 7);
             const mark = "<!-- jjim-preview -->";
             const body = [
@@ -65,6 +76,7 @@ jobs:
               ``,
               `- 데모 시작: ${url}/api/cafe24/launch`,
               `- 데모 안내: ${url}/demo`,
+              `- 상태: ${state}`,
               ``,
               `모의 쇼핑몰 + 메모리 DB라 운영 데이터와 실제 카페24에는 닿지 않아요. 서버가 잠들었다 깨면 데이터가 처음으로 돌아가요.`,
               `이 PR에 새로 푸시하면 몇 분 뒤 이 댓글의 주소가 새 커밋으로 바뀌어요.`,
