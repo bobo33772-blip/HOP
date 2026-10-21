@@ -506,3 +506,60 @@ details.card > summary::before { background-color: var(--soft); }
 /* 휴대폰 아래 탭 바 위로 데모 역할 배지를 올린다 (배지는 인라인 bottom: 16px) */
 @media (max-width: 560px) { body:has(.appbar.side) .demo-role { bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important; } }
 .kpi div { background: var(--surface); }
+
+/* 공구 상세: 목표 · 신청 · 결제 표 (시안 3) */
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.stat-table { display: grid; gap: 8px; }
+.stat-table table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.stat-table th, .stat-table td { padding: 11px 6px; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.stat-table thead th { font-size: 12.5px; font-weight: 500; color: var(--muted); padding-top: 4px; }
+.stat-table th:first-child { text-align: left; font-weight: 500; }
+.stat-table tr.hl { background: var(--lav-soft); }
+.stat-table tr.hl th, .stat-table tr.hl td { font-weight: 600; }
+.stat-table tr.wait th, .stat-table tr.wait td { color: var(--warning); }
+.stat-table tr.dim td { text-align: right; color: var(--muted); font-size: 13px; white-space: normal; }
+/* NEXT TO DO: 지금 할 일은 그라디언트 테두리 상자, 다음 할 일은 번호, 한 일은 회색 칸에 취소선 */
+.todo { display: grid; gap: 10px; }
+.todo h3 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: .02em; }
+.todo .tag { font-size: 11px; font-weight: 600; letter-spacing: .08em; padding: 2px 8px; border-radius: 99px; background: var(--fg); color: var(--surface); width: max-content; }
+.todo-now { display: grid; gap: 4px; padding: 14px 16px; border-radius: var(--r-sm); border: 1px solid transparent;
+  background: linear-gradient(90deg, var(--call-a), var(--call-b)) padding-box, linear-gradient(90deg, #c4b2ff, #ffb199) border-box; }
+.todo-now .row b { color: var(--brand-ink); font-weight: 600; }
+.todo-now .t { font-size: 17px; font-weight: 600; }
+.todo-now > span:last-child { font-size: 13.5px; color: var(--fg2); }
+.todo-next { list-style: none; margin: 0; padding: 0; display: grid; }
+.todo-next li { display: flex; gap: 12px; align-items: center; padding: 10px 2px; border-bottom: 1px solid var(--line); }
+.todo-next .n { width: 30px; height: 30px; flex: none; border-radius: 50%; border: 1.5px solid var(--fg); display: grid; place-items: center; font-size: 13px; font-weight: 600; }
+.todo-next b { display: block; font-size: 14.5px; font-weight: 500; }
+.todo-next small { color: var(--muted); font-size: 12.5px; }
+.todo-done { display: grid; gap: 6px; padding: 10px 14px; border-radius: var(--r-sm); background: var(--soft); }
+.todo-done .tag { background: none; color: var(--muted); padding: 0; }
+.todo-done s { color: var(--muted); font-size: 13.5px; }
+.todo-done small { color: var(--muted); font-size: 12px; white-space: nowrap; }
+
+/* 공구 열기 1단계: 상품별 장바구니 · 알림 신청 표 (시안 3) */
+.pick-table { border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; background: var(--surface); }
+.pick-table table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.pick-table th, .pick-table td { padding: 11px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+.pick-table thead th { background: var(--soft); font-size: 12.5px; font-weight: 500; color: var(--muted); }
+.pick-table thead th:nth-child(n+3), .pick-table td.num { text-align: right; width: 84px; }
+.pick-table thead th:first-child, .pick-table td:first-child { width: 36px; padding-right: 0; }
+.pick-table thead button { border: 0; background: none; padding: 0; font: inherit; color: inherit; white-space: nowrap; }
+.pick-table thead button.on { color: var(--fg); font-weight: 600; }
+.pick-table tbody tr { cursor: pointer; }
+.pick-table tbody tr:hover { background: color-mix(in srgb, var(--soft) 60%, transparent); }
+.pick-table tbody tr.on { background: var(--lav-soft); }
+.pick-table td b { font-weight: 500; }
+.pick-table td small { display: block; font-size: 12px; color: var(--muted); }
+.pick-table td.num { font-variant-numeric: tabular-nums; font-size: 15px; }
+.pick-table input[type="radio"] { width: 18px; height: 18px; accent-color: var(--lav); margin: 0; }
+.pick-table tbody tr:last-child td { border-bottom: 0; }
+@media (max-width: 560px) { .pick-table th, .pick-table td { padding: 10px 8px; } .pick-table thead th:nth-child(n+3), .pick-table td.num { width: 72px; } }
+
+/* 숫자 칸 묶음(매출 리포트 등): 한 판에 가는 선으로 나눈 칸 (시안 3). 칸 사이 1px 틈에 테두리 색이 비친다 */
+.kpi.many { gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.kpi.many > div { border: 0; border-radius: 0; background: var(--surface); padding: 16px 18px; }
+.kpi.many strong { font-size: 24px; letter-spacing: -0.03em; }
+@media (max-width: 1199px) { .kpi.many strong { font-size: 20px; } }
+.kpi.many > div.hl { background: var(--lav-soft); }
+.kpi.many > div.hl.confirmed { background: color-mix(in srgb, var(--success) 12%, var(--surface)); }

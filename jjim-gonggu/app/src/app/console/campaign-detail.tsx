@@ -56,15 +56,9 @@ export function CampaignDetail({ id, say, onChanged }: { id: string; say: (t: st
       <p className="muted">{won(c.listPrice)} → {won(c.dealPrice)} · 목표 {c.targetQty}개 · 마감 {kst(c.deadlineAt)} · 출고 {c.shipEta}</p>
       {c.proceededAt && <p className="small">목표에 못 미쳤지만 {kst(c.proceededAt)}에 그래도 진행했어요. 4주 판정표의 공구 성사율에서는 빠져요.</p>}
       {c.state === "cancelled" && <p className="small">모집 중에 취소한 공구예요. 신청한 고객에게는 취소 안내 문자가 가고, 결제된 금액은 없어요. 같은 상품으로 새 공구를 열 수 있어요.</p>}
-      <div className="kpi many">
-        <div><small>초대</small><strong>{r.funnel.invited}</strong></div>
-        <div><small>신청 수량</small><strong>{r.funnel.pledgedQty}</strong></div>
-        <div><small>쿠폰 발급</small><strong>{r.funnel.couponIssued}</strong></div>
-        {/* 확정 수량은 결제 기간이 끝나 확정된 뒤에만 초록으로 강조한다 (#11). 모집 중의 0개는 강조하지 않는다 */}
-        <div className={c.state === "settled" ? "hl confirmed" : undefined}><small>확정 수량</small><strong>{r.confirmed.qty}</strong></div>
-        <div><small>초대→신청</small><strong>{pct(r.rates.inviteToPledge)}</strong></div>
-        <div><small>신청→결제</small><strong>{pct(r.rates.pledgeToPaid)}</strong></div>
-      </div>
+      {/* 시안 3: 숫자 칸 대신 한눈에 보는 표. 사람(인원) · 개수(수량) · 금액을 열로 나눠, 신청 25명이 27개인 것처럼 단위가 섞이지 않게 */}
+      <StatusTable r={r} />
+      <p className="small">초대 {r.funnel.invited}명 · 초대→신청 {pct(r.rates.inviteToPledge)} · 신청→결제 {pct(r.rates.pledgeToPaid)}</p>
       {r.confirmed.expected != null && <p className="small">결제 기간 중 예상 확정 수량 {r.confirmed.expected}개 (결제분과 신청×60% 중 큰 값)</p>}
       <div className="actions">
         <button className="ghost" onClick={copy}>{isAdmin ? "판매자 리포트 링크 복사" : "리포트 링크 복사 (공방·공장 공유용)"}</button>
@@ -117,6 +111,7 @@ export function CampaignDetail({ id, say, onChanged }: { id: string; say: (t: st
           )}
         </div>
       )}
+      <NextToDo d={d} now={now} />
       <h3 style={{ fontSize: 16, margin: 0 }}>문자</h3>
       {/* 휴대폰 폭에서 "85명"·"결과 안내"가 글자 중간에서 끊기지 않게 단어 단위로만 줄을 바꾼다 (#8). 마지막 칸은 운영자 '다시 보내기' 자리라 운영자에게만 그린다 */}
       <div className="tw"><table style={{ wordBreak: "keep-all" }}>
@@ -151,5 +146,74 @@ export function CampaignDetail({ id, say, onChanged }: { id: string; say: (t: st
           }} />
       )}
     </div>
+  );
+}
+
+/** 공구 숫자 표: 목표 · 신청 · (모집 중) 남은 수량 / (판정 뒤) 결제 완료 · 결제 대기. 금액은 공구가 기준 */
+function StatusTable({ r }: { r: Detail["report"] }) {
+  const c = r.campaign, f = r.funnel;
+  const left = Math.max(0, c.targetQty - f.pledgedQty);
+  const judged = c.state !== "open" && c.state !== "cancelled";
+  const rows: [string, string, string, string, string?][] = [
+    ["목표", "–", `${c.targetQty}개`, won(c.targetQty * c.dealPrice)],
+    [judged ? "신청 · 쿠폰 받음" : "신청", `${f.pledgers}명`, `${f.pledgedQty}개`, won(f.pledgedQty * c.dealPrice), judged ? undefined : "hl"],
+  ];
+  if (c.state === "open") rows.push(["남은 수량", "–", `${left}개`, won(left * c.dealPrice)]);
+  if (judged) {
+    rows.push(["결제 완료", `${f.paidMembers}명`, `${r.confirmed.qty}개`, won(r.confirmed.revenue), "hl"]);
+    if (c.state === "reached" && r.confirmed.unpaidMembers > 0) rows.push(["결제 대기", `${r.confirmed.unpaidMembers}명`, "–", "–", "wait"]);
+  }
+  return (
+    <div className="stat-table">
+      <table>
+        <caption className="sr">공구 목표 · 신청 · 결제 현황</caption>
+        <thead><tr><th scope="col">구분</th><th scope="col">인원</th><th scope="col">수량</th><th scope="col">금액</th></tr></thead>
+        <tbody>
+          {rows.map(([k, n, q, w, cls]) => <tr key={k} className={cls}><th scope="row">{k}</th><td>{n}</td><td>{q}</td><td>{w}</td></tr>)}
+          {c.state === "open" && <tr className="dim"><th scope="row">결제</th><td colSpan={3}>목표를 채우면 결제가 시작돼요</td></tr>}
+        </tbody>
+      </table>
+      <p className="small">한 사람이 여러 개를 신청할 수 있어서 인원과 수량이 다를 수 있어요. {judged ? "결제 기간이 끝나면 결제 완료 줄이 확정 수량이 돼요." : ""}</p>
+    </div>
+  );
+}
+
+/** NEXT TO DO: 지금 할 일(NOW) 하나를 크게, 그다음 할 일, 한 일(DONE)을 나눠 보여 준다. 상태와 문자 기록에서 만든다 */
+function NextToDo({ d, now }: { d: Detail; now: number }) {
+  const c = d.report.campaign;
+  if (!now || c.state === "cancelled") return null;
+  const dday = (iso: string | null) => {
+    if (!iso) return "";
+    const n = Math.ceil((new Date(iso).getTime() - now) / 86_400_000);
+    return n <= 0 ? "D-DAY" : `D-${n}`;
+  };
+  const todo: { t: string; sub: string; dd?: string }[] = [];
+  if (c.state === "open") {
+    todo.push({ t: `${kst(c.deadlineAt)} 마감 판정`, sub: `목표 ${c.targetQty}개가 모이면 신청자에게 쿠폰이 자동으로 나가요`, dd: dday(c.deadlineAt) });
+    todo.push({ t: "결제 기간", sub: "목표를 채우면 결제된 만큼이 확정 수량이 돼요" });
+  }
+  if (c.state === "reached") todo.push({ t: `${kst(c.payUntil)} 결제 마감`, sub: d.report.confirmed.unpaidMembers > 0 ? `아직 결제 안 한 고객 ${d.report.confirmed.unpaidMembers}명` : "쿠폰 받은 고객이 모두 결제했어요", dd: dday(c.payUntil) });
+  for (const m of d.messages.filter((m) => m.status === "scheduled" || m.status === "sending")) todo.push({ t: `${msgKind(m.kind)} 문자 ${m.recipients}명`, sub: `${kst(m.sendAfter)} 자동 발송 예약` });
+  if (d.proceed?.proceedOpen) todo.push({ t: "그래도 진행할지 정하기", sub: `${kst(d.proceed.proceedUntil)}까지 · '그래도 살래요' ${d.proceed.wanted.members}명` });
+  if ((c.state === "open" || c.state === "reached" || c.state === "settled") && !c.decision) todo.push({ t: "생산 · 발주 결정 기록", sub: "확정 수량을 보고 만들 수량을 적어요" });
+  const done: { t: string; at: string }[] = [
+    ...d.messages.filter((m) => m.status === "sent" || m.status === "failed").map((m) => ({ t: `${msgKind(m.kind)} 문자 ${m.recipients}명${m.status === "failed" ? " (실패)" : ""}`, at: kst(m.sentAt ?? m.sendAfter) })),
+    ...(c.state !== "open" ? [{ t: c.state === "failed" ? "마감 판정 · 목표 미달" : "마감 판정 · 목표 달성", at: kst(c.deadlineAt) }] : []),
+    ...(c.decision ? [{ t: `생산 · 발주 결정 ${c.decision.qty}개`, at: kst(c.decision.at) }] : []),
+  ];
+  const [first, ...rest] = todo;
+  return (
+    <section className="todo" aria-labelledby={`todo-${c.id}`}>
+      <div className="row"><h3 id={`todo-${c.id}`}>NEXT TO DO</h3><span className="small">할 일 {todo.length} · 한 일 {done.length}</span></div>
+      {first ? (
+        <div className="todo-now"><span className="row"><span className="tag">NOW</span>{first.dd && <b>{first.dd}</b>}</span><b className="t">{first.t}</b><span>{first.sub}</span></div>
+      ) : <p className="muted">남은 할 일이 없어요.</p>}
+      {rest.length > 0 && <ol className="todo-next">{rest.map((x, i) => <li key={x.t}><span className="n" aria-hidden="true">{i + 2}</span><span><b>{x.t}</b><small>{x.sub}</small></span></li>)}</ol>}
+      {done.length > 0 && (
+        <div className="todo-done"><span className="tag">DONE</span>
+          {done.map((x) => <span key={x.t + x.at} className="row"><s>{x.t}</s><small>{x.at}</small></span>)}
+        </div>
+      )}
+    </section>
   );
 }
