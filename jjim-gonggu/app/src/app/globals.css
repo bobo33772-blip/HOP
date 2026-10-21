@@ -1044,3 +1044,23 @@ div.dash-w { display: contents; }
 .st-conn b.ok { color: var(--green-ink); }
 .st-conn b.need { color: var(--amber-ink); }
 .st-conn .callout { margin: 8px 0 0; font-size: 13.5px; color: var(--fg); }
+.card.st-scopes { padding: 0; gap: 0; overflow: hidden; }
+details.card.st-scopes > summary { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 18px 28px; list-style: none; cursor: pointer; }
+details.card.st-scopes > summary::after { content: none; }
+details.card.st-scopes > :not(summary) { margin-top: 0; }
+.st-scopes > summary::-webkit-details-marker { display: none; }
+details.card.st-scopes > summary::before { content: none; display: none; }
+.st-scopes > summary b { font-size: 16px; font-weight: 600; }
+.st-scopes .fold::after { content: "펼치기 ▾"; font-size: 13px; color: var(--fg2); white-space: nowrap; }
+.st-scopes[open] .fold::after { content: "접기 ▴"; }
+.st-scopes table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 0 !important; }
+.st-scopes td { padding: 12px 28px; border-top: 1px solid var(--line); vertical-align: top; line-height: 1.55; }
+.st-scopes td:first-child { width: 38%; white-space: nowrap; }
+.st-scopes code { font-size: 13.5px; color: var(--fg); background: none; padding: 0; }
+.st-theme .card { gap: 12px; }
+.st-theme .row { display: grid; grid-template-columns: minmax(0, 1fr); justify-content: stretch; gap: 12px; }
+.st-theme .row b { font-size: 16px; }
+.st-theme .seg { justify-self: stretch; display: grid; grid-template-columns: 1fr 1fr; width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 0; overflow: hidden; }
+.st-theme .seg button { border-radius: 0; padding: 11px 0; font-weight: 500; }
+.st-theme .seg button[aria-checked="true"] { background: var(--lav-soft); color: var(--lav-ink); box-shadow: none; font-weight: 600; }
+@media (max-width: 560px) { details.card.st-scopes > summary { padding: 16px 18px; } .st-scopes td { padding: 10px 18px; display: block; border: 0; } .st-scopes tr { display: block; border-top: 1px solid var(--line); padding: 4px 0; } .st-scopes td:first-child { width: auto; padding-bottom: 0; } }

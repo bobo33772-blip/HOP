@@ -71,9 +71,9 @@ export default function SellerConsole({ mallId, initialTab, initialOpen, scopes,
                 <div className="st-main">
                   <ProfileCard mall={mall} always foot="광고 문자 맨 앞에 브랜드명이, 끝에 무료수신거부 번호가 자동으로 붙어요." onSaved={() => { say("저장했어요"); load(); }} say={say} />
                   {/* 앱이 쓰는 카페24 권한 안내(예전 홈 토글). 목록은 서버 설정(CAFE24_PRIVACY_SCOPE)에 따라 달라서 서버 페이지에서 받는다 */}
-                  <details className="card">
-                    <summary>찜꽁이 쓰는 카페24 권한 {scopes.length}개</summary>
-                    {scopes.map((s) => <p key={s.scope} className="small"><code>{s.scope}</code> · {s.why}</p>)}
+                  <details className="card st-scopes" open>
+                    <summary><b>찜꽁이 쓰는 카페24 권한 {scopes.length}개</b><span className="fold" aria-hidden="true" /></summary>
+                    <table><tbody>{scopes.map((s) => <tr key={s.scope}><td><code>{s.scope}</code></td><td>{s.why}</td></tr>)}</tbody></table>
                   </details>
                 </div>
                 <aside className="st-side">
@@ -87,7 +87,7 @@ export default function SellerConsole({ mallId, initialTab, initialOpen, scopes,
                     {!/^080/.test(mall.optOutNumber ?? "") && <p className="callout">080 번호를 등록해야 초대 문자를 보낼 수 있어요.</p>}
                   </section>
                   {/* 화면 밝기 (#85): 휴대폰에서는 상단바 버튼이 없어서 여기서 바꾼다 */}
-                  <ThemeSetting />
+                  <div className="st-theme"><ThemeSetting /></div>
                 </aside>
               </div>
             )}
