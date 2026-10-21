@@ -184,8 +184,8 @@ async function main() {
   await click("a", "판매자로 들어가기", { nav: true, ready: `!!document.querySelector(".stats")` });
   await hold(1500);
   await hover(".stat", "모집 중인 공구", 900); await hold(900);
-  await say("seller", "② 판매자 · 고객이 기다리는 상품으로 새 공구 열기", "장바구니 · 공구 알림 신청이 많은 순서로 보여요");
-  await click(".appbar a", "새 공구", { nav: true, ready: `!!${pick("button", "관심 데이터 모으기")} || !!${pick("button", "다시 수집")}` });
+  await say("seller", "② 판매자 · 고객이 기다리는 상품으로 공구 열기", "장바구니 · 공구 알림 신청이 많은 순서로 보여요");
+  await click(".appbar a", "공구 열기", { nav: true, ready: `!!${pick("button", "관심 데이터 모으기")} || !!${pick("button", "다시 수집")}` });
   await hold(800);
   if (await rectOf("button", "관심 데이터 모으기")) await click("button", "관심 데이터 모으기", { after: 400 });
   const pickRow = { expr: `[...document.querySelectorAll("tr")].find((t) => t.textContent.includes("스톤웨어 디너 접시"))?.querySelector("button")` };
@@ -256,8 +256,8 @@ async function main() {
   await click(".demobar a", "판매자 화면", { nav: true, ready: `!!document.querySelector("section[aria-labelledby=sales-title] .kpi")` });
   await hover("section[aria-labelledby=sales-title] .kpi div", null, 1000); await hold(1500);
   await scrollBy(260); await hold(1000);
-  await say("seller", "⑦ 판매자 · 모니터링 › 리포트", "이번 달 확정 매출 · 결제 기다리는 금액 · 누적을 한눈에");
-  await click(".appbar a", "모니터링", { nav: true, ready: `!!document.querySelector("section[aria-labelledby=sales-title] .kpi")` });
+  await say("seller", "⑦ 판매자 · 매출 리포트 › 리포트", "이번 달 확정 매출 · 결제 기다리는 금액 · 누적을 한눈에");
+  await click(".appbar a", "매출 리포트", { nav: true, ready: `!!document.querySelector("section[aria-labelledby=sales-title] .kpi")` });
   await hold(1000);
   await hover("section[aria-labelledby=sales-title] .kpi div", null, 900); await hold(1200);
   await say("seller", "⑦ 판매자 · 매출 추이 · 일별 · 주별 · 월별", "막대를 누르면 그 기간의 금액 · 결제 건수 · 수량이 보여요");
@@ -271,7 +271,7 @@ async function main() {
   await scrollBy(-520, 900);
   await click("button[aria-expanded]", "엑셀 내려받기", { after: 1600 });
   await evaluate(`document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }))`); await hold(500);
-  await say("seller", "⑦ 판매자 · 모니터링 › 기간별", "달마다 얼마나 팔렸는지, 지난달 같은 기간과 비교해요");
+  await say("seller", "⑦ 판매자 · 매출 리포트 › 기간별", "달마다 얼마나 팔렸는지, 지난달 같은 기간과 비교해요");
   await click("[role=tab]", "기간별", { after: 1200 });
   await waitFor(`!!document.querySelector("section[aria-labelledby=period-title]")`, "period"); await hold(1500);
   { const bars = "section[aria-labelledby=period-title] [role=group] button"; const n = await evaluate(`document.querySelectorAll("${bars}").length`);
@@ -279,8 +279,8 @@ async function main() {
   await say("seller", "⑦ 판매자 · 상품별 · 유입별", "어떤 상품이, 어떤 고객(장바구니 · 재입고 알림 · 직접 신청)이 매출을 만들었는지");
   await scrollBy(300, 1000); await hold(1300);
   await click("[role=radio]", "유입별", { after: 1800 });
-  await say("seller", "⑦ 판매자 · 내 공구", "진행 중 · 확정된 공구와, 아래에 고객이 기다리는 상품 순위");
-  await click(".appbar a", "내 공구", { nav: true, ready: `!!document.querySelector("#demand-title")` });
+  await say("seller", "⑦ 판매자 · 공구 관리", "진행 중 · 확정된 공구와, 아래에 고객이 기다리는 상품 순위");
+  await click(".appbar a", "공구 관리", { nav: true, ready: `!!document.querySelector("#demand-title")` });
   await hold(1500);
   await hover("#demand-title", null, 900); await hold(1500);
 

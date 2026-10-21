@@ -29,11 +29,11 @@ const payLine = (r: SalesRow) => `결제 ${r.paidMembers} / ${r.couponMembers}�
 const dueLine = (r: SalesRow) => (r.state === "settled" ? `확정 ${kst(r.settledAt)}` : `결제 마감 ${kst(r.payUntil)}`);
 const extra = (r: SalesRow) => (r.cancelledOrders + r.lateOrders ? ` · 취소 ${r.cancelledOrders}건 · 기한 뒤 결제 ${r.lateOrders}건` : "");
 
-type CsvKind = "campaigns" | "daily";
+export type CsvKind = "campaigns" | "daily";
 const EXCEL: [CsvKind, string][] = [["daily", "날짜별"], ["campaigns", "공구별"]];
 
 /** '엑셀 내려받기' 버튼 하나를 누르면 아래에 날짜별 · 공구별 목록이 뜬다. 하나를 고르거나 바깥 · Esc를 누르면 닫힌다 */
-function ExcelMenu({ file }: { file: (kind: CsvKind) => string }) {
+export function ExcelMenu({ file }: { file: (kind: CsvKind) => string }) {
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   const btn = useRef<HTMLButtonElement>(null);
@@ -68,7 +68,7 @@ function ExcelMenu({ file }: { file: (kind: CsvKind) => string }) {
   );
 }
 
-export function SalesPanel({ say, compact = false }: { say: (t: string) => void; compact?: boolean }) {
+export function SalesPanel({ say, compact = false, excel = true, report = false }: { say: (t: string) => void; compact?: boolean; excel?: boolean; report?: boolean }) {
   const a = useConsole();
   const narrow = useNarrow();
   const [by, setBy] = useState<SalesBy>("week");
@@ -83,13 +83,82 @@ export function SalesPanel({ say, compact = false }: { say: (t: string) => void;
   // 고른 막대. 처음에는 가장 최근에 매출이 있었던 칸
   const cur = pts.find((p) => p.key === pick) ?? [...pts].reverse().find((p) => p.revenue > 0) ?? pts[pts.length - 1];
   const sold = s.campaigns.length > 0;
+  const num = (n: number) => Math.round(n).toLocaleString("ko-KR");
+  // 매출 추이 (리포트): 그라디언트 판 안에 제목 · 단위 고르기, 세로 눈금 그래프, 아래에 고른 기간 한 줄
+  const trend = (
+    <section className="rp-chart" aria-labelledby="rp-chart-t">
+      <div className="row"><h2 id="rp-chart-t">매출 추이</h2>
+        <div className="seg" role="radiogroup" aria-label="추이 단위">
+          {BY.map(([k, l]) => <button key={k} type="button" role="radio" aria-checked={by === k} onClick={() => { setBy(k); setPick(null); }}>{l}</button>)}
+        </div>
+      </div>
+      {!pts.length ? <p className="muted">아직 결제된 주문이 없어요.</p> : (
+        <>
+          <Bars axis height={260} label={`${BY.find(([k]) => k === by)![1]} 매출 막대. 막대를 누르면 그 기간 숫자가 아래에 보여요`}
+            bars={pts.map((p) => ({ key: p.key, name: barName(p.key, by), value: p.revenue }))} picked={cur.key} onPick={setPick} />
+          <p aria-live="polite" className="pick"><b>{cur.label}</b> · <b className="mono">{won(cur.revenue)}</b> <span>결제 {cur.orders}건 · {cur.qty}개</span></p>
+          {s.trend.truncated && <p className="small">최근 {pts.length}칸만 보여요. 전체는 엑셀 날짜별로 받아 보세요.</p>}
+        </>
+      )}
+    </section>
+  );
+  // 공구별 표 (시안 3): 상태는 점 + 이름, 숫자는 고정폭. 휴대폰은 목록
+  const DOT: Record<string, string> = { open: "var(--brand)", reached: "var(--warning)", settled: "var(--lav)", failed: "var(--muted)", cancelled: "var(--muted)" };
+  const table = sold && (
+    <section className="rp-table" aria-labelledby="rp-t">
+      <h2 id="rp-t">공구별 <span>· 생산을 정할 때 보는 숫자예요</span></h2>
+      {narrow ? (
+        <ul>{s.campaigns.map((r) => (
+          <li key={r.id}>
+            <span className="top"><b>{r.productName}</b><span className="st"><i style={{ background: DOT[r.state] }} />{chip(r.state, r.proceeded)[0].replace("달성 · ", "")}</span></span>
+            <small>{goal(r)} · 매출 {num(r.revenue)}원</small>
+            <small>{payLine(r)} · {dueLine(r)}{extra(r)}</small>
+          </li>
+        ))}</ul>
+      ) : (
+        <table>
+          <thead><tr><th>상품</th><th>상태</th><th>목표 대비 확정</th><th>결제 (쿠폰 받은 사람 중)</th><th className="n">확정 매출</th><th className="n">마감</th></tr></thead>
+          <tbody>{s.campaigns.map((r) => (
+            <tr key={r.id}>
+              <td><b>{r.productName}</b></td>
+              <td><span className="st"><i style={{ background: DOT[r.state] }} />{chip(r.state, r.proceeded)[0].replace("달성 · ", "")}</span></td>
+              <td className="mono">{goal(r)}</td>
+              <td className="mono">{r.couponMembers ? `${r.paidMembers} / ${r.couponMembers}명` : "–"}{r.waitingMembers ? ` · 대기 ${r.waitingMembers}명` : ""}{r.cancelledOrders ? ` · 취소 ${r.cancelledOrders}건` : ""}{r.lateOrders ? ` · 기한 뒤 ${r.lateOrders}건` : ""}</td>
+              <td className="n mono"><b>{num(r.revenue)}</b></td>
+              <td className="n due">{r.state === "settled" ? `확정 ${kst(r.settledAt)}` : r.state === "reached" ? `결제 마감 ${kst(r.payUntil)}` : r.state === "open" ? `마감 ${kst(r.deadlineAt)}` : `${kst(r.deadlineAt).split(" ")[0]} 종료`}</td>
+            </tr>
+          ))}</tbody>
+        </table>
+      )}
+      <p className="foot">확정 매출은 결제 기간 안에 공구 쿠폰으로 결제된 금액이에요(취소 · 반품은 빼요). 결제 기다리는 금액은 쿠폰을 받고 아직 결제하지 않은 신청이 모두 결제했을 때의 금액이에요.</p>
+    </section>
+  );
+
+  // 판매자 매출 리포트 (시안 3 W-Report): 숫자 카드 4개 → 매출 추이 판 → 공구별 표
+  if (report) {
+    const up = t.lastMonth > 0 && t.thisMonth >= t.lastMonth;
+    const vs = !t.lastMonth ? vsLastMonth(t.thisMonth, t.lastMonth) : `${up ? "▲" : "▼"} ${Math.abs(Math.round(((t.thisMonth - t.lastMonth) / t.lastMonth) * 100))}% 지난달 대비`;
+    if (!sold && !rc.campaigns) return <p className="muted">공구를 열고 결제가 시작되면 여기에 매출이 쌓여요.</p>;
+    return (
+      <>
+        <section className="rp-kpis" aria-label="매출 숫자">
+          <div><small>이번 달 확정 매출</small><strong>{num(t.thisMonth)}</strong><span className={up ? "up" : undefined}>{vs}</span></div>
+          <div><small>결제 기다리는 금액</small><strong>{num(w.amount)}</strong><span>{w.members ? `${w.members}명${w.payUntil ? ` · ${kst(w.payUntil)} 마감` : ""}` : "결제 기다리는 고객이 없어요"}</span></div>
+          <div><small>모집 중 신청 금액</small><strong>{num(rc.amount)}</strong><span>공구 {rc.campaigns}건 · {rc.qty}개</span></div>
+          <div className="hl"><small>누적 확정 매출</small><strong>{num(t.revenue)}</strong><span>공구 {t.campaigns}건 · {t.qty}개</span></div>
+        </section>
+        {sold && trend}
+        {table}
+      </>
+    );
+  }
 
   return (
     <section className="card" aria-labelledby="sales-title">
       {/* 홈(compact)에서는 '내 공구'처럼 구역 제목 줄(section-head)로: '자세히 보기 ›'가 '전체 보기 ›'와 같은 글자 링크 */}
       <div className={compact ? "section-head" : "row"} style={{ flexWrap: "wrap" }}>
         <h2 id="sales-title" style={{ fontSize: 18, margin: 0 }}>공구 매출</h2>
-        {compact ? <a href="/radar">자세히 보기 ›</a> : sold && (
+        {compact ? <a href="/radar">자세히 보기 ›</a> : sold && excel && (
           <span className="row" style={{ gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
             {/* 엑셀에서 바로 열리는 CSV. 날짜별은 엑셀 피벗으로 원하는 단위의 추이를 볼 수 있다 */}
             <ExcelMenu file={file} />

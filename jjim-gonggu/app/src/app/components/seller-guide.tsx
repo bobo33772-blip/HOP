@@ -41,8 +41,8 @@ const TROUBLE: { sym: string; ref: string; go: ReactNode }[] = [
   { sym: "품절 상품이 목록에 안 보여요", ref: "1단계 C", go: <>품절 상품 노출 항목이 <strong>노출함</strong>인지</> },
   { sym: "품절 상품이 목록 중간에 섞여 있어요", ref: "1단계 D", go: <>그 분류의 품절 상품 진열 항목이 <strong>품절 상품 맨 뒤로</strong>인지</> },
   { sym: "고객이 '회원만 신청할 수 있어요'를 봤대요", ref: "2단계", go: <>정상입니다. 알림은 로그인한 회원만 신청할 수 있습니다.</> },
-  { sym: "장바구니 숫자가 그대로예요", ref: "3단계", go: <>내 공구의 고객이 기다리는 상품에서 <strong>다시 수집</strong>을 눌렀는지 확인합니다. 장바구니 숫자는 수집할 때만 바뀝니다.</> },
-  { sym: "공구 열기를 누르면 오류가 나요", ref: "준비 · 4단계", go: <>&apos;쇼핑몰 정보를 먼저 등록&apos;이 보이면 시작 전 준비를 합니다. 미리보기의 초대 대상이 0명이면 신청이 더 모일 때까지 기다립니다. &apos;이미 진행 중인 공구가 있어요&apos;가 보이면 내 공구에서 그 상품의 모집 중 · 결제 기간 공구를 확인합니다.</> },
+  { sym: "장바구니 숫자가 그대로예요", ref: "3단계", go: <>공구 관리의 고객이 기다리는 상품에서 <strong>다시 수집</strong>을 눌렀는지 확인합니다. 장바구니 숫자는 수집할 때만 바뀝니다.</> },
+  { sym: "공구 열기를 누르면 오류가 나요", ref: "준비 · 4단계", go: <>&apos;쇼핑몰 정보를 먼저 등록&apos;이 보이면 시작 전 준비를 합니다. 미리보기의 초대 대상이 0명이면 신청이 더 모일 때까지 기다립니다. &apos;이미 진행 중인 공구가 있어요&apos;가 보이면 공구 관리에서 그 상품의 모집 중 · 결제 기간 공구를 확인합니다.</> },
   { sym: "초대 문자가 안 나가요", ref: "준비 · 4단계", go: <>SMS 잔여 건수와 카페24 발신번호를 확인합니다. 밤 9시~오전 8시에 연 공구의 초대 문자는 오전 8시에 나갑니다. 공구 상세의 문자 표에서 상태도 확인합니다.</> },
   { sym: "달성했는데 고객이 주문을 못 한대요", ref: "5단계", go: <>재고를 넣었는지, 판매상태가 <strong>판매함</strong>인지 확인합니다.</> },
 ];
@@ -211,7 +211,7 @@ export default function SellerGuide() {
           <CheckItem id="c-prep2" checked={on("c-prep2")} onToggle={toggle}>찜꽁 홈 <strong>시작하기</strong>에서 쇼핑몰 정보(브랜드명 · 문자 발신번호 · 080 무료수신거부 번호)를 등록했다 (발신번호는 카페24에 등록한 번호 중에서 고름)</CheckItem>
           <CheckItem id="c-prep3" checked={on("c-prep3")} onToggle={toggle}>찜꽁 홈 <strong>시작하기</strong>의 상품 페이지 위젯 설치가 끝나 있다 (앱을 설치하면 자동으로 들어감. <strong>설치하기</strong> 버튼이 보일 때만 누르기)</CheckItem>
         </ul>
-        <div className={s.tip}><b>메뉴 경로 읽는 법</b> <Path items={["상품", "상품 목록"]} />처럼 쓴 것은 카페24 관리자 왼쪽 메뉴를 차례로 누르는 순서입니다. <Path items={["찜꽁", "내 공구"]} />처럼 찜꽁으로 시작하는 것은 찜꽁 화면의 메뉴(홈 · 내 공구 · 새 공구 · 모니터링 · 설정)입니다.</div>
+        <div className={s.tip}><b>메뉴 경로 읽는 법</b> <Path items={["상품", "상품 목록"]} />처럼 쓴 것은 카페24 관리자 왼쪽 메뉴를 차례로 누르는 순서입니다. <Path items={["찜꽁", "공구 관리"]} />처럼 찜꽁으로 시작하는 것은 찜꽁 화면의 메뉴(홈 · 공구 관리 · 새 공구 · 모니터링 · 설정)입니다.</div>
       </section>
 
       <section id="sg-step1" className={s.section}>
@@ -256,7 +256,7 @@ export default function SellerGuide() {
         <ul className={s.checks}>
           <CheckItem id="c-s2-1" checked={on("c-s2-1")} onToggle={toggle}>상품 상세 페이지의 구매 버튼 아래(스킨에 따라 상세 페이지 아래쪽)에 찜꽁 위젯과 <strong>재입고 · 공구 알림 받기</strong> 버튼이 보인다</CheckItem>
           <CheckItem id="c-s2-2" checked={on("c-s2-2")} onToggle={toggle}>회원으로 로그인해 버튼을 누르면 <strong>알림 신청 완료</strong>가 보인다</CheckItem>
-          <CheckItem id="c-s2-3" checked={on("c-s2-3")} onToggle={toggle}>찜꽁 <strong>내 공구</strong>의 고객이 기다리는 상품에서 그 상품에 알림 신청이 1 늘어 있다</CheckItem>
+          <CheckItem id="c-s2-3" checked={on("c-s2-3")} onToggle={toggle}>찜꽁 <strong>공구 관리</strong>의 고객이 기다리는 상품에서 그 상품에 알림 신청이 1 늘어 있다</CheckItem>
           <CheckItem id="c-s2-4" checked={on("c-s2-4")} onToggle={toggle}>(C를 했다면) 카테고리 목록에 상품이 <strong>품절</strong> 표시와 함께 보인다</CheckItem>
         </ul>
         <div className={`${s.tip} ${s.done}`}><b>확인이 끝나면</b> 위젯에서 <strong>신청 취소</strong>를 눌러 테스트 신청을 지웁니다. 재고를 방금 0으로 바꿨다면 버튼이 나오기까지 10분쯤 걸릴 수 있습니다. 하나라도 안 되면 <a className={s.link} href="#sg-trouble">문제 해결</a>을 보세요.</div>
@@ -264,8 +264,8 @@ export default function SellerGuide() {
 
       <section id="sg-step3" className={s.section}>
         <h3 className={s.h}><span className={s.step}>3단계</span>매주 기다리는 상품 보기</h3>
-        <p>일주일에 한 번, 찜꽁 메뉴의 <strong>내 공구</strong>를 열고 아래의 <strong>고객이 기다리는 상품</strong>을 봅니다. 상품별로 기다리는 고객이 몇 명인지 보는 목록입니다. (매출은 <strong>모니터링</strong>에서 봐요.)</p>
-        <Where items={["찜꽁", "내 공구", "고객이 기다리는 상품"]} />
+        <p>일주일에 한 번, 찜꽁 메뉴의 <strong>공구 관리</strong>를 열고 아래의 <strong>고객이 기다리는 상품</strong>을 봅니다. 상품별로 기다리는 고객이 몇 명인지 보는 목록입니다. (매출은 <strong>모니터링</strong>에서 봐요.)</p>
+        <Where items={["찜꽁", "공구 관리", "고객이 기다리는 상품"]} />
         <ol className={s.do}>
           <li><span><strong>다시 수집</strong>(처음이면 <strong>수집 시작</strong>)을 눌러 장바구니 숫자를 새로 모읍니다. 알림 신청은 지금 숫자라 바로 보입니다.</span></li>
           <li><span>정렬을 <strong>전체 · 알림 신청 · 장바구니</strong>로 바꿔 가며 상품별 <strong>알림 신청 N · 장바구니 N</strong>을 봅니다.</span></li>
@@ -276,8 +276,8 @@ export default function SellerGuide() {
 
       <section id="sg-step4" className={s.section}>
         <h3 className={s.h}><span className={s.step}>4단계</span>공구 열기</h3>
-        <p>열 만한 상품이 있으면 찜꽁 <strong>새 공구</strong>에서 공구를 엽니다. 아직 아니면 그대로 두고 다음 주에 다시 봅니다.</p>
-        <Where items={["찜꽁", "새 공구"]} />
+        <p>열 만한 상품이 있으면 찜꽁 <strong>공구 열기</strong>에서 공구를 엽니다. 아직 아니면 그대로 두고 다음 주에 다시 봅니다.</p>
+        <Where items={["찜꽁", "공구 열기"]} />
         <ol className={s.do}>
           <li><span><strong>1&nbsp;상품 고르기</strong>에서 그 상품의 <strong>선택</strong>을 누릅니다. 이 목록에는 알림 신청과 장바구니를 합친 수가 많은 상위 20개만 나옵니다. 품절 상품에는 <strong>품절</strong> 칩이 붙는데, 마지막 수집 때 기준이니 3단계에서 다시 수집한 뒤 고르세요.</span></li>
           <li><span><strong>2&nbsp;조건 정하기</strong>에서 목표 수량 · 공구가 · 마감 일시 · 예상 출고일을 정합니다. 1인 최대 수량(기본 2개)과 결제 기간(기본 달성 후 72시간)은 기본값이 들어 있습니다.</span></li>
@@ -289,14 +289,14 @@ export default function SellerGuide() {
 
       <section id="sg-step5" className={s.section}>
         <h3 className={s.h}><span className={s.step}>5단계</span>목표를 채우면 마감 전에 재고 넣기</h3>
-        <p>목표를 채운 공구는 마감 시각부터 결제 기간이 시작되고, 신청한 고객이 쿠폰을 써서 상품 상세 페이지에서 주문합니다. 상품이 계속 품절이면 주문할 수 없으니 재고를 넣어 주세요. 내 공구의 <strong>달성 · 결제 기간</strong> 이름표는 마감 시각에 붙으니, 그 전에 진행률을 보고 넣어 둡니다.</p>
+        <p>목표를 채운 공구는 마감 시각부터 결제 기간이 시작되고, 신청한 고객이 쿠폰을 써서 상품 상세 페이지에서 주문합니다. 상품이 계속 품절이면 주문할 수 없으니 재고를 넣어 주세요. 공구 관리의 <strong>달성 · 결제 기간</strong> 이름표는 마감 시각에 붙으니, 그 전에 진행률을 보고 넣어 둡니다.</p>
         <ol className={s.do}>
-          <li><span>공구를 열면 마감 일시를 적어 두고, 마감 당일 마감 시각 전에 찜꽁 <strong>내 공구</strong>에서 신청 수량이 목표 수량에 닿았는지(100%) 봅니다. 마감은 기본 5일 뒤 오후 2시라 매주 확인으로는 늦을 수 있습니다.</span></li>
+          <li><span>공구를 열면 마감 일시를 적어 두고, 마감 당일 마감 시각 전에 찜꽁 <strong>공구 관리</strong>에서 신청 수량이 목표 수량에 닿았는지(100%) 봅니다. 마감은 기본 5일 뒤 오후 2시라 매주 확인으로는 늦을 수 있습니다.</span></li>
           <li><span>목표에 닿았으면 마감 전에 <Path items={["상품", "상품 목록"]} />에서 그 상품의 재고 수량을 넣고, 판매상태가 <strong>판매함</strong>인지 확인합니다.</span></li>
           <li><span>결제 기간이 끝나면 공구 상세의 확정 수량을 보고 생산 · 발주를 정합니다.</span></li>
           <li><span>남은 재고를 0으로 돌려 다시 품절로 두면, 위젯의 공구 결과 아래 <strong>다음 공구 알림 받기</strong>로 다음 공구 알림을 다시 받을 수 있습니다.</span></li>
         </ol>
-        <div className={s.warn}><b>목표에 못 미치면</b> 재고를 넣지 않아도 됩니다. 마감에 신청자에게 결과 안내 문자가 자동으로 갑니다. &apos;그래도 살래요&apos;를 누른 고객이 있으면 마감 뒤 48시간 안에 찜꽁 <strong>내 공구</strong> › 공구 상세에서 <strong>그래도 진행하기</strong>를 누를 수 있습니다. 누르면 바로 쿠폰과 안내 문자가 나가고 결제 기간이 시작되니, 진행하기로 정했다면 먼저 재고를 넣고 누르세요.</div>
+        <div className={s.warn}><b>목표에 못 미치면</b> 재고를 넣지 않아도 됩니다. 마감에 신청자에게 결과 안내 문자가 자동으로 갑니다. &apos;그래도 살래요&apos;를 누른 고객이 있으면 마감 뒤 48시간 안에 찜꽁 <strong>공구 관리</strong> › 공구 상세에서 <strong>그래도 진행하기</strong>를 누를 수 있습니다. 누르면 바로 쿠폰과 안내 문자가 나가고 결제 기간이 시작되니, 진행하기로 정했다면 먼저 재고를 넣고 누르세요.</div>
       </section>
 
       <section id="sg-trouble" className={s.section}>
@@ -325,12 +325,12 @@ export default function SellerGuide() {
         </ul>
         <p className={s.groupLabel}>매주</p>
         <ul className={s.checks}>
-          <CheckItem id="c-7" tag="3단계" checked={on("c-7")} onToggle={toggle}>내 공구의 고객이 기다리는 상품에서 다시 수집을 누르고 알림 신청 · 장바구니를 확인했다</CheckItem>
-          <CheckItem id="c-8" tag="4단계" checked={on("c-8")} onToggle={toggle}>열 만한 상품은 새 공구에서 공구를 열었다</CheckItem>
+          <CheckItem id="c-7" tag="3단계" checked={on("c-7")} onToggle={toggle}>공구 관리의 고객이 기다리는 상품에서 다시 수집을 누르고 알림 신청 · 장바구니를 확인했다</CheckItem>
+          <CheckItem id="c-8" tag="4단계" checked={on("c-8")} onToggle={toggle}>열 만한 상품은 공구 열기에서 공구를 열었다</CheckItem>
         </ul>
         <p className={s.groupLabel}>공구를 열었다면 (마감 당일)</p>
         <ul className={s.checks}>
-          <CheckItem id="c-9" tag="5단계" checked={on("c-9")} onToggle={toggle}>마감 시각 전에 내 공구에서 진행률을 보고, 목표를 채웠으면 재고를 넣었다</CheckItem>
+          <CheckItem id="c-9" tag="5단계" checked={on("c-9")} onToggle={toggle}>마감 시각 전에 공구 관리에서 진행률을 보고, 목표를 채웠으면 재고를 넣었다</CheckItem>
           <CheckItem id="c-10" tag="5단계" checked={on("c-10")} onToggle={toggle}>결제 기간이 끝나면 남은 재고를 0으로 돌려 다시 품절로 두었다</CheckItem>
         </ul>
         <p className={s.sub}>체크 표시는 이 브라우저에만 저장됩니다. 위 단계의 체크와 이 체크리스트는 따로 저장됩니다.</p>
@@ -377,7 +377,7 @@ export default function SellerGuide() {
           <details>
             <summary>목표를 못 채우면 어떻게 되나요?</summary>
             <p className={s.answer}>마감에 신청자에게 <strong>결과 안내 문자</strong>가 자동으로 갑니다.</p>
-            <ul><li>&apos;그래도 살래요&apos;를 누른 고객이 있으면 마감 뒤 48시간 안에 <strong>내 공구</strong> › 공구 상세에서 <strong>그래도 진행하기</strong>를 누를 수 있습니다. 누른 사람이 없으면 진행할 수 없습니다.</li><li>진행하면 바로 결제 기간이 시작되니, 누르기 전에 재고를 넣어 주세요.</li><li>공구를 열 때 초대로 넘어간 알림 신청은 되살아나지 않습니다. 다음 공구 알림은 품절 상태에서 다시 쌓입니다.</li></ul>
+            <ul><li>&apos;그래도 살래요&apos;를 누른 고객이 있으면 마감 뒤 48시간 안에 <strong>공구 관리</strong> › 공구 상세에서 <strong>그래도 진행하기</strong>를 누를 수 있습니다. 누른 사람이 없으면 진행할 수 없습니다.</li><li>진행하면 바로 결제 기간이 시작되니, 누르기 전에 재고를 넣어 주세요.</li><li>공구를 열 때 초대로 넘어간 알림 신청은 되살아나지 않습니다. 다음 공구 알림은 품절 상태에서 다시 쌓입니다.</li></ul>
           </details>
           <details>
             <summary>고객에게는 버튼이 어떻게 보이나요?</summary>

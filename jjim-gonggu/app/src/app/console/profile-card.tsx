@@ -6,7 +6,8 @@ import { useEffect, useState } from "react";
 import { useConsole } from "./provider";
 import type { Mall } from "./types";
 
-export function ProfileCard({ mall, onSaved, say, always = false }: { mall: Mall; onSaved: () => void; say: (t: string) => void; always?: boolean }) {
+// foot: 판매자 쇼핑몰 설정(시안 3)에서 카드 맨 아래 안내 한 줄 + 오른쪽 저장 버튼
+export function ProfileCard({ mall, onSaved, say, always = false, foot }: { mall: Mall; onSaved: () => void; say: (t: string) => void; always?: boolean; foot?: string }) {
   const a = useConsole();
   const [v, setV] = useState({ brandName: mall.brandName ?? "", smsSender: mall.smsSender ?? "", optOutNumber: mall.optOutNumber ?? "" });
   useEffect(() => setV({ brandName: mall.brandName ?? "", smsSender: mall.smsSender ?? "", optOutNumber: mall.optOutNumber ?? "" }), [mall]);
@@ -14,10 +15,10 @@ export function ProfileCard({ mall, onSaved, say, always = false }: { mall: Mall
   if (complete && !always) return null;
   const save = async () => { try { await a.call("POST", `${a.mallBase}/profile`, v); onSaved(); } catch (e) { say((e as Error).message); } };
   return (
-    <div className="card" style={complete ? undefined : { borderColor: "var(--warning)" }}>
-      <b>{complete ? "쇼핑몰 정보" : "먼저 쇼핑몰 정보를 등록해 주세요"}</b>
+    <div className={foot ? "card pf" : "card"} style={complete || foot ? undefined : { borderColor: "var(--warning)" }}>
+      <b className="pf-t">{complete || foot ? "쇼핑몰 정보" : "먼저 쇼핑몰 정보를 등록해 주세요"}</b>
       <p className="muted">광고 문자에는 브랜드명과 무료수신거부 번호가 반드시 들어가요. 발신번호는 카페24에 등록된 번호여야 해요.</p>
-      <div className="form">
+      <div className={foot ? "form pf-form" : "form"}>
         <label>브랜드명<input value={v.brandName} onChange={(e) => setV({ ...v, brandName: e.target.value })} /></label>
         {mall.senders?.length ? (
           <label>문자 발신번호
@@ -35,7 +36,9 @@ export function ProfileCard({ mall, onSaved, say, always = false }: { mall: Mall
         <label>무료수신거부 번호<input value={v.optOutNumber} placeholder="080-000-0000" onChange={(e) => setV({ ...v, optOutNumber: e.target.value })} />
           <span className="hint">080으로 시작하는 무료 번호여야 해요. 카페24 관리자 › SMS 설정에서 080 수신거부 번호를 받을 수 있어요</span></label>
       </div>
-      <div><button className="btn" onClick={save}>저장</button></div>
+      {foot ? (
+        <div className="pf-foot"><span className="muted">{foot}</span><button className="btn dark" onClick={save}>저장</button></div>
+      ) : <div><button className="btn" onClick={save}>저장</button></div>}
     </div>
   );
 }

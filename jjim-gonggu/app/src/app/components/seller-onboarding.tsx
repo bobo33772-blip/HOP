@@ -108,7 +108,7 @@ const SCENES: Scene[] = [
   {
     title: "2단계 · 쇼핑몰에서 위젯 확인",
     say: "손님처럼 휴대폰으로 품절 상품을 열어 봐요. 구매 버튼 아래에 찜꽁 버튼이 있으면 성공!",
-    tip: "회원으로 로그인해야 신청돼요. 신청하면 찜꽁 모니터링의 알림 신청 수가 +1 돼요.",
+    tip: "회원으로 로그인해야 신청돼요. 신청하면 찜꽁 공구 관리의 알림 신청 수가 +1 돼요.",
     steps: [
       { wait: 400 }, { set: { c1: true } }, { wait: 500 }, { at: "pbtn" }, { click: true }, { set: { c2: true, ok: true } }, { wait: 500 }, { set: { c3: true } },
     ],
@@ -126,14 +126,14 @@ const SCENES: Scene[] = [
         <ul className={s.checks}>
           <li className={fx.c1 ? s.ticked : ""}>구매 버튼 아래에 찜꽁 버튼</li>
           <li className={fx.c2 ? s.ticked : ""}>회원으로 신청됨</li>
-          <li className={fx.c3 ? s.ticked : ""}>모니터링에 +1</li>
+          <li className={fx.c3 ? s.ticked : ""}>공구 관리에 +1</li>
         </ul>
       </div>
     ),
   },
   {
-    title: "3단계 · 매주 모니터링 보기",
-    say: "일주일에 한 번, 찜꽁 모니터링에서 '다시 수집'을 눌러요. 알림 신청과 장바구니가 많은 상품이 위에 와요!",
+    title: "3단계 · 매주 고객이 기다리는 상품 보기",
+    say: "일주일에 한 번, 찜꽁 공구 관리에서 '다시 수집'을 눌러요. 알림 신청과 장바구니가 많은 상품이 위에 와요!",
     tip: "장바구니 숫자는 '다시 수집'을 누를 때만 바뀌어요.",
     steps: [
       { wait: 400 }, { at: "find" }, { click: true }, { set: { found: true } }, { wait: 600 }, { at: "top" }, { set: { glow: true } },
@@ -141,7 +141,7 @@ const SCENES: Scene[] = [
     view: (fx) => (
       <Admin path={[]} fx={fx} jj>
         <div className={s.searchRow}>
-          <span className={s.monTitle}>모니터링</span>
+          <span className={s.monTitle}>공구 관리</span>
           <span data-t="find" className={s.findBtn}>다시 수집</span>
         </div>
         {fx.found && (
@@ -157,7 +157,7 @@ const SCENES: Scene[] = [
   {
     title: "4단계 · 공구 열기",
     say: "상품을 고르고, 몇 개 모이면 만들지 정해 '공구 열기'! 기다리던 손님에게 초대 문자가 저절로 가요.",
-    tip: "새 공구 › 상품 고르기 › 조건 정하기 › 미리보기에서 초대 대상을 확인하고 열어요. 결제는 아직 받지 않아요.",
+    tip: "공구 열기 › 상품 고르기 › 조건 정하기 › 미리보기에서 초대 대상을 확인하고 열어요. 결제는 아직 받지 않아요.",
     steps: [
       { wait: 300 }, ...walk(3), { at: "qty" }, { click: true }, { set: { sf: true } }, { type: "30", into: "qty" }, { wait: 250 },
       { at: "open" }, { click: true }, { set: { sent: true } }, { wait: 1100 }, { set: { done: true } },
@@ -349,7 +349,7 @@ export default function SellerOnboarding() {
                 <ol className={s.recap}>
                   <li>품절 상품 숨기지 않기 (진열함 · 판매함)</li>
                   <li>쇼핑몰에서 찜꽁 위젯 확인</li>
-                  <li>매주 모니터링 보기</li>
+                  <li>매주 고객이 기다리는 상품 보기</li>
                   <li>공구 열기</li>
                   <li>마감 전에 재고 넣기</li>
                 </ol>

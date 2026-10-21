@@ -1,6 +1,8 @@
 "use client";
 
-// 새 공구 1단계: 알림 신청 · 장바구니가 많은 상품 상위 20에서 고르기. 운영자 OP-1(상위 20) / 판매자 S-04 · S-E2(첫 수집 중).
+// 공구 열기 1단계: 알림 신청 · 장바구니가 많은 상품 상위 20에서 고르기. 운영자 OP-1(상위 20) / 판매자 S-04 · S-E2(첫 수집 중).
+// 시안 3: 넓은 화면은 단계 표시 + 표(# · 상품 · 정가 · 알림 신청 · 장바구니 · 선택), 휴대폰은 ① 라디오 목록(장바구니 · 알림 머리글로 정렬).
+// 진행 중인 공구가 있는 상품은 고를 수 없다(한 상품에 공구는 하나).
 
 import { useCallback, useEffect, useState } from "react";
 
@@ -17,18 +19,30 @@ export function useNarrow(max = 560) {
   return narrow;
 }
 import { useConsole } from "./provider";
-import type { RadarRow, Run } from "./types";
+import type { Camp, RadarRow, Run } from "./types";
 import { kst, won } from "./format";
 import { CampaignForm } from "./campaign-form";
+
+type Sort = "total" | "cart" | "alert";
 
 export function NewTab({ mall, say, onOpened }: { mall: string; say: (t: string) => void; onOpened: (id: string) => void }) {
   const a = useConsole();
   const [radar, setRadar] = useState<{ run: Run | null; current: Run | null; rows: RadarRow[] } | null>(null);
+  const [busyNos, setBusyNos] = useState<Set<number>>(new Set());
   const [pick, setPick] = useState<RadarRow | null>(null);
-  const narrow = useNarrow();
+  const [sort, setSort] = useState<Sort>("total");
+  const [mSort, setMSort] = useState<"cart" | "alert">("cart");
+  const [all, setAll] = useState(false);
+  const [step, setStep] = useState<2 | 3>(2);
   const load = useCallback(() => a.call<{ run: Run | null; current: Run | null; rows: RadarRow[] }>("GET", `${a.mallBase}/radar`).then(setRadar).catch((e) => say(e.message)), [a, mall, say]);
   const collect = async () => { await a.call("POST", `${a.mallBase}/radar`).catch((e) => say((e as Error).message)); load(); };
   useEffect(() => { load(); }, [load]);
+  // 모집 중 · 결제 기간인 공구가 있는 상품
+  useEffect(() => {
+    a.call<{ campaigns: Camp[] }>("GET", `${a.mallBase}/campaigns`)
+      .then((j) => setBusyNos(new Set(j.campaigns.filter((c) => c.state === "open" || c.state === "reached").map((c) => c.productNo!).filter((n) => n != null))))
+      .catch(() => {});
+  }, [a, mall]);
   const running = radar?.current?.status === "running";
   useEffect(() => {
     if (!running) return;
@@ -37,43 +51,90 @@ export function NewTab({ mall, say, onOpened }: { mall: string; say: (t: string)
   }, [running, load]);
 
   if (!radar) return <p className="muted">불러오는 중…</p>;
+  const busy = (p: RadarRow) => busyNos.has(p.productNo);
+  const choose = (p: RadarRow) => { if (!busy(p)) setPick(p); };
+  const by = (k: Sort) => (x: RadarRow, y: RadarRow) => (k === "total" ? y.alert + y.cart - (x.alert + x.cart) : y[k] - x[k] || y.cart + y.alert - (x.cart + x.alert));
+  const rows = [...radar.rows].sort(by(sort));
+  const mRows = [...radar.rows].sort(by(mSort));
+  const empty = radar.rows.length === 0;
+  const collectBtn = <button type="button" className="ghost op-collect" onClick={collect} disabled={running}>{running ? `수집 중 ${radar.current!.done}/${radar.current!.total}` : radar.run ? "다시 수집" : "관심 데이터 모으기"}</button>;
+  const emptyNote = !radar.run && empty
+    ? (running ? "상품마다 하나씩 확인하는 중이에요. 상품이 많으면 몇 분에서 몇 시간 걸려요." : "아직 모은 데이터가 없어요. 오른쪽 위 버튼으로 시작하세요.")
+    : "아직 공구 알림 신청이나 장바구니에 담긴 상품이 없어요. 고객이 쇼핑몰에 로그인한 뒤 상품을 장바구니에 담거나, 품절 상품의 '재입고 · 공구 알림 받기'를 누르면 여기에 나와요. 처음 설치했다면 테스트 회원으로 직접 담아 보고 '다시 수집'을 누르세요.";
+  const cur = !pick ? 1 : step;
+
   return (
-    <>
-      <div className="card">
-        {/* 휴대폰 폭에서는 제목·부제·버튼이 서로 눌리지 않게 줄을 바꾸고, 버튼 글자는 한 줄로 둔다 (#9) */}
-        <div className="row" style={{ flexWrap: "wrap" }}><h2 className="step-title" style={{ flexWrap: "wrap", rowGap: 2 }}><span className="n">1</span>상품 고르기 <span className="small">알림 신청·장바구니 많은 순 상위 20개</span></h2>
-          <button className="ghost" style={{ flex: "none", whiteSpace: "nowrap" }} onClick={collect} disabled={running}>{running ? `수집 중 ${radar.current!.done}/${radar.current!.total}` : radar.run ? "다시 수집" : "관심 데이터 모으기"}</button></div>
-        <p className="muted">{a.role === "admin" ? "판매자와 통화하며 함께 고르세요. 이 목록은 숫자만 있어 판매자에게 그대로 보여 줘도 괜찮아요." : "공구 알림 신청과 장바구니가 많은 상품부터 보여 드려요. 재생산을 고민 중인 상품을 골라 보세요."}{radar.run && ` · ${kst(radar.run.finishedAt ?? radar.run.startedAt)} 기준`}</p>
-        {!radar.run && radar.rows.length === 0 ? <p className="muted">{running ? "상품마다 하나씩 확인하는 중이에요. 상품이 많으면 몇 분에서 몇 시간 걸려요." : "아직 모은 데이터가 없어요. 위 버튼으로 시작하세요."}</p> : radar.run && radar.rows.length === 0 ? <p className="muted">{"아직 공구 알림 신청이나 장바구니에 담긴 상품이 없어요. 고객이 쇼핑몰에 로그인한 뒤 상품을 장바구니에 담거나, 품절 상품의 '재입고 · 공구 알림 받기'를 누르면 여기에 나와요. 처음 설치했다면 테스트 회원으로 직접 담아 보고 '다시 수집'을 누르세요."}</p> : narrow ? (
-          // 휴대폰: 열 7개짜리 표는 카드보다 넓어 '선택'이 잘린다 → 수요 레이더와 같은 목록. 줄 전체가 버튼이라 어디를 눌러도 고른다 (#9)
-          <ol className="list" style={{ wordBreak: "keep-all" }}>{radar.rows.map((p, i) => {
-            const on = pick?.productNo === p.productNo;
-            return (
-              <li key={p.productNo}><button type="button" className="item" aria-pressed={on} onClick={() => setPick(p)} style={on ? { background: "var(--brand-soft)" } : undefined}>
-                <span className="rank">{i + 1}</span>
-                <span className="meta">
-                  <b style={{ whiteSpace: "normal" }}>{p.name}{p.soldOut && <> <span className="chip">품절</span></>}</b>{/* 이름은 말줄임 대신 줄바꿈 (단어 단위) */}
-                  <small>{won(p.price)} · 알림 신청 {p.alert} · 장바구니 {p.cart}</small>
-                </span>
-                <span className={`chip ${on ? "open" : ""}`} style={{ flex: "none" }}>{on ? "선택됨" : "선택"}</span>
-              </button></li>
-            );
-          })}</ol>
-        ) : (
-          <div className="tw"><table>
-            <thead><tr><th>#</th><th>상품</th><th>정가</th><th>알림 신청</th><th>장바구니</th><th /></tr></thead>
-            <tbody>{radar.rows.map((p, i) => (
-              <tr key={p.productNo}>
-                <td className="mono">{i + 1}</td><td>{p.name}{p.soldOut && <> <span className="chip">품절</span></>}</td>
-                <td className="mono">{won(p.price)}</td><td className="mono">{p.alert}</td><td className="mono">{p.cart}</td>
-                <td><button className={pick?.productNo === p.productNo ? "btn" : "ghost"} style={pick?.productNo === p.productNo ? { minHeight: 40 } : undefined} onClick={() => setPick(p)}>{pick?.productNo === p.productNo ? "선택됨" : "선택"}</button></td>
-              </tr>
-            ))}</tbody>
-          </table></div>
+    <div className="op">
+      {/* 단계 표시 (넓은 화면) */}
+      <ol className="op-steps only-w" aria-label="공구 여는 단계">
+        {([["상품 고르기", pick?.name ?? "고객이 기다리는 상품"], ["조건 정하기", "목표 · 공구가 · 마감"], ["미리보기 · 열기", "초대 대상 · 문자 확인"]] as const).map(([t, sub], i) => (
+          <li key={t} aria-current={cur === i + 1 ? "step" : undefined} className={cur > i + 1 ? "done" : undefined}>
+            <span className="n">{cur > i + 1 ? "✓" : i + 1}</span><span><b>{t}</b><small>{sub}</small></span>
+          </li>
+        ))}
+      </ol>
+
+      {/* 1 상품 고르기: 넓은 화면 표 */}
+      <section className="op-card only-w" aria-labelledby="op-s1">
+        <div className="op-head">
+          <div><h2 id="op-s1">1 상품 고르기 <span>· 알림 신청 · 장바구니 많은 순 상위 {Math.min(20, radar.rows.length) || 20}개</span></h2>
+            <small>{radar.run ? `${kst(radar.run.finishedAt ?? radar.run.startedAt)} 기준` : a.role === "admin" ? "판매자와 통화하며 함께 고르세요" : "공구 알림 신청과 장바구니가 많은 상품부터 보여 드려요"}</small></div>
+          {collectBtn}
+        </div>
+        {empty ? <p className="muted op-empty">{emptyNote}</p> : (
+          <table className="op-table">
+            <caption className="sr">상품별 알림 신청 · 장바구니 수</caption>
+            <thead><tr>
+              <th className="rk">#</th><th>상품</th><th className="n">정가</th>
+              {([["alert", "알림 신청"], ["cart", "장바구니"]] as const).map(([k, l]) => (
+                <th key={k} className="n" aria-sort={sort === k ? "descending" : "none"}><button type="button" className={sort === k ? "on" : undefined} onClick={() => setSort(sort === k ? "total" : k)}>{l}{sort === k ? " ↓" : ""}</button></th>
+              ))}
+              <th><span className="sr">선택</span></th>
+            </tr></thead>
+            <tbody>{rows.slice(0, 20).map((p, i) => {
+              const on = pick?.productNo === p.productNo, b = busy(p);
+              return (
+                <tr key={p.productNo} className={on ? "on" : b ? "busy" : undefined} onClick={() => choose(p)}>
+                  <td className="rk">{i + 1}</td>
+                  <td><b>{p.name}</b>{p.soldOut && <span className="tag">품절</span>}{b && <span className="tag">공구 진행 중</span>}</td>
+                  <td className="n">{p.price.toLocaleString("ko-KR")}</td>
+                  <td className="n al">{p.alert}</td>
+                  <td className="n">{p.cart}</td>
+                  <td className="n"><button type="button" className={on ? "sel on" : "sel"} disabled={b} aria-pressed={on} onClick={(e) => { e.stopPropagation(); choose(p); }}>{on ? "선택됨" : "선택"}</button></td>
+                </tr>
+              );
+            })}</tbody>
+          </table>
         )}
-        <p className="small">상품 페이지 위젯에서 &lsquo;공구 열리면 알림 받기&rsquo;를 신청한 고객과 장바구니에 담은 고객에게 공구를 열어요. 알림 신청은 공구를 열면 초대와 함께 비워져요.</p>
-      </div>
-      {pick && <CampaignForm key={pick.productNo} mall={mall} p={pick} say={say} onOpened={onOpened} />}
-    </>
+      </section>
+
+      {/* ① 어떤 상품을 열까요? 휴대폰 목록 */}
+      <h2 className="op-q only-m">① 어떤 상품을 열까요?</h2>
+      <section className="op-mlist only-m" aria-label="상품별 장바구니 수">
+        <div className="op-mtop"><span>{radar.run ? `상품 ${radar.run.total}개 · ${kst(radar.run.finishedAt ?? radar.run.startedAt)} 기준` : "관심 데이터"}</span>{collectBtn}</div>
+        {empty ? <p className="muted op-empty">{emptyNote}</p> : (
+          <>
+            <div className="op-mrow head" role="row">
+              <span /><span>상품</span>
+              <button type="button" className={mSort === "cart" ? "on" : undefined} onClick={() => setMSort("cart")}>장바구니{mSort === "cart" ? " ↓" : ""}</button>
+              <button type="button" className={mSort === "alert" ? "on" : undefined} onClick={() => setMSort("alert")}>알림{mSort === "alert" ? " ↓" : ""}</button>
+            </div>
+            {(all ? mRows : mRows.slice(0, 8)).map((p) => {
+              const on = pick?.productNo === p.productNo, b = busy(p);
+              return (
+                <button key={p.productNo} type="button" className={`op-mrow${on ? " on" : ""}${b ? " busy" : ""}`} aria-pressed={on} disabled={b} onClick={() => choose(p)}>
+                  <span className="radio" aria-hidden="true"><i /></span>
+                  <span className="t"><b>{p.name}</b><small>{b ? "공구 진행 중 · 고를 수 없어요" : `정가 ${won(p.price)}${p.soldOut ? " · 품절" : ""}`}</small></span>
+                  <b className="c">{p.cart}</b><span className="a">{p.alert}</span>
+                </button>
+              );
+            })}
+            {mRows.length > 8 && <button type="button" className="op-more" onClick={() => setAll(!all)}>{all ? "접기" : `상품 ${mRows.length}개 모두 보기 ›`}</button>}
+          </>
+        )}
+      </section>
+
+      {pick && <CampaignForm key={pick.productNo} mall={mall} p={pick} say={say} onOpened={onOpened} onStep={setStep} />}
+    </div>
   );
 }
