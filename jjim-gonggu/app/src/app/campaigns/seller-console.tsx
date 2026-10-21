@@ -52,7 +52,8 @@ export default function SellerConsole({ mallId, initialTab, initialOpen, scopes 
           <div className="hello">
             <span className="crumb only-w"><a href="/">대시보드</a> › {TITLE[tab][0]}</span>
             <h1>{TITLE[tab][0]}</h1>
-            <p className={tab === "list" ? "muted only-w" : "muted"}>{TITLE[tab][1]}</p>
+            <p className={tab === "list" || tab === "new" ? "muted only-w" : "muted"}>{TITLE[tab][1]}</p>
+            {tab === "new" && <p className="muted only-m">고객이 기다리는 상품을 고르고, 질문 3개에 답하면 끝이에요.</p>}
           </div>
           {tab === "list" && <button type="button" className="btn dark compact ph-new" onClick={() => setTab("new")}>＋ 공구 열기</button>}
         </div>
