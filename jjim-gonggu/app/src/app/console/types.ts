@@ -1,4 +1,5 @@
 // 공구 관리 화면이 API와 주고받는 데이터 모양. 운영자 화면과 판매자 화면이 같이 쓴다.
+import type { MallRates } from "@/lib/core/scenario";
 
 export type State = "open" | "reached" | "failed" | "settled" | "cancelled";
 export interface Mall { mallId: string; brandName: string | null; optOutNumber: string | null; smsSender: string | null; senders?: { senderNo: string; number: string; status: string }[] | null }
@@ -18,7 +19,11 @@ export interface Detail {
 }
 export interface RadarRow { productNo: number; name: string; price: number; soldOut: boolean; alert: number; cart: number }
 /** 공구 열기 칸 미리 채우기 (#124). costFrom: last 지난 공구 · cafe24 카페24 공급가 */
-export interface ProductDefaults { costPrice: number | null; costFrom: "last" | "cafe24" | null; moq: number | null }
+export interface ProductDefaults {
+  costPrice: number | null; costFrom: "last" | "cafe24" | null; moq: number | null;
+  perMemberLimit: number | null; payWindowHours: number | null;
+  history: MallRates | null; // 이 쇼핑몰 끝난 공구로 잰 신청률 · 결제율 (#125)
+}
 export interface Run { status: "running" | "done" | "failed"; total: number; done: number; finishedAt: string | null; startedAt: string }
 export interface Preview {
   errors: string[]; warnings: string[]; message: string; sendAt: string; marginPerUnit: number | null;
