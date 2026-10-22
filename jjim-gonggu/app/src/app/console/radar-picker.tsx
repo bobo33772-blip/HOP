@@ -81,7 +81,7 @@ export function NewTab({ mall, say, onOpened }: { mall: string; say: (t: string)
       {/* 1 상품 고르기: 넓은 화면 표 */}
       <section className="op-card only-w" aria-labelledby="op-s1">
         <div className="op-head">
-          <div><h2 id="op-s1">1 상품 고르기 <span>· 알림 신청 · 장바구니 많은 순 상위 {Math.min(20, radar.rows.length) || 20}개</span></h2>
+          <div><h2 id="op-s1">1 상품 고르기 <span>· 알림 신청 · 장바구니 많은 순</span></h2>
             <small>{radar.run ? `${kst(radar.run.finishedAt ?? radar.run.startedAt)} 기준` : a.role === "admin" ? "판매자와 통화하며 함께 고르세요" : "공구 알림 신청과 장바구니가 많은 상품부터 보여 드려요"}</small></div>
           {collectBtn}
         </div>
