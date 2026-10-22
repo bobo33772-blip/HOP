@@ -177,10 +177,11 @@ const top = (os: Outcome[], f: (o: Outcome) => number) => os.reduce<Outcome | nu
 
 /** 목표만큼만 신청이 모여도 최소 생산 수량을 90% 확률로 채우는 가장 작은 목표 (신청 수량) */
 export function targetForMoq(b: ScenarioBase): number | null {
-  if (!b.moq) return null;
   const pay = payRateOf(b);
+  if (!b.moq || !(pay > 0)) return null;
   let t = Math.ceil(Number((b.moq / pay).toFixed(6)));
-  while (surePaid(t, pay) < b.moq && t < b.moq * 20) t++;
+  // 결제율이 낮아도 끝까지 찾는다 (surePaid는 t에 따라 늘어나므로 반드시 멈춘다)
+  while (surePaid(t, pay) < b.moq) t++;
   return t;
 }
 
@@ -203,17 +204,22 @@ export function scenarios(b: ScenarioBase): Scenario[] {
   const bestO = top(all7.filter(ok), value);
   const best: Scenario = { key: "best", title: `${money} 최대`, why: `기대 ${money}이 가장 큰 할인 · 목표 · 마감 7일`, outcome: bestO, note: bestO ? undefined : none ?? weak };
 
+  // 💰와 똑같은 조건이면 카드 두 장이 같아지니 뺀다
+  const same = (o: Outcome) => !!bestO && o.dealPrice === bestO.dealPrice && o.targetQty === bestO.targetQty && o.days === bestO.days;
   let fastO: Outcome | null = null;
   for (const d of [3, 5, 7]) {
-    const o = top((d === 7 ? all7 : pool(d)).filter(ok), sold);
+    const o = top((d === 7 ? all7 : pool(d)).filter((x) => ok(x) && !same(x)), sold);
     if (o && (!bestO || sold(o) >= sold(bestO))) { fastO = o; break; }
   }
-  const fast: Scenario = { key: "fast", title: "빠르게 많이 모으기", why: fastO ? `할인을 크게 · 마감 ${fastO.days}일 · 손해 없이 가장 많이 팔리게` : "할인을 크게 · 마감을 짧게", outcome: fastO, note: fastO ? undefined : none ?? weak };
+  const fast: Scenario = {
+    key: "fast", title: "빠르게 많이 모으기", why: fastO ? `할인을 크게 · 마감 ${fastO.days}일 · 손해 없이 가장 많이 팔리게` : "할인을 크게 · 마감을 짧게", outcome: fastO,
+    note: fastO ? undefined : none ?? (bestO ? `💰 ${money} 최대 조건이 가장 많이 팔려요. 그 조건을 쓰세요` : weak),
+  };
 
   const moqS: Scenario = { key: "moq", title: "최소 생산 수량 꼭 채우기", why: "마진이 줄어도 목표만큼만 모여도 최소 생산 수량만큼 결제되게 · 마감 7일", outcome: null };
   if (!tMoq) moqS.note = "최소 생산 수량을 넣으면 계산해요";
   else {
-    moqS.outcome = top(all7.filter((o) => o.targetQty >= tMoq && o.reachProb >= 0.5 && value(o) > 0), value);
+    moqS.outcome = top(all7.filter((o) => o.targetQty >= tMoq && o.moqMet === "sure" && o.reachProb >= 0.5 && value(o) > 0), value);
     if (!moqS.outcome) moqS.note = none ?? `초대 ${b.audience.reachable}명으로는 ${b.moq}개 결제를 맞추며 ${money}을 내기 어려워 보여요. 최소 생산 수량을 줄이거나 관심 고객이 더 모인 뒤 열어 보세요`;
   }
   return [fast, best, moqS];

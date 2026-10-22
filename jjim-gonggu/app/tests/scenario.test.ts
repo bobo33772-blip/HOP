@@ -72,9 +72,14 @@ describe("예상 결과", () => {
 
   it("기대 이익은 신청률 경우마다 따로 계산해 더한다 (최소 생산 수량 때문에 남는 재고가 평균에 묻히지 않게)", () => {
     const o = outcome({ ...base, moq: 60 }, 41500, 40, 5);
-    expect(o.expectedProfit!).toBeLessThanOrEqual(Math.round(o.reachProb * o.ifReached.profit!) + 1);
-    expect(o.ifReached.produce).toBeGreaterThanOrEqual(60);
-    expect(o.ifReached.leftover).toBe(Math.max(0, o.ifReached.produce - o.ifReached.paid));
+    // 손으로 계산: 20% 할인 · 5일 → 신청 인원 1000 × 5% = 50명(보통). 낮을 때 30명 · 보통 50명 · 높을 때 70명
+    // 목표 40개 = 34명(1.2개씩). 성사되면 신청 max(인원 × 1.2, 40) = 40 · 60 · 84개 → 결제 60%: 24 · 36 · 50개
+    // 만드는 수량은 셋 다 최소 생산 60개 → 이익 = 결제 × 41,500 − 60 × 21,000
+    const cases = [[30, 24], [50, 36], [70, 50]].map(([n, paid]) => ({ p: poissonAtLeast(n, 34) / 3, profit: paid * 41500 - 60 * 21000 }));
+    expect(cases[0].profit).toBeLessThan(0); // 신청이 적은 경우엔 남는 재고 때문에 손해
+    expect(o.expectedProfit).toBe(Math.round(cases.reduce((x, c) => x + c.p * c.profit, 0)));
+    expect(o.reachProb).toBeCloseTo(cases.reduce((x, c) => x + c.p, 0), 10);
+    expect(o.ifReached.produce).toBe(60);
   });
 
   it("최소 생산 수량: sure(목표만큼만 모여도 90%) · likely(성사되면 평균으로는) · no · 모르면 null", () => {
@@ -141,6 +146,20 @@ describe("시나리오 3가지", () => {
     expect(fast.outcome.reachProb).toBeGreaterThanOrEqual(ASSUME.minReach);
     if (best.outcome) expect(sold(fast.outcome)).toBeGreaterThanOrEqual(sold(best.outcome));
     for (const o of grid(b, fast.outcome.days)) if (o.reachProb >= ASSUME.minReach && value(o) > 0) expect(sold(fast.outcome)).toBeGreaterThanOrEqual(sold(o) - 1e-9);
+  });
+
+  it.each(FIXTURES)("%s: ⚡와 💰는 같은 조건을 두 번 보여 주지 않는다", (_, b) => {
+    const [fast, best] = scenarios(b);
+    if (fast.outcome && best.outcome) expect([fast.outcome.dealPrice, fast.outcome.targetQty, fast.outcome.days]).not.toEqual([best.outcome.dealPrice, best.outcome.targetQty, best.outcome.days]);
+  });
+
+  it("결제율이 낮아도 📦 목표는 끝까지 찾아 90% 여유를 지키고, 카드는 'sure'만 고른다", () => {
+    const low = { ...base, moq: 30, history: { pledgeRate: 0.3, payRate: 0.05, avgQty: null, campaigns: 3 } as MallRates };
+    const t = targetForMoq(low)!;
+    expect(surePaid(t, 0.05)).toBeGreaterThanOrEqual(30);
+    expect(t).toBeGreaterThan(30 * 20);
+    const m = scenarios(low)[2];
+    if (m.outcome) expect(m.outcome.moqMet).toBe("sure");
   });
 
   it("목표는 1인 최대 수량 · 2개 이상, 예상 신청의 60% 이상 (몇 개만 모여도 진행하는 목표는 추천하지 않는다)", () => {

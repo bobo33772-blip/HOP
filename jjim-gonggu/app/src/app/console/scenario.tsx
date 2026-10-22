@@ -51,7 +51,7 @@ export function ScenarioPick({ base, dealPrice, targetQty, days, onPick, onDisco
                   <span>{o.discountPct}% 할인 · {won(o.dealPrice)} · 목표 {o.targetQty}개 · {o.days}일</span>
                   <span>성사 가능성 <em className={`ch-${o.chance}`}>{CHANCE[o.chance]} {pct(o.reachProb)}</em></span>
                   <strong>기대 {money} {signed(value(o))}</strong>
-                  <span>성사되면 결제 {o.ifReached.paid}개 · {money} {signed(o.ifReached.profit ?? o.ifReached.revenue)}</span>
+                  <span>성사되면 평균 결제 {o.ifReached.paid}개 · {money} {signed(o.ifReached.profit ?? o.ifReached.revenue)}</span>
                 </span>
               ) : <span className="sc-sum muted">{s.note}</span>}
             </button>
@@ -60,7 +60,7 @@ export function ScenarioPick({ base, dealPrice, targetQty, days, onPick, onDisco
       </div>
       <label className="sc-slider">
         <span>할인율 <b>{off}%</b> · 공구가 {won(dealPrice)}</span>
-        <input type="range" min={DISCOUNT_STEPS[0]} max={DISCOUNT_STEPS[DISCOUNT_STEPS.length - 1]} step={5} value={step5(off)}
+        <input type="range" min={DISCOUNT_STEPS[0]} max={DISCOUNT_STEPS[DISCOUNT_STEPS.length - 1]} step={5} value={DISCOUNT_STEPS.find((p) => dealPriceFor(base.listPrice, p) === dealPrice) ?? step5(off)}
           onChange={(e) => onDiscount(dealPriceFor(base.listPrice, Number(e.target.value)))} aria-label="할인율" />
       </label>
     </div>
@@ -100,7 +100,7 @@ export function ScenarioResult({ base, dealPrice, targetQty, days, level, onLeve
         <div><span>초대</span><b>{base.audience.reachable}명</b></div>
         <div><span>예상 신청</span><b>{o.expectedPledged}개</b></div>
         <div><span>목표 (신청)</span><b>{targetQty}개</b></div>
-        <div><span>성사되면 결제</span><b>{r.paid}개</b></div>
+        <div><span>성사되면 평균 결제</span><b>{r.paid}개</b></div>
       </div>
       <div className="sc-money">
         <div><span>성사되면 매출</span><b>{won(r.revenue)}</b></div>

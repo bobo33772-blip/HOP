@@ -1,7 +1,7 @@
 // 운영자 API(/api/admin/…)와 판매자 API(/api/seller/…)가 같이 쓰는 동작. 누가 어느 몰을 다룰 수 있는지는 라우트가 정한다.
 
 import { after } from "next/server";
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, sum } from "drizzle-orm";
 import { schema } from "@/db";
 import type { Ctx } from "./engine/context";
 import { audit, UserError } from "./engine/context";
@@ -9,6 +9,7 @@ import { isValidOptOutNumber } from "./core/messaging";
 import { getCampaign, getMall, type Campaign } from "./engine/campaigns";
 import { buildReport } from "./engine/report";
 import { discountOf, mallRatesFrom } from "./core/scenario";
+import { COUNTED_PLEDGE_STATES } from "./core/pledge";
 import { stillWanted } from "./engine/proceed";
 import { proceedInfo } from "./core/campaign";
 import { getRadar, latestRun, runCollection, startCollection } from "./radar";
@@ -69,8 +70,13 @@ export async function productDefaults(ctx: Ctx, mallId: string, productNo: numbe
   // 신청이 끝난 공구(진행 안 됨 · 결제 기간 · 공동구매 종료, 그래도 진행 포함). 모집 중 · 판매자가 취소한 공구는 신청이 덜 끝나 뺀다
   const done = recent.filter((r) => r.state === "failed" || r.state === "reached" || r.state === "settled").slice(0, 20);
   const reps = await Promise.all(done.map((r) => buildReport(ctx, r.id)));
+  // 1인 평균 수량: 진행률에 들어가는 신청(COUNTED_PLEDGE_STATES)만으로 사람 수 · 수량을 같이 센다 (미달 · 그래도 살래요 신청은 수량이 빠져 있어 섞으면 평균이 낮아진다)
+  const P = schema.pledges;
+  const counted = done.length ? await ctx.db.select({ id: P.campaignId, n: count(), q: sum(P.qty) }).from(P)
+    .where(and(inArray(P.campaignId, done.map((r) => r.id)), inArray(P.state, COUNTED_PLEDGE_STATES))).groupBy(P.campaignId) : [];
+  const per = new Map(counted.map((x) => [x.id, { n: Number(x.n), q: Number(x.q ?? 0) }]));
   const history = mallRatesFrom(reps.map((r, i) => ({
-    invitedSent: r.funnel.invitedSent, invitedPledgers: r.funnel.invitedPledgers, pledgers: r.funnel.pledgers, pledgedQty: r.funnel.pledgedQty,
+    invitedSent: r.funnel.invitedSent, invitedPledgers: r.funnel.invitedPledgers, pledgers: per.get(done[i].id)?.n ?? 0, pledgedQty: per.get(done[i].id)?.q ?? 0,
     couponIssued: r.funnel.couponIssued, paidMembers: r.funnel.paidMembers,
     discountPct: discountOf(done[i].listPrice, done[i].dealPrice),
     days: Math.max(1, Math.round((done[i].deadlineAt.getTime() - done[i].openedAt.getTime()) / 86_400_000)),

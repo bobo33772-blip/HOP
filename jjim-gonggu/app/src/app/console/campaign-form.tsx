@@ -115,7 +115,7 @@ export function CampaignForm({ mall, p, say, onOpened, onStep }: { mall: string;
   // 목표(신청 기준)와 결제 수량을 한 문장으로: 예상 신청이 목표보다 적으면 성사가 어렵다는 것부터
   const note = oNow && <>목표 <b>{target}</b>개가 신청되면 성사돼요. {oNow.expectedPledged < target
     ? <>예상 신청은 약 <b>{oNow.expectedPledged}</b>개라 목표에 못 미칠 수 있어요(성사 가능성 {Math.round(oNow.reachProb * 100)}%). 성사되면 결제는 약 <b>{oNow.minPaid}</b>개 이상이에요.</>
-    : <>신청은 결제가 아니라서(결제율 {payPct}%) 목표만큼만 모이면 약 <b>{oNow.minPaid}</b>개, 예상대로({oNow.expectedPledged}개) 모이면 약 <b>{oNow.ifReached.paid}</b>개가 결제돼요.</>}
+    : <>신청은 결제가 아니라서(결제율 {payPct}%) 목표만큼만 모이면 약 <b>{oNow.minPaid}</b>개, 성사되면 평균 약 <b>{oNow.ifReached.paid}</b>개가 결제돼요.</>}
     {tMoq && target < tMoq ? <> 최소 생산 수량 {base.moq}개를 목표만큼만 모여도 채우려면 목표를 <b>{tMoq}</b>개 이상으로 잡으세요.</> : null}</>;
   const openLabel = busy ? "여는 중…" : pv ? `공구 열기 · 초대 ${pv.audience.reachable}명 예약` : "공구 열기";
   const problems = err ? [err] : pv?.errors ?? [];
@@ -191,7 +191,7 @@ export function CampaignForm({ mall, p, say, onOpened, onStep }: { mall: string;
           </label>
           <label>
             <span className="ic cal" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg></span>
-            <span className="t"><span>모집 마감{dlDays != null ? ` · ${dlDays}일 뒤` : ""}</span><input type="datetime-local" value={String(f.deadline)} onChange={set("deadline")} /></span>
+            <span className="t"><span>모집 마감{dlDays != null ? ` · ${picked && picked.deadline === f.deadline ? picked.days : dlDays}일 뒤` : ""}</span><input type="datetime-local" value={String(f.deadline)} onChange={set("deadline")} /></span>
           </label>
         </div>
         <button type="button" className="op-link" aria-expanded={more} onClick={() => setMore(!more)}>{more ? "접기" : "원가 · 최소 생산 수량 · 1인 최대 수량 · 결제 기간 · 출고일 더 정하기"}</button>
