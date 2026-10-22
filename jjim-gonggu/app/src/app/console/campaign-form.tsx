@@ -10,6 +10,7 @@ import type { Preview, ProductDefaults, RadarRow } from "./types";
 import { kst, won } from "./format";
 import { outcome, scenarios, payRateOf, targetForMoq, type Level, type ScenarioBase } from "@/lib/core/scenario";
 import { ScenarioPick, ScenarioResult, AutoFilled } from "./scenario";
+import { OpenConfirmSheet } from "./open-confirm-sheet";
 
 const kstDay = (ms: number) => new Date(ms + 9 * 3_600_000).toISOString().slice(0, 10);
 
@@ -22,6 +23,7 @@ export function CampaignForm({ mall, p, say, onOpened, onStep }: { mall: string;
   const [busy, setBusy] = useState(false);
   const [more, setMore] = useState(false);
   const [showMsg, setShowMsg] = useState(false);
+  const [asking, setAsking] = useState(false);
   const [costFrom, setCostFrom] = useState<ProductDefaults["costFrom"]>(null);
   const [def, setDef] = useState<ProductDefaults | null>(null);
   const [level, setLevel] = useState<Level>("mid");
@@ -103,7 +105,7 @@ export function CampaignForm({ mall, p, say, onOpened, onStep }: { mall: string;
   const open = async () => {
     setBusy(true);
     try { const r = await a.call<{ campaign: { id: string }; invited: number }>("POST", `${a.mallBase}/campaigns`, input(f)); say(`공구를 열었어요 · 초대 ${r.invited}명`); onOpened(r.campaign.id); }
-    catch (e) { setBusy(false); say((e as Error).message); }
+    catch (e) { setBusy(false); setAsking(false); say((e as Error).message); }
   };
   // 계산에 쓰는 모집 기간(일): 시나리오로 정한 마감이면 그 기간, 아니면 남은 시간을 일로 (최소 1일)
   const days = picked && picked.deadline === f.deadline ? picked.days : now && dlMs ? Math.max(1, Math.round((dlMs - now) / 86_400_000)) : 5;
@@ -150,7 +152,7 @@ export function CampaignForm({ mall, p, say, onOpened, onStep }: { mall: string;
               <div className="op-aud">
                 <div><span>알림 신청</span><b>{pv.audience.alert}명</b></div>
                 <div><span>장바구니</span><b>{pv.audience.cart}명</b></div>
-                <div><span>중복 제외</span><b>{pv.audience.unique}명</b></div>
+                <div><span>제외 (알림 신청, 장바구니 중복)</span><b>{pv.audience.unique}명</b></div>
                 <div className="hl"><span>{pv.audience.consentChecked ? "문자 발송 대상 (수신 동의)" : "초대 대상 (최대)"}</span><b>{pv.audience.reachable}명</b></div>
               </div>
               <ul className="op-facts">
@@ -166,7 +168,7 @@ export function CampaignForm({ mall, p, say, onOpened, onStep }: { mall: string;
           ) : !problems.length && <p className="muted">초대 대상을 확인하는 중…</p>}
           {problems.length > 0 && <div className="err" role="alert">{problems.map((e) => <div key={e}>{e}</div>)}</div>}
           {result}
-          <button className="btn brand op-open" disabled={busy || !ok} onClick={open}>{openLabel}</button>
+          <button className="btn brand op-open" disabled={busy || !ok} onClick={() => setAsking(true)}>{openLabel}</button>
           <small className="op-after">{a.role === "admin" ? "판매자에게 조건을 다시 읽어 주고 동의를 받은 뒤 여세요." : "열면 쿠폰이 만들어지고 공구 관리로 이동해요."}</small>
         </section>
       </div>
@@ -207,10 +209,19 @@ export function CampaignForm({ mall, p, say, onOpened, onStep }: { mall: string;
         </div>
         {problems.length > 0 && <div className="err" role="alert">{problems.map((e) => <div key={e}>{e}</div>)}</div>}
         {pv?.warnings.map((w) => <p key={w} className="warn">{w}</p>)}
-        <button className="op-mopen" disabled={busy || !ok} onClick={open}>{busy ? "여는 중…" : "공구 열기 ›"}</button>
+        <button className="op-mopen" disabled={busy || !ok} onClick={() => setAsking(true)}>{busy ? "여는 중…" : "공구 열기 ›"}</button>
         <button type="button" className="op-link center" aria-expanded={showMsg} onClick={() => setShowMsg(!showMsg)}>{showMsg ? "문자 미리보기 닫기" : "초대 문자 미리보기"}</button>
         {showMsg && pv && <p className="bubble">{pv.message}</p>}
       </div>
+
+      {asking && pv && (
+        <OpenConfirmSheet productName={p.name} busy={busy} onClose={() => setAsking(false)} onConfirm={open}
+          facts={[
+            `목표 ${f.targetQty}개 · 공구가 ${won(deal)} · 마감 ${kst(dlMs ? new Date(dlMs).toISOString() : "")}`,
+            `초대 문자 ${pv.audience.reachable}명 · ${kst(pv.sendAt)} 발송 예약`,
+            "열면 쿠폰이 만들어지고 공구 관리로 이동해요.",
+          ]} />
+      )}
     </>
   );
 }

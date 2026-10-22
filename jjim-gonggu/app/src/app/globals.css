@@ -172,7 +172,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .chev { color: var(--muted); font-size: 18px; }
 
 /* 시트 */
-.sheet { position: fixed; inset: 0; background: rgba(10, 10, 14, .45); display: flex; flex-direction: column; justify-content: flex-end; z-index: 10; animation: fade .15s; }
+.sheet { position: fixed; inset: 0; background: rgba(10, 10, 14, .45); display: flex; flex-direction: column; justify-content: flex-end; z-index: 16; animation: fade .15s; }
 .sheet .in { max-height: calc(100dvh - 16px); overflow-y: auto; overscroll-behavior: contain; background: var(--surface); border-radius: 12px 12px 0 0; padding: 14px 18px calc(22px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 12px; max-width: 560px; width: 100%; margin: 0 auto; animation: up .2s cubic-bezier(.2, .8, .2, 1); }
 .sheet h2 { font-size: 19px; margin: 0; overflow-wrap: anywhere; }
 .grab { width: 42px; height: 5px; border-radius: 3px; background: var(--line); justify-self: center; }
