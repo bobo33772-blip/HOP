@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { useConsole } from "./provider";
 import type { Preview, RadarRow } from "./types";
 import { kst, won } from "./format";
+import { OpenConfirmSheet } from "./open-confirm-sheet";
 import { EXPECTED_PAY_RATE, pledgesNeeded } from "@/lib/core/pledge";
 
 const kstDay = (ms: number) => new Date(ms + 9 * 3_600_000).toISOString().slice(0, 10);
@@ -21,6 +22,7 @@ export function CampaignForm({ mall, p, say, onOpened, onStep }: { mall: string;
   const [busy, setBusy] = useState(false);
   const [more, setMore] = useState(false);
   const [showMsg, setShowMsg] = useState(false);
+  const [asking, setAsking] = useState(false);
   useEffect(() => {
     a.call<{ now: string }>("GET", a.now).then(({ now }) => {
       const t = new Date(now).getTime(), dl = t + 5 * 86_400_000;
@@ -62,7 +64,7 @@ export function CampaignForm({ mall, p, say, onOpened, onStep }: { mall: string;
   const open = async () => {
     setBusy(true);
     try { const r = await a.call<{ campaign: { id: string }; invited: number }>("POST", `${a.mallBase}/campaigns`, input(f)); say(`공구를 열었어요 · 초대 ${r.invited}명`); onOpened(r.campaign.id); }
-    catch (e) { setBusy(false); say((e as Error).message); }
+    catch (e) { setBusy(false); setAsking(false); say((e as Error).message); }
   };
   const openLabel = busy ? "여는 중…" : pv ? `공구 열기 · 초대 ${pv.audience.reachable}명 예약` : "공구 열기";
   const problems = err ? [err] : pv?.errors ?? [];
@@ -109,7 +111,7 @@ export function CampaignForm({ mall, p, say, onOpened, onStep }: { mall: string;
             </>
           ) : !problems.length && <p className="muted">초대 대상을 확인하는 중…</p>}
           {problems.length > 0 && <div className="err" role="alert">{problems.map((e) => <div key={e}>{e}</div>)}</div>}
-          <button className="btn brand op-open" disabled={busy || !ok} onClick={open}>{openLabel}</button>
+          <button className="btn brand op-open" disabled={busy || !ok} onClick={() => setAsking(true)}>{openLabel}</button>
           <small className="op-after">{a.role === "admin" ? "판매자에게 조건을 다시 읽어 주고 동의를 받은 뒤 여세요." : "열면 쿠폰이 만들어지고 공구 관리로 이동해요."}</small>
         </section>
       </div>
@@ -146,10 +148,19 @@ export function CampaignForm({ mall, p, say, onOpened, onStep }: { mall: string;
         </div>
         {problems.length > 0 && <div className="err" role="alert">{problems.map((e) => <div key={e}>{e}</div>)}</div>}
         {pv?.warnings.map((w) => <p key={w} className="warn">{w}</p>)}
-        <button className="op-mopen" disabled={busy || !ok} onClick={open}>{busy ? "여는 중…" : "공구 열기 ›"}</button>
+        <button className="op-mopen" disabled={busy || !ok} onClick={() => setAsking(true)}>{busy ? "여는 중…" : "공구 열기 ›"}</button>
         <button type="button" className="op-link center" aria-expanded={showMsg} onClick={() => setShowMsg(!showMsg)}>{showMsg ? "문자 미리보기 닫기" : "초대 문자 미리보기"}</button>
         {showMsg && pv && <p className="bubble">{pv.message}</p>}
       </div>
+
+      {asking && pv && (
+        <OpenConfirmSheet productName={p.name} busy={busy} onClose={() => setAsking(false)} onConfirm={open}
+          facts={[
+            `목표 ${f.targetQty}개 · 공구가 ${won(deal)} · 마감 ${kst(dlMs ? new Date(dlMs).toISOString() : "")}`,
+            `초대 문자 ${pv.audience.reachable}명 · ${kst(pv.sendAt)} 발송 예약`,
+            "열면 쿠폰이 만들어지고 공구 관리로 이동해요.",
+          ]} />
+      )}
     </>
   );
 }
