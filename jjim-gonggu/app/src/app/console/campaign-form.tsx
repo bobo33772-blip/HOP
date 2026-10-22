@@ -9,6 +9,7 @@ import { useConsole } from "./provider";
 import type { Preview, ProductDefaults, RadarRow } from "./types";
 import { kst, won } from "./format";
 import { EXPECTED_PAY_RATE, pledgesNeeded } from "@/lib/core/pledge";
+import { ScenarioPick, ScenarioResult } from "./scenario";
 
 const kstDay = (ms: number) => new Date(ms + 9 * 3_600_000).toISOString().slice(0, 10);
 
@@ -68,6 +69,16 @@ export function CampaignForm({ mall, p, say, onOpened, onStep }: { mall: string;
     try { const r = await a.call<{ campaign: { id: string }; invited: number }>("POST", `${a.mallBase}/campaigns`, input(f)); say(`공구를 열었어요 · 초대 ${r.invited}명`); onOpened(r.campaign.id); }
     catch (e) { setBusy(false); say((e as Error).message); }
   };
+  // 시나리오 (#125): 초대 인원은 미리보기 값, 아직 없으면 알림 신청 + 장바구니
+  const num = (v: unknown) => (v === "" || v == null || !(Number(v) >= 0) ? null : Number(v));
+  const base = { listPrice: p.price, costPrice: num(f.costPrice), moq: num(f.moq) || null, invited: pv?.audience.reachable ?? p.alert + p.cart };
+  const pickScenario = (s: { dealPrice: number; targetQty: number; days: number }) => {
+    const dl = now + s.days * 86_400_000;
+    setF({ ...f, dealPrice: String(s.dealPrice), targetQty: String(s.targetQty), deadline: `${kstDay(dl)}T14:00`, shipEta: kstDay(dl + 14 * 86_400_000) });
+  };
+  const setDeal = (d: number) => put("dealPrice", String(d));
+  const pick = <ScenarioPick base={base} dealPrice={deal} targetQty={target} onPick={pickScenario} onDiscount={setDeal} />;
+  const result = <ScenarioResult base={base} dealPrice={deal} targetQty={target} onDiscount={setDeal} />;
   const openLabel = busy ? "여는 중…" : pv ? `공구 열기 · 초대 ${pv.audience.reachable}명 예약` : "공구 열기";
   const problems = err ? [err] : pv?.errors ?? [];
 
@@ -89,6 +100,7 @@ export function CampaignForm({ mall, p, say, onOpened, onStep }: { mall: string;
       <div className="op-grid only-w">
         <section className="op-card op-pad" aria-labelledby="op-s2">
           <h2 id="op-s2">2 조건 정하기 <span>· {p.name} · 정가 {won(p.price)}</span></h2>
+          {pick}
           <div className="form op-form">{fields.target}{fields.price}{fields.cost}{fields.moq}{fields.limit}{fields.deadline}{fields.pay}{fields.ship}{fields.below}</div>
           {need > 0 && <p className="op-note">결제율 {payPct}%로 보면 신청 <b>{need}</b>개가 모여야 <b>{target}</b>개가 확정돼요. 신청은 결제가 아니라서 목표만큼 모여도 일부는 결제하지 않아요.</p>}
         </section>
@@ -114,6 +126,7 @@ export function CampaignForm({ mall, p, say, onOpened, onStep }: { mall: string;
             </>
           ) : !problems.length && <p className="muted">초대 대상을 확인하는 중…</p>}
           {problems.length > 0 && <div className="err" role="alert">{problems.map((e) => <div key={e}>{e}</div>)}</div>}
+          {result}
           <button className="btn brand op-open" disabled={busy || !ok} onClick={open}>{openLabel}</button>
           <small className="op-after">{a.role === "admin" ? "판매자에게 조건을 다시 읽어 주고 동의를 받은 뒤 여세요." : "열면 쿠폰이 만들어지고 공구 관리로 이동해요."}</small>
         </section>
@@ -121,6 +134,8 @@ export function CampaignForm({ mall, p, say, onOpened, onStep }: { mall: string;
 
       {/* 휴대폰: ② 목표 수량 · ③ 공구가 · 마감 · 결과 한 줄 · 공구 열기 */}
       <div className="op-m only-m">
+        <h2 className="op-q">어떻게 열까요? <small>골라서 고쳐 쓰세요</small></h2>
+        {pick}
         <h2 className="op-q">② 몇 개 모이면 만들까요?</h2>
         <div className="op-step">
           <button type="button" aria-label="목표 수량 줄이기" onClick={() => put("targetQty", String(Math.max(1, (target || 0) - 5)))}>−</button>
@@ -142,6 +157,7 @@ export function CampaignForm({ mall, p, say, onOpened, onStep }: { mall: string;
         <button type="button" className="op-link" aria-expanded={more} onClick={() => setMore(!more)}>{more ? "접기" : "원가 · 최소 생산 수량 · 1인 최대 수량 · 결제 기간 · 출고일 더 정하기"}</button>
         {more && <div className="form op-more-f">{fields.cost}{fields.moq}{fields.limit}{fields.pay}{fields.ship}{fields.below}</div>}
         {need > 0 && <p className="small">결제율 {payPct}%로 보면 신청 {need}개가 모여야 {target}개가 확정돼요.</p>}
+        {result}
         <div className="callout op-result">
           <b>미리보기</b>
           {pv ? <>
