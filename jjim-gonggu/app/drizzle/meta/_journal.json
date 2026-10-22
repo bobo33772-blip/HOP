@@ -36,6 +36,13 @@
       "when": 1791877688987,
       "tag": "0004_one_active_campaign",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792650938799,
+      "tag": "0005_campaign_moq",
+      "breakpoints": true
     }
   ]
 }

@@ -5,7 +5,8 @@
 import { Cafe24Client } from "./client";
 import { verifyEncryptedMemberId } from "./member";
 
-export interface Product { productNo: number; name: string; price: number; soldOut?: boolean; imageUrl?: string }
+/** supplyPrice: 상품 등록의 '공급가' (모의 쇼핑몰만 여기에 담는다. 실제 몰은 supplyPrice()로 따로 묻는다) */
+export interface Product { productNo: number; name: string; price: number; soldOut?: boolean; imageUrl?: string; supplyPrice?: number }
 export interface MemberConsent { memberId: string; sms: boolean }
 
 export interface CouponSpec {
@@ -41,6 +42,8 @@ export interface ShopApi {
   listProducts(offset: number, limit: number): Promise<Product[]>;
   /** 상품 하나. 몰에 없는 번호면 null */
   getProduct(productNo: number): Promise<Product | null>;
+  /** 상품 등록의 공급가. 비었거나 조회에 실패하면 null (공구 열기 원가 칸을 미리 채우는 데만 쓴다, #124) */
+  supplyPrice(productNo: number): Promise<number | null>;
   cartCount(productNo: number): Promise<number>;
   cartMembers(productNo: number): Promise<string[]>;
   consents(memberIds: string[]): Promise<MemberConsent[]>;
@@ -118,6 +121,19 @@ export class Cafe24Api implements ShopApi {
     } catch (e) {
       if ((e as { status?: number }).status === 404) return null;
       throw e;
+    }
+  }
+
+  // VERIFY(#124): 테스트몰에서 공급가가 supply_price로 오는지. 이름이 틀리거나 막혀도 원가 칸만 비고 공구 열기는 그대로라 오류를 삼킨다
+  async supplyPrice(productNo: number) {
+    try {
+      const r = await this.c.request<{ product: { supply_price?: string | null } }>("GET", `/products/${productNo}`, {
+        query: { shop_no: this.shopNo, fields: "product_no,supply_price" },
+      });
+      const v = Math.round(Number(r.product?.supply_price));
+      return Number.isFinite(v) && v > 0 ? v : null;
+    } catch {
+      return null;
     }
   }
 
