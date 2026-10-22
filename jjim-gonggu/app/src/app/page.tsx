@@ -94,9 +94,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
   const axisMax = step * 4;
   const axis = (v: number) => (v >= 10_000 ? `${num(v / 10_000)}만` : num(v));
 
-  // 다음 공구 후보: 공구 열기와 같은 관심 데이터에서 많은 순 4개. 모집 중 · 결제 기간인 공구가 있는 상품은 뺀다(공구 열기에서도 못 고름)
-  const liveNos = new Set(camps.filter((c) => c.state === "open" || c.state === "reached").map((c) => c.productNo));
-  const cands = (radar?.rows ?? []).filter((r) => !liveNos.has(r.productNo)).slice(0, 4);
+  // 다음 공구 후보: 공구 열기와 같은 관심 데이터에서 많은 순 4개. 공구를 연 적 있는 상품(진행 중 · 끝난 공구 모두)은 뺀다
+  const openedNos = new Set(camps.map((c) => c.productNo));
+  const cands = (radar?.rows ?? []).filter((r) => !openedNos.has(r.productNo)).slice(0, 4);
   const candMax = Math.max(1, ...cands.map((r) => r.alert + r.cart));
 
   // 공구 관리 표
