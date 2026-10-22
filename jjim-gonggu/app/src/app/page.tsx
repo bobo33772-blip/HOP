@@ -195,7 +195,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
         <section className="dash-table" aria-labelledby="dash-table-t">
           <div className="row"><h2 id="dash-table-t">공구 관리</h2><a href="/campaigns">{summary} →</a></div>
           {camps.length === 0 ? (
-            <div className="empty"><img src="/logo.svg" alt="" /><b>아직 연 공구가 없어요</b><p className="muted">고객이 많이 담아 둔 상품으로 첫 공구를 열어 보세요.</p></div>
+            <div className="empty"><img src="/logo.svg" alt="" /><b>아직 연 공구가 없어요</b><p className="muted">고객이 많이 담아 둔 상품으로 첫 공구를 열어 보세요.</p><a className="btn brand" href="/campaigns?tab=new">첫 공구 열기</a></div>
           ) : (
             <table>
               <thead><tr><th>상품</th><th>상태</th><th className="n">신청</th><th className="n hide-sm">목표</th><th className="hide-sm">달성률</th><th className="n hide-sm">공구가</th><th className="n">마감</th></tr></thead>
