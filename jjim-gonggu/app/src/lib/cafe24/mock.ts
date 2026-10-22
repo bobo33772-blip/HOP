@@ -115,6 +115,7 @@ export class MockCafe24 {
       get privacy() { return w.privacy; },
       async listProducts(offset, limit) { return m().products.slice(offset, offset + limit); },
       async getProduct(n) { return m().products.find((p) => p.productNo === n) ?? null; },
+      async supplyPrice(n) { return m().products.find((p) => p.productNo === n)?.supplyPrice ?? null; },
       async cartCount(n) { return m().carts.get(n)?.size ?? 0; },
       async cartMembers(n) { return [...(m().carts.get(n) ?? [])]; },
       async consents(ids): Promise<MemberConsent[]> { return ids.map((id) => ({ memberId: id, sms: !!m().members.get(id)?.sms })); },
@@ -176,11 +177,12 @@ export const DEMO_MALL = "demo";
 export const DEMO_BRAND = "LINEN & CO.";
 
 export const DEMO_PRODUCTS: Product[] = [
-  { productNo: 101, name: "워싱 린넨 이불 커버 (Q)", price: 129_000, soldOut: true },
-  { productNo: 102, name: "스톤웨어 디너 접시 4P", price: 52_000, soldOut: true },
-  { productNo: 103, name: "린넨 암막 커튼 2장", price: 89_000 },
-  { productNo: 104, name: "원목 수납 트레이", price: 39_000 },
-  { productNo: 105, name: "코튼 와플 타월 3P", price: 32_000 },
+  // 공급가(supplyPrice)는 공구 열기 원가 칸을 미리 채우는 데 쓴다 (#124). 머그는 공급가를 비워 둔 상품 예시
+  { productNo: 101, name: "워싱 린넨 이불 커버 (Q)", price: 129_000, soldOut: true, supplyPrice: 52_000 },
+  { productNo: 102, name: "스톤웨어 디너 접시 4P", price: 52_000, soldOut: true, supplyPrice: 21_000 },
+  { productNo: 103, name: "린넨 암막 커튼 2장", price: 89_000, supplyPrice: 36_000 },
+  { productNo: 104, name: "원목 수납 트레이", price: 39_000, supplyPrice: 15_000 },
+  { productNo: 105, name: "코튼 와플 타월 3P", price: 32_000, supplyPrice: 12_000 },
   { productNo: 106, name: "세라믹 머그 2P", price: 28_000 },
 ];
 

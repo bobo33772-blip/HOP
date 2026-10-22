@@ -38,6 +38,15 @@ describe("공구 개설 검증", () => {
   });
   it("1인 한도는 1~5개", () => expect(hasErrors(validateCampaignInput({ ...base, perMemberLimit: 6 }, LIST, now))).toBe(true));
   it("출고일이 마감 전이면 오류", () => expect(hasErrors(validateCampaignInput({ ...base, shipEta: "2026-10-08" }, LIST, now))).toBe(true));
+  it("최소 생산 수량은 비워도 되고, 적으면 1 이상 정수 · 목표가 더 적으면 경고 (#124)", () => {
+    expect(validateCampaignInput({ ...base, moq: null }, LIST, now)).toEqual([]);
+    expect(hasErrors(validateCampaignInput({ ...base, moq: 0 }, LIST, now))).toBe(true);
+    expect(hasErrors(validateCampaignInput({ ...base, moq: 2.5 }, LIST, now))).toBe(true);
+    const low = validateCampaignInput({ ...base, moq: base.targetQty + 10 }, LIST, now);
+    expect(hasErrors(low)).toBe(false);
+    expect(low[0]).toMatchObject({ field: "targetQty", level: "warning" });
+    expect(validateCampaignInput({ ...base, moq: base.targetQty }, LIST, now)).toEqual([]);
+  });
 });
 
 describe("참여 신청", () => {

@@ -12,6 +12,7 @@ export interface CampaignInput {
   targetQty: number;
   dealPrice: number;
   costPrice?: number | null; // 원가 (선택, 고객에게 안 보임)
+  moq?: number | null; // 최소 생산 수량 (선택, 고객에게 안 보임, #124)
   perMemberLimit: number;
   deadlineAt: Date;
   payWindowHours: number; // 48 | 72
@@ -47,6 +48,8 @@ export function validateCampaignInput(input: CampaignInput, listPrice: number, n
     if (input.confirmBelowCost) warn("dealPrice", `공구가가 원가(${won(input.costPrice)})보다 낮아요. 팔수록 손해예요.`);
     else err("dealPrice", `공구가가 원가(${won(input.costPrice)})보다 낮아요. 팔수록 손해예요. 그래도 열려면 원가 미만 확인에 체크해 주세요.`);
   }
+  if (input.moq != null && (!isInt(input.moq) || input.moq < 1)) err("moq", "최소 생산 수량은 1개 이상 정수로 입력해 주세요. 없으면 비워 두세요.");
+  else if (input.moq != null && isInt(input.targetQty) && input.targetQty < input.moq) warn("targetQty", `목표 수량이 최소 생산 수량(${input.moq}개)보다 적어요. 목표를 채워도 ${input.moq}개를 만들어야 해서 남는 재고가 생길 수 있어요.`);
   if (!isInt(input.perMemberLimit) || input.perMemberLimit < 1 || input.perMemberLimit > MAX_PER_MEMBER) err("perMemberLimit", `1인 최대 수량은 1~${MAX_PER_MEMBER}개로 정해 주세요.`);
   else if (isInt(input.targetQty) && input.perMemberLimit > input.targetQty) warn("perMemberLimit", "1인 한도가 목표 수량보다 커요.");
   if (!(PAY_WINDOW_OPTIONS as readonly number[]).includes(input.payWindowHours)) err("payWindowHours", "결제 기간은 48시간 또는 72시간이에요.");
