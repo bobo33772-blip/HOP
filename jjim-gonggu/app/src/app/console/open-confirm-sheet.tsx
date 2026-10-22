@@ -3,7 +3,7 @@
 // 공구 열기 확인 창(화면 가운데). 열면 쿠폰이 만들어지고 초대 문자가 예약돼서, 누르기 전에 조건을 한 번 더 보여 준다.
 
 import { useEffect } from "react";
-import s from "./open-confirm-sheet.module.css";
+import s from "./center-dialog.module.css";
 
 export function OpenConfirmSheet({ productName, facts, busy, onClose, onConfirm }: {
   productName: string; facts: string[]; busy: boolean; onClose: () => void; onConfirm: () => void;
