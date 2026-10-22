@@ -8,6 +8,7 @@ import { audit, UserError } from "./engine/context";
 import { isValidOptOutNumber } from "./core/messaging";
 import { getCampaign, getMall, type Campaign } from "./engine/campaigns";
 import { buildReport } from "./engine/report";
+import { discountOf, mallRatesFrom } from "./core/scenario";
 import { stillWanted } from "./engine/proceed";
 import { proceedInfo } from "./core/campaign";
 import { getRadar, latestRun, runCollection, startCollection } from "./radar";
@@ -46,22 +47,38 @@ export async function saveMallProfile(ctx: Ctx, actor: string, mallId: string, b
 }
 
 /**
- * 공구 열기 칸 미리 채우기 (#124): 원가는 그 상품의 지난 공구 원가(판매자가 고친 값) → 없으면 카페24 공급가.
- * 공급가가 판매가 이상이면 원가로 보기 어려워 채우지 않는다. 최소 생산 수량은 지난 공구 값.
+ * 공구 열기 칸 미리 채우기 (#124 · #125): 판매자가 일일이 적지 않게 카페24 상품 정보와 지난 공구로 채운다.
+ * - 원가: 그 상품의 지난 공구 원가(판매자가 고친 값) → 없으면 카페24 공급가. 공급가가 판매가 이상이면 원가로 보기 어려워 채우지 않는다
+ * - 최소 생산 수량: 그 상품의 지난 공구 값. 1인 최대 수량 · 결제 기간: 그 상품 → 없으면 이 쇼핑몰의 지난 공구 값
+ * - history: 이 쇼핑몰의 끝난 공구(진행 안 됨 · 공동구매 종료, '그래도 진행'은 뺌)로 잰 신청률 · 결제율 · 1인 평균 수량 (시나리오 계산용)
  */
 export async function productDefaults(ctx: Ctx, mallId: string, productNo: number) {
   await getMall(ctx, mallId);
   if (!Number.isInteger(productNo)) throw new UserError("bad_product", "상품 번호를 확인해 주세요.");
   const c = schema.campaigns;
-  const past = await ctx.db.select({ costPrice: c.costPrice, moq: c.moq }).from(c)
-    .where(and(eq(c.mallId, mallId), eq(c.productNo, productNo))).orderBy(desc(c.openedAt)).limit(10);
-  const lastCost = past.find((r) => r.costPrice != null)?.costPrice ?? null;
-  const moq = past.find((r) => r.moq != null)?.moq ?? null;
-  if (lastCost != null) return { costPrice: lastCost, costFrom: "last" as const, moq };
+  const recent = await ctx.db.select().from(c).where(eq(c.mallId, mallId)).orderBy(desc(c.openedAt)).limit(30);
+  const mine = recent.filter((r) => r.productNo === productNo);
+  const pick = <K extends "costPrice" | "moq" | "perMemberLimit" | "payWindowHours">(rows: typeof recent, k: K) => rows.find((r) => r[k] != null)?.[k] ?? null;
+  const moq = pick(mine, "moq");
+  const perMemberLimit = pick(mine, "perMemberLimit") ?? pick(recent, "perMemberLimit");
+  const payWindowHours = pick(mine, "payWindowHours") ?? pick(recent, "payWindowHours");
+
+  const done = recent.filter((r) => (r.state === "failed" || r.state === "settled") && !r.proceededAt).slice(0, 20);
+  const reps = await Promise.all(done.map((r) => buildReport(ctx, r.id)));
+  const history = mallRatesFrom(reps.map((r, i) => ({
+    invitedSent: r.funnel.invitedSent, invitedPledgers: r.funnel.invitedPledgers, pledgers: r.funnel.pledgers, pledgedQty: r.funnel.pledgedQty,
+    couponIssued: r.funnel.couponIssued, paidMembers: r.funnel.paidMembers,
+    discountPct: discountOf(done[i].listPrice, done[i].dealPrice),
+    days: Math.max(1, Math.round((done[i].deadlineAt.getTime() - done[i].openedAt.getTime()) / 86_400_000)),
+  })));
+  const rest = { moq, perMemberLimit, payWindowHours, history };
+
+  const lastCost = pick(mine, "costPrice");
+  if (lastCost != null) return { costPrice: lastCost, costFrom: "last" as const, ...rest };
   const api = await ctx.shop(mallId);
   const [product, supply] = await Promise.all([api.getProduct(productNo), api.supplyPrice(productNo)]);
   const ok = product && supply != null && supply < product.price;
-  return { costPrice: ok ? supply : null, costFrom: ok ? ("cafe24" as const) : null, moq };
+  return { costPrice: ok ? supply : null, costFrom: ok ? ("cafe24" as const) : null, ...rest };
 }
 
 /** 알림 신청 · 장바구니 많은 상위 20개 상품 (마지막 완료 수집) + 진행 중 수집 상태 */

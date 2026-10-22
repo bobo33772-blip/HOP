@@ -23,15 +23,15 @@ describe("공구 열기 칸 미리 채우기 (#124)", () => {
 
   it("지난 공구가 없으면 카페24 공급가를 원가로. 비었거나 판매가 이상이면 채우지 않는다", async () => {
     const env = await setup();
-    expect(await productDefaults(withSupply(env.ctx, 21000), MALL, PRODUCT)).toEqual({ costPrice: 21000, costFrom: "cafe24", moq: null });
-    expect(await productDefaults(withSupply(env.ctx, null), MALL, PRODUCT)).toEqual({ costPrice: null, costFrom: null, moq: null });
-    expect(await productDefaults(withSupply(env.ctx, 52000), MALL, PRODUCT)).toEqual({ costPrice: null, costFrom: null, moq: null });
+    expect(await productDefaults(withSupply(env.ctx, 21000), MALL, PRODUCT)).toMatchObject({ costPrice: 21000, costFrom: "cafe24", moq: null });
+    expect(await productDefaults(withSupply(env.ctx, null), MALL, PRODUCT)).toMatchObject({ costPrice: null, costFrom: null, moq: null });
+    expect(await productDefaults(withSupply(env.ctx, 52000), MALL, PRODUCT)).toMatchObject({ costPrice: null, costFrom: null, moq: null });
   });
 
   it("지난 공구에 적은 원가 · 최소 생산 수량을 공급가보다 먼저 쓴다", async () => {
     const env = await setup();
     await openCampaign(env.ctx, "seller", MALL, { ...baseInput(env.clock), costPrice: 24000, moq: 40 });
-    expect(await productDefaults(withSupply(env.ctx, 21000), MALL, PRODUCT)).toEqual({ costPrice: 24000, costFrom: "last", moq: 40 });
+    expect(await productDefaults(withSupply(env.ctx, 21000), MALL, PRODUCT)).toMatchObject({ costPrice: 24000, costFrom: "last", moq: 40, perMemberLimit: 2, payWindowHours: 72, history: null });
     expect((await getCampaign(env.ctx, (await env.db.select().from(schema.campaigns))[0].id)).moq).toBe(40);
   });
 });

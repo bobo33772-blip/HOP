@@ -957,6 +957,20 @@ div.dash-w { display: contents; }
 .sc-bar small { font-size: 10px; color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; }
 .sc-bar.on small { color: var(--fg); font-weight: 600; }
 .sc-cap { font-size: 11.5px; color: var(--muted); line-height: 1.5; }
+.sc-auto { margin: 0 0 12px; font-size: 12.5px; color: var(--fg2); background: var(--soft); border-radius: 8px; padding: 8px 12px; line-height: 1.55; }
+.sc-auto b { color: var(--fg); font-weight: 600; margin-right: 4px; }
+.sc-auto span { color: var(--muted); margin-left: 4px; }
+.sc-sum em { font-style: normal; font-weight: 600; }
+.ch-high { color: var(--green-ink); } .ch-mid { color: var(--amber-ink); } .ch-low { color: var(--danger); }
+.sc-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sc-lv { display: inline-flex; border: 1px solid var(--lav-line); border-radius: 8px; overflow: hidden; }
+.sc-lv button { border: 0; background: var(--surface); padding: 4px 10px; font: inherit; font-size: 12px; color: var(--fg2); cursor: pointer; }
+.sc-lv button + button { border-left: 1px solid var(--lav-line); }
+.sc-lv button.on { background: var(--lav-soft); color: var(--lav-ink); font-weight: 600; }
+.sc-chance { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 12.5px; color: var(--fg2); }
+.sc-chance > i { display: block; height: 8px; border-radius: 99px; background: var(--soft); overflow: hidden; }
+.sc-chance > i > i { display: block; height: 100%; border-radius: 99px; background: currentColor; }
+.sc-chance b { font-size: 14px; font-variant-numeric: tabular-nums; }
 .op-q small { font-size: 12.5px; font-weight: 400; color: var(--fg2); margin-left: 6px; }
 @media (max-width: 760px) { .sc-cards { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 1099px) { .op-grid { grid-template-columns: minmax(0, 1fr); } }
