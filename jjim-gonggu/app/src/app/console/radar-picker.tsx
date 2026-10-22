@@ -22,6 +22,7 @@ import { useConsole } from "./provider";
 import type { Camp, RadarRow, Run } from "./types";
 import { kst, won } from "./format";
 import { CampaignForm } from "./campaign-form";
+import s from "./radar-picker.module.css";
 
 type Sort = "total" | "cart" | "alert";
 /** 처음에는 상위 5개만 보여 주고 나머지는 "더보기"로 펼친다 */
@@ -109,7 +110,7 @@ export function NewTab({ mall, say, onOpened }: { mall: string; say: (t: string)
             })}</tbody>
           </table>
         )}
-        {rows.length > TOP && <button type="button" className="op-wmore" aria-expanded={wAll} onClick={() => setWAll(!wAll)}>{wAll ? "접기 ▴" : `더보기 (${rows.length - TOP}개) ▾`}</button>}
+        {rows.length > TOP && <button type="button" className={s.more} aria-expanded={wAll} onClick={() => setWAll(!wAll)}>{wAll ? "접기 ▴" : `더보기 (${rows.length - TOP}개) ▾`}</button>}
       </section>
 
       {/* ① 어떤 상품을 열까요? 휴대폰 목록 */}

@@ -896,8 +896,6 @@ div.dash-w { display: contents; }
 .op-table tbody tr:hover { background: color-mix(in srgb, var(--soft) 60%, transparent); }
 .op-table tbody tr.on { background: color-mix(in srgb, var(--brand) 7%, var(--surface)); box-shadow: inset 3px 0 0 var(--brand); }
 .op-table tbody tr.busy { cursor: default; opacity: .55; }
-.op-wmore { width: 100%; border: 0; border-top: 1px solid var(--line); background: none; padding: 12px; font: inherit; font-size: 13.5px; font-weight: 600; color: var(--fg2); cursor: pointer; }
-.op-wmore:hover { background: var(--soft); color: var(--fg); }
 .op-table .n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .op-table .rk { width: 40px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .op-table .al { color: var(--brand-ink); font-weight: 600; }
