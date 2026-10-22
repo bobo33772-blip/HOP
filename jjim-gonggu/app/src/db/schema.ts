@@ -71,6 +71,7 @@ export const campaigns = pgTable("campaigns", {
   listPrice: integer("list_price").notNull(),
   dealPrice: integer("deal_price").notNull(),
   costPrice: integer("cost_price"),
+  moq: integer("moq"), // 최소 생산 수량 (선택, #124). 다음 공구에서 미리 채운다
   targetQty: integer("target_qty").notNull(),
   perMemberLimit: integer("per_member_limit").notNull(),
   deadlineAt: timestamp("deadline_at", { withTimezone: true }).notNull(),

@@ -208,7 +208,7 @@ function Intro({ onStart }: { onStart: () => void }) {
       <div className={s.floaty} aria-hidden="true">{Array.from({ length: 9 }, (_, i) => <i key={i} style={{ "--i": i } as React.CSSProperties}>♥</i>)}</div>
       <img src="/logo.svg" alt="" className={s.logo} />
       <h2 className={s.word} aria-label="찜꽁">{["찜", "꽁"].map((c, i) => <span key={c} style={{ "--i": i } as React.CSSProperties}>{c}</span>)}</h2>
-      <p className={s.slogan}>손님이 먼저 모이면, 그때 만들어요</p>
+      <p className={s.slogan}>만들기 전에, 진짜 수요부터 확인하세요</p>
       <button type="button" className={s.start} onClick={onStart} autoFocus>사용법 보기 →</button>
     </div>
   );
