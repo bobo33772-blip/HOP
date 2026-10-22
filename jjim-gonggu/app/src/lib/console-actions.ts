@@ -45,6 +45,25 @@ export async function saveMallProfile(ctx: Ctx, actor: string, mallId: string, b
   await audit(ctx, actor, "mall.profile", mallId, { brandName, optOutNumber, smsSender }, mallId);
 }
 
+/**
+ * 공구 열기 칸 미리 채우기 (#124): 원가는 그 상품의 지난 공구 원가(판매자가 고친 값) → 없으면 카페24 공급가.
+ * 공급가가 판매가 이상이면 원가로 보기 어려워 채우지 않는다. 최소 생산 수량은 지난 공구 값.
+ */
+export async function productDefaults(ctx: Ctx, mallId: string, productNo: number) {
+  await getMall(ctx, mallId);
+  if (!Number.isInteger(productNo)) throw new UserError("bad_product", "상품 번호를 확인해 주세요.");
+  const c = schema.campaigns;
+  const past = await ctx.db.select({ costPrice: c.costPrice, moq: c.moq }).from(c)
+    .where(and(eq(c.mallId, mallId), eq(c.productNo, productNo))).orderBy(desc(c.openedAt)).limit(10);
+  const lastCost = past.find((r) => r.costPrice != null)?.costPrice ?? null;
+  const moq = past.find((r) => r.moq != null)?.moq ?? null;
+  if (lastCost != null) return { costPrice: lastCost, costFrom: "last" as const, moq };
+  const api = await ctx.shop(mallId);
+  const [product, supply] = await Promise.all([api.getProduct(productNo), api.supplyPrice(productNo)]);
+  const ok = product && supply != null && supply < product.price;
+  return { costPrice: ok ? supply : null, costFrom: ok ? ("cafe24" as const) : null, moq };
+}
+
 /** 알림 신청 · 장바구니 많은 상위 20개 상품 (마지막 완료 수집) + 진행 중 수집 상태 */
 export async function radarState(ctx: Ctx, mallId: string) {
   await getMall(ctx, mallId);

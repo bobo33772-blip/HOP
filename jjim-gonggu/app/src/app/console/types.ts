@@ -17,6 +17,8 @@ export interface Detail {
   proceed: { proceedUntil: string | null; proceedOpen: boolean; wanted: { members: number; qty: number }; payWindowHours: number; costPrice: number | null } | null;
 }
 export interface RadarRow { productNo: number; name: string; price: number; soldOut: boolean; alert: number; cart: number }
+/** 공구 열기 칸 미리 채우기 (#124). costFrom: last 지난 공구 · cafe24 카페24 공급가 */
+export interface ProductDefaults { costPrice: number | null; costFrom: "last" | "cafe24" | null; moq: number | null }
 export interface Run { status: "running" | "done" | "failed"; total: number; done: number; finishedAt: string | null; startedAt: string }
 export interface Preview {
   errors: string[]; warnings: string[]; message: string; sendAt: string; marginPerUnit: number | null;

@@ -12,9 +12,29 @@ import { buildReport, pilotScorecard } from "@/lib/engine/report";
 import { tick } from "@/lib/engine/scheduler";
 import { purgeExpired } from "@/lib/engine/retention";
 import { proceedCampaign, setStillWanted, stillWanted } from "@/lib/engine/proceed";
+import { productDefaults } from "@/lib/console-actions";
+import type { Ctx } from "@/lib/engine/context";
 import { MALL, PRODUCT, baseInput, openAndFill, pledge, range, setup } from "./helpers";
 
 const DAY5 = 5 * 24 * HOUR;
+
+describe("공구 열기 칸 미리 채우기 (#124)", () => {
+  const withSupply = (ctx: Ctx, supply: number | null): Ctx => ({ ...ctx, shop: async (m) => ({ ...(await ctx.shop(m)), supplyPrice: async () => supply }) });
+
+  it("지난 공구가 없으면 카페24 공급가를 원가로. 비었거나 판매가 이상이면 채우지 않는다", async () => {
+    const env = await setup();
+    expect(await productDefaults(withSupply(env.ctx, 21000), MALL, PRODUCT)).toEqual({ costPrice: 21000, costFrom: "cafe24", moq: null });
+    expect(await productDefaults(withSupply(env.ctx, null), MALL, PRODUCT)).toEqual({ costPrice: null, costFrom: null, moq: null });
+    expect(await productDefaults(withSupply(env.ctx, 52000), MALL, PRODUCT)).toEqual({ costPrice: null, costFrom: null, moq: null });
+  });
+
+  it("지난 공구에 적은 원가 · 최소 생산 수량을 공급가보다 먼저 쓴다", async () => {
+    const env = await setup();
+    await openCampaign(env.ctx, "seller", MALL, { ...baseInput(env.clock), costPrice: 24000, moq: 40 });
+    expect(await productDefaults(withSupply(env.ctx, 21000), MALL, PRODUCT)).toEqual({ costPrice: 24000, costFrom: "last", moq: 40 });
+    expect((await getCampaign(env.ctx, (await env.db.select().from(schema.campaigns))[0].id)).moq).toBe(40);
+  });
+});
 
 describe("개설", () => {
   it("정가 이상·원가 미만(확인 없이)·24시간 안 마감·마감 전 출고일은 막는다", async () => {
