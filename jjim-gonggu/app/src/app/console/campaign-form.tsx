@@ -25,8 +25,13 @@ export function CampaignForm({ mall, p, say, onOpened, onStep }: { mall: string;
   const [costFrom, setCostFrom] = useState<ProductDefaults["costFrom"]>(null);
   const [def, setDef] = useState<ProductDefaults | null>(null);
   const [level, setLevel] = useState<Level>("mid");
-  // 처음 미리보기(초대 인원)가 오면 '이익 최대' 시나리오로 공구가 · 목표 · 마감을 한 번 채운다 (#125). 판매자가 먼저 고치면 건너뛴다
-  const [auto, setAuto] = useState<"wait" | "done" | "skip">("wait");
+  // 처음 미리보기(초대 인원)가 오면 '수익 최대' 시나리오로 공구가 · 목표 · 마감을 한 번 채운다 (#125).
+  // applied: 채웠고 판매자가 아직 안 고침 → '자동으로 채웠어요'에 보임. off: 안 채웠거나 판매자가 고침 · 카드를 고름
+  const [auto, setAuto] = useState<"wait" | "applied" | "off">("wait");
+  // 시나리오로 정한 마감과 그 기간(일). 마감 칸이 그대로면 카드 · 결과가 같은 기간으로 계산하게 (반올림으로 하루 어긋나지 않게)
+  const [picked, setPicked] = useState<{ deadline: string; days: number } | null>(null);
+  // 판매자가 고친 칸 (지난 공구에서 채운 값이라는 안내를 거둔다)
+  const [edited, setEdited] = useState<Set<string>>(() => new Set());
   useEffect(() => {
     // 칸 미리 채우기 (#124 · #125): 원가(지난 공구 → 카페24 공급가) · 최소 생산 수량 · 1인 최대 · 결제 기간(지난 공구). 못 받아도 기본값으로 연다
     const d = a.call<ProductDefaults>("GET", `${a.mallBase}/products/${p.productNo}/defaults`).catch(() => null);
@@ -66,25 +71,30 @@ export function CampaignForm({ mall, p, say, onOpened, onStep }: { mall: string;
   } : null;
   const applyScenario = (s: { dealPrice: number; targetQty: number; days: number }) => {
     if (!f) return;
-    const dl = now + s.days * 86_400_000;
-    setF({ ...f, dealPrice: String(s.dealPrice), targetQty: String(s.targetQty), deadline: `${kstDay(dl)}T14:00`, shipEta: kstDay(dl + 14 * 86_400_000) });
+    const dl = now + s.days * 86_400_000, deadline = `${kstDay(dl)}T14:00`;
+    setPicked({ deadline, days: s.days });
+    setF({ ...f, dealPrice: String(s.dealPrice), targetQty: String(s.targetQty), deadline, shipEta: kstDay(dl + 14 * 86_400_000) });
   };
   useEffect(() => {
     if (auto !== "wait" || !pv || !base) return;
     const o = scenarios(base).find((s) => s.key === "best")?.outcome;
-    setAuto("done");
-    if (o) applyScenario(o);
+    // 추천할 만한 조건이 없거나 성사 가능성이 낮으면 채우지 않는다
+    if (o && o.chance !== "low") { applyScenario(o); setAuto("applied"); } else setAuto("off");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pv, auto]);
   if (!f || !base) return null;
 
-  const put = (k: string, v: string | boolean) => { if (k === "dealPrice" || k === "targetQty" || k === "deadline") setAuto((x) => (x === "wait" ? "skip" : x)); setF({ ...f, [k]: v }); };
+  const put = (k: string, v: string | boolean) => {
+    if (k === "dealPrice" || k === "targetQty" || k === "deadline") setAuto("off");
+    if (k === "moq" || k === "perMemberLimit" || k === "payWindowHours") setEdited((x) => new Set(x).add(k));
+    setF({ ...f, [k]: v });
+  };
+  const pickScenario = (s: { dealPrice: number; targetQty: number; days: number }) => { setAuto("off"); applyScenario(s); };
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => put(k, e.target.type === "checkbox" ? (e.target as HTMLInputElement).checked : e.target.value);
   // 목표는 신청 수량 기준(마감 때 신청 ≥ 목표면 성사). 신청은 결제가 아니라서 성사돼도 일부만 결제한다 (검증 보고서 L-1)
   const target = Number(f.targetQty);
   const payRate = payRateOf(base);
   const payPct = Math.round(payRate * 100);
-  const paidIf = Number.isInteger(target) && target > 0 ? Math.floor(Number((target * payRate).toFixed(6))) : 0;
   const tMoq = targetForMoq(base);
   const deal = Number(f.dealPrice);
   const off = deal > 0 && deal < p.price ? Math.round((1 - deal / p.price) * 100) : 0;
@@ -95,13 +105,18 @@ export function CampaignForm({ mall, p, say, onOpened, onStep }: { mall: string;
     try { const r = await a.call<{ campaign: { id: string }; invited: number }>("POST", `${a.mallBase}/campaigns`, input(f)); say(`공구를 열었어요 · 초대 ${r.invited}명`); onOpened(r.campaign.id); }
     catch (e) { setBusy(false); say((e as Error).message); }
   };
-  const days = dlDays || 5;
+  // 계산에 쓰는 모집 기간(일): 시나리오로 정한 마감이면 그 기간, 아니면 남은 시간을 일로 (최소 1일)
+  const days = picked && picked.deadline === f.deadline ? picked.days : now && dlMs ? Math.max(1, Math.round((dlMs - now) / 86_400_000)) : 5;
   const setDeal = (d: number) => put("dealPrice", String(d));
-  const pick = <ScenarioPick base={base} dealPrice={deal} targetQty={target} days={days} onPick={applyScenario} onDiscount={setDeal} />;
+  const pick = <ScenarioPick base={base} dealPrice={deal} targetQty={target} days={days} onPick={pickScenario} onDiscount={setDeal} />;
   const result = <ScenarioResult base={base} dealPrice={deal} targetQty={target} days={days} level={level} onLevel={setLevel} onDiscount={setDeal} />;
-  const filled = <AutoFilled costFrom={costFrom} def={def} auto={auto === "done"} />;
-  const oNow = paidIf > 0 && deal > 0 ? outcome(base, deal, target, days) : null;
-  const note = oNow && <>목표 <b>{target}</b>개가 신청되면 성사돼요. 신청은 결제가 아니라서(결제율 {payPct}%) 신청이 목표만큼만 모이면 약 <b>{oNow.minPaid}</b>개, 예상({oNow.expectedPledged}개 이상)대로 모이면 약 <b>{oNow.ifReached.paid}</b>개가 결제돼요.{tMoq && target < tMoq ? <> 최소 생산 수량 {base.moq}개만큼 결제되려면 목표를 <b>{tMoq}</b>개 이상으로 잡으세요.</> : null}</>;
+  const filled = <AutoFilled costFrom={costFrom} def={def} auto={auto === "applied"} edited={edited} />;
+  const oNow = Number.isInteger(target) && target > 0 && deal > 0 ? outcome(base, deal, target, days) : null;
+  // 목표(신청 기준)와 결제 수량을 한 문장으로: 예상 신청이 목표보다 적으면 성사가 어렵다는 것부터
+  const note = oNow && <>목표 <b>{target}</b>개가 신청되면 성사돼요. {oNow.expectedPledged < target
+    ? <>예상 신청은 약 <b>{oNow.expectedPledged}</b>개라 목표에 못 미칠 수 있어요(성사 가능성 {Math.round(oNow.reachProb * 100)}%). 성사되면 결제는 약 <b>{oNow.minPaid}</b>개 이상이에요.</>
+    : <>신청은 결제가 아니라서(결제율 {payPct}%) 목표만큼만 모이면 약 <b>{oNow.minPaid}</b>개, 예상대로({oNow.expectedPledged}개) 모이면 약 <b>{oNow.ifReached.paid}</b>개가 결제돼요.</>}
+    {tMoq && target < tMoq ? <> 최소 생산 수량 {base.moq}개를 목표만큼만 모여도 채우려면 목표를 <b>{tMoq}</b>개 이상으로 잡으세요.</> : null}</>;
   const openLabel = busy ? "여는 중…" : pv ? `공구 열기 · 초대 ${pv.audience.reachable}명 예약` : "공구 열기";
   const problems = err ? [err] : pv?.errors ?? [];
 
@@ -164,7 +179,7 @@ export function CampaignForm({ mall, p, say, onOpened, onStep }: { mall: string;
         <h2 className="op-q">② 몇 개가 신청되면 진행할까요?</h2>
         <div className="op-step">
           <button type="button" aria-label="목표 수량 줄이기" onClick={() => put("targetQty", String(Math.max(1, (target || 0) - 5)))}>−</button>
-          <span><b>{f.targetQty || 0}개</b><small>{paidIf > 0 ? `성사되면 약 ${paidIf}개 결제 예상` : "신청 수량 기준"}{Number(f.moq) > 0 ? ` · 최소 생산 ${f.moq}개` : ""}</small></span>
+          <span><b>{f.targetQty || 0}개</b><small>{oNow ? `목표만큼만 모여도 약 ${oNow.minPaid}개 결제` : "신청 수량 기준"}{Number(f.moq) > 0 ? ` · 최소 생산 ${f.moq}개` : ""}</small></span>
           <button type="button" aria-label="목표 수량 늘리기" onClick={() => put("targetQty", String((target || 0) + 5))}>+</button>
         </div>
         <h2 className="op-q">③ 얼마에, 언제까지 팔까요?</h2>

@@ -15,12 +15,13 @@ const signed = (v: number) => (v < 0 ? `손해 ${won(-v)}` : won(v));
 const step5 = (p: number) => Math.min(60, Math.max(5, Math.round(p / 5) * 5));
 
 /** 자동으로 채운 칸 (판매자가 일일이 적지 않게) */
-export function AutoFilled({ costFrom, def, auto }: { costFrom: ProductDefaults["costFrom"]; def: ProductDefaults | null; auto: boolean }) {
+export function AutoFilled({ costFrom, def, auto, edited }: { costFrom: ProductDefaults["costFrom"]; def: ProductDefaults | null; auto: boolean; edited: Set<string> }) {
   const items: string[] = [];
   if (costFrom === "cafe24") items.push("원가: 카페24 공급가");
   else if (costFrom === "last") items.push("원가: 지난 공구");
-  if (def?.moq != null) items.push("최소 생산 수량: 지난 공구");
-  if (def?.perMemberLimit != null || def?.payWindowHours != null) items.push("1인 최대 · 결제 기간: 지난 공구");
+  if (def?.moq != null && !edited.has("moq")) items.push("최소 생산 수량: 지난 공구");
+  const past = [def?.perMemberLimit != null && !edited.has("perMemberLimit") && "1인 최대", def?.payWindowHours != null && !edited.has("payWindowHours") && "결제 기간"].filter(Boolean);
+  if (past.length) items.push(`${past.join(" · ")}: 지난 공구`);
   if (auto) items.push("공구가 · 목표 · 마감: 💰 추천 조건");
   if (!items.length) return null;
   return <p className="sc-auto"><b>자동으로 채웠어요</b> {items.join(" · ")} <span>바꿔도 돼요</span></p>;
@@ -36,12 +37,12 @@ export function ScenarioPick({ base, dealPrice, targetQty, days, onPick, onDisco
   const money = base.costPrice != null ? "이익" : "매출";
   return (
     <div className="sc">
-      <div className="sc-cards" role="list">
+      <div className="sc-cards" role="group" aria-label="공구 조건 시나리오">
         {list.map((s) => {
           const o = s.outcome;
           const on = !!o && o.dealPrice === dealPrice && o.targetQty === targetQty && o.days === days;
           return (
-            <button key={s.key} type="button" role="listitem" className={`sc-card${on ? " on" : ""}`} disabled={!o} aria-pressed={on}
+            <button key={s.key} type="button" className={`sc-card${on ? " on" : ""}`} disabled={!o} aria-pressed={on}
               onClick={() => o && onPick({ dealPrice: o.dealPrice, targetQty: o.targetQty, days: o.days })}>
               <b><span aria-hidden="true">{ICON[s.key]}</span> {s.title}</b>
               <small>{s.why}</small>
@@ -73,7 +74,7 @@ export function ScenarioResult({ base, dealPrice, targetQty, days, level, onLeve
   if (!(dealPrice > 0) || !(targetQty > 0)) return null;
   const o = outcome(base, dealPrice, targetQty, days);
   const pts = curve(base, targetQty, days);
-  const max = Math.max(1, ...pts.map((p) => Math.abs(value(p))));
+  const max = Math.max(1, ...pts.map((p) => Math.abs(value(p.o))));
   const cur = step5(o.discountPct);
   const money = base.costPrice != null ? "이익" : "매출";
   const r = o.ifReached;
@@ -104,15 +105,15 @@ export function ScenarioResult({ base, dealPrice, targetQty, days, level, onLeve
       <div className="sc-money">
         <div><span>성사되면 매출</span><b>{won(r.revenue)}</b></div>
         <div className={r.profit == null ? "" : r.profit >= 0 ? "ok" : "bad"}><span>성사되면 이익</span><b>{r.profit == null ? "원가를 넣으면 보여요" : signed(r.profit)}</b></div>
-        <div className={value(o) >= 0 ? "ok" : "bad"}><span>기대 {money}</span><b>{signed(value(o))}</b></div>
+        <div className={value(o) > 0 ? "ok" : value(o) < 0 ? "bad" : ""}><span>기대 {money}</span><b>{signed(value(o))}</b></div>
       </div>
-      {base.moq != null && <p className={`small ${o.moqMet === "sure" ? "" : "warn"}`}>최소 생산 {base.moq}개: {o.moqMet === "sure" ? "성사되면 채워요" : o.moqMet === "likely" ? `예상대로 모이면 채우지만, 신청이 목표만큼만 모이면 결제 ${o.minPaid}개라 못 채워요` : `성사돼도 결제 ${r.paid}개 예상이라 못 채워요`}{r.leftover > 0 && base.costPrice != null ? ` · ${r.produce}개를 만들면 ${r.leftover}개가 남아요(원가 ${won(r.leftover * base.costPrice)})` : ""}</p>}
-      <div className="sc-chart" role="group" aria-label={`할인율별 기대 ${money}`}>
-        {pts.map((p) => {
+      {base.moq != null && <p className={`small ${o.moqMet === "sure" ? "" : "warn"}`}>최소 생산 {base.moq}개: {o.moqMet === "sure" ? "목표만큼만 모여도 채워요(90% 확률)" : o.moqMet === "likely" ? `예상대로 모이면 채우지만, 신청이 목표만큼만 모이면 결제 ${o.minPaid}개라 못 채워요` : `성사돼도 결제 ${r.paid}개 예상이라 못 채워요`}{r.leftover > 0 && base.costPrice != null ? ` · ${r.produce}개를 만들면 ${r.leftover}개가 남아요(원가 ${won(r.leftover * base.costPrice)})` : ""}</p>}
+      <div className="sc-chart" role="group" style={{ gridTemplateColumns: `repeat(${pts.length}, minmax(0, 1fr))` }} aria-label={`할인율별 기대 ${money}`}>
+        {pts.map(({ step, o: p }) => {
           const v = value(p), h = Math.round((Math.abs(v) / max) * 100);
-          const on = step5(p.discountPct) === cur;
+          const on = p.dealPrice === dealPrice || (step5(p.discountPct) === cur && !pts.some((x) => x.o.dealPrice === dealPrice));
           return (
-            <button key={p.dealPrice} type="button" className={`sc-bar${on ? " on" : ""}${v < 0 ? " neg" : ""}`} onClick={() => onDiscount(p.dealPrice)}
+            <button key={step} type="button" className={`sc-bar${on ? " on" : ""}${v < 0 ? " neg" : ""}`} onClick={() => onDiscount(p.dealPrice)} aria-pressed={on}
               aria-label={`${p.discountPct}% 할인: 기대 ${money} ${signed(v)}, 성사 가능성 ${pct(p.reachProb)}`} title={`${p.discountPct}% · ${signed(v)} · 성사 ${pct(p.reachProb)}`}>
               <i style={{ height: `${v === 0 ? 0 : Math.max(4, h)}%` }} />
               <small>{p.discountPct}</small>

@@ -18,12 +18,12 @@ import { MALL, PRODUCT, baseInput, openAndFill, pledge, range, setup } from "./h
 
 const DAY5 = 5 * 24 * HOUR;
 
-describe("공구 열기 칸 미리 채우기 (#124)", () => {
+describe("공구 열기 칸 미리 채우기 (#124 · #125)", () => {
   const withSupply = (ctx: Ctx, supply: number | null): Ctx => ({ ...ctx, shop: async (m) => ({ ...(await ctx.shop(m)), supplyPrice: async () => supply }) });
 
   it("지난 공구가 없으면 카페24 공급가를 원가로. 비었거나 판매가 이상이면 채우지 않는다", async () => {
     const env = await setup();
-    expect(await productDefaults(withSupply(env.ctx, 21000), MALL, PRODUCT)).toMatchObject({ costPrice: 21000, costFrom: "cafe24", moq: null });
+    expect(await productDefaults(withSupply(env.ctx, 21000), MALL, PRODUCT)).toEqual({ costPrice: 21000, costFrom: "cafe24", moq: null, perMemberLimit: null, payWindowHours: null, history: null });
     expect(await productDefaults(withSupply(env.ctx, null), MALL, PRODUCT)).toMatchObject({ costPrice: null, costFrom: null, moq: null });
     expect(await productDefaults(withSupply(env.ctx, 52000), MALL, PRODUCT)).toMatchObject({ costPrice: null, costFrom: null, moq: null });
   });
@@ -33,6 +33,37 @@ describe("공구 열기 칸 미리 채우기 (#124)", () => {
     await openCampaign(env.ctx, "seller", MALL, { ...baseInput(env.clock), costPrice: 24000, moq: 40 });
     expect(await productDefaults(withSupply(env.ctx, 21000), MALL, PRODUCT)).toMatchObject({ costPrice: 24000, costFrom: "last", moq: 40, perMemberLimit: 2, payWindowHours: 72, history: null });
     expect((await getCampaign(env.ctx, (await env.db.select().from(schema.campaigns))[0].id)).moq).toBe(40);
+  });
+
+  it("그 상품의 지난 공구가 쇼핑몰 최근 공구 30개 밖에 있어도 원가 · 최소 생산 수량을 채우고, 1인 최대 · 결제 기간은 쇼핑몰 최근 공구로", async () => {
+    const env = await setup();
+    const { campaign: a } = await openCampaign(env.ctx, "seller", MALL, { ...baseInput(env.clock), costPrice: 24000, moq: 40 });
+    const [row] = await env.db.select().from(schema.campaigns).where(eq(schema.campaigns.id, a.id));
+    const { id: _id, ...rest } = row;
+    await env.db.update(schema.campaigns).set({ state: "cancelled" }).where(eq(schema.campaigns.id, a.id));
+    for (let i = 0; i < 31; i++) {
+      await env.db.insert(schema.campaigns).values({ ...rest, productNo: 103, state: "cancelled", costPrice: null, moq: null, perMemberLimit: 3, payWindowHours: 48, reportToken: `t${i}`, openedAt: new Date(row.openedAt.getTime() + (i + 1) * HOUR) });
+    }
+    expect(await productDefaults(withSupply(env.ctx, 21000), MALL, PRODUCT)).toMatchObject({ costPrice: 24000, costFrom: "last", moq: 40, perMemberLimit: 2, payWindowHours: 72 });
+    expect(await productDefaults(withSupply(env.ctx, null), MALL, 101)).toMatchObject({ costPrice: null, moq: null, perMemberLimit: 3, payWindowHours: 48, history: null });
+  });
+
+  it("이 쇼핑몰의 끝난 공구로 신청률(할인 · 기간 맞춤) · 결제율 · 1인 평균을 잰다", async () => {
+    const env = await setup();
+    const c = await openAndFill(env, range(1, 40), 1); // 25% 할인 · 5일
+    await tick(env.ctx); // 초대 문자 발송
+    env.clock.advance(5 * 24 * HOUR);
+    await tick(env.ctx); // 판정
+    const cp = (await getCampaign(env.ctx, c.id)).couponNo!;
+    for (const m of range(1, 25)) await env.world.placeOrder(MALL, m, PRODUCT, 1, cp);
+    // 결제 기간 중: 신청률 · 1인 평균은 쓰고 결제율은 아직 안 쓴다
+    const mid = await productDefaults(env.ctx, MALL, 101);
+    expect(mid.history).toMatchObject({ payRate: null, avgQty: 1, campaigns: 1 });
+    expect(mid.history!.pledgeRate).toBeCloseTo(20 / 69 / 1.25); // 초대 69명 중 20명 신청, 25% 할인은 20% 기준의 1.25배
+    env.clock.advance(72 * HOUR);
+    await tick(env.ctx);
+    expect((await getCampaign(env.ctx, c.id)).state).toBe("settled");
+    expect((await productDefaults(env.ctx, MALL, 101)).history).toMatchObject({ payRate: 25 / 40, avgQty: 1, campaigns: 1 });
   });
 });
 
