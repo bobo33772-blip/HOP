@@ -57,8 +57,8 @@ export function CampaignDetail({ id, say, onChanged }: { id: string; say: (t: st
   const mBadge = c.state === "open" ? dd(c.deadlineAt) : c.state === "reached" ? `결제 ${dd(c.payUntil)}` : "";
   const mMeta = c.state === "reached" ? `결제 마감 ${kst(c.payUntil)} · 공구가 ${won(c.dealPrice)}` : `마감 ${kst(c.deadlineAt)} · 공구가 ${won(c.dealPrice)}`;
   const KPI: [string, string][] = [
-    ["초대", `${r.funnel.invited}명`], ["신청 수량", `${r.funnel.pledgedQty}개`], ["쿠폰 발급", `${r.funnel.couponIssued}명`],
-    ["확정 수량", judged ? `${r.confirmed.qty}개` : "–"], ["초대→신청", pct(r.rates.inviteToPledge)], ["신청→결제", pct(r.rates.pledgeToPaid)],
+    ["문자 발송", `${r.funnel.invited}명`], ["신청 수량", `${r.funnel.pledgedQty}개`], ["쿠폰 발급", `${r.funnel.couponIssued}명`],
+    ["확정 수량", judged ? `${r.confirmed.qty}개` : "–"], ["문자 발송→신청", pct(r.rates.inviteToPledge)], ["신청→결제", pct(r.rates.pledgeToPaid)],
   ];
   return (
     <div className="card cd">

@@ -22,8 +22,11 @@ import { useConsole } from "./provider";
 import type { Camp, RadarRow, Run } from "./types";
 import { kst, won } from "./format";
 import { CampaignForm } from "./campaign-form";
+import s from "./radar-picker.module.css";
 
 type Sort = "total" | "cart" | "alert";
+/** 처음에는 상위 5개만 보여 주고 나머지는 "더보기"로 펼친다 */
+const TOP = 5;
 
 export function NewTab({ mall, say, onOpened }: { mall: string; say: (t: string) => void; onOpened: (id: string) => void }) {
   const a = useConsole();
@@ -33,6 +36,7 @@ export function NewTab({ mall, say, onOpened }: { mall: string; say: (t: string)
   const [sort, setSort] = useState<Sort>("total");
   const [mSort, setMSort] = useState<"cart" | "alert">("cart");
   const [all, setAll] = useState(false);
+  const [wAll, setWAll] = useState(false);
   const [step, setStep] = useState<2 | 3>(2);
   const load = useCallback(() => a.call<{ run: Run | null; current: Run | null; rows: RadarRow[] }>("GET", `${a.mallBase}/radar`).then(setRadar).catch((e) => say(e.message)), [a, mall, say]);
   const collect = async () => { await a.call("POST", `${a.mallBase}/radar`).catch((e) => say((e as Error).message)); load(); };
@@ -54,7 +58,7 @@ export function NewTab({ mall, say, onOpened }: { mall: string; say: (t: string)
   const busy = (p: RadarRow) => busyNos.has(p.productNo);
   const choose = (p: RadarRow) => { if (!busy(p)) setPick(p); };
   const by = (k: Sort) => (x: RadarRow, y: RadarRow) => (k === "total" ? y.alert + y.cart - (x.alert + x.cart) : y[k] - x[k] || y.cart + y.alert - (x.cart + x.alert));
-  const rows = [...radar.rows].sort(by(sort));
+  const rows = [...radar.rows].sort(by(sort)).slice(0, 20);
   const mRows = [...radar.rows].sort(by(mSort));
   const empty = radar.rows.length === 0;
   const collectBtn = <button type="button" className="ghost op-collect" onClick={collect} disabled={running}>{running ? `수집 중 ${radar.current!.done}/${radar.current!.total}` : radar.run ? "다시 수집" : "관심 데이터 모으기"}</button>;
@@ -77,7 +81,7 @@ export function NewTab({ mall, say, onOpened }: { mall: string; say: (t: string)
       {/* 1 상품 고르기: 넓은 화면 표 */}
       <section className="op-card only-w" aria-labelledby="op-s1">
         <div className="op-head">
-          <div><h2 id="op-s1">1 상품 고르기 <span>· 알림 신청 · 장바구니 많은 순 상위 {Math.min(20, radar.rows.length) || 20}개</span></h2>
+          <div><h2 id="op-s1">1 상품 고르기 <span>· 알림 신청 · 장바구니 많은 순</span></h2>
             <small>{radar.run ? `${kst(radar.run.finishedAt ?? radar.run.startedAt)} 기준` : a.role === "admin" ? "판매자와 통화하며 함께 고르세요" : "공구 알림 신청과 장바구니가 많은 상품부터 보여 드려요"}</small></div>
           {collectBtn}
         </div>
@@ -91,7 +95,7 @@ export function NewTab({ mall, say, onOpened }: { mall: string; say: (t: string)
               ))}
               <th><span className="sr">선택</span></th>
             </tr></thead>
-            <tbody>{rows.slice(0, 20).map((p, i) => {
+            <tbody>{(wAll ? rows : rows.slice(0, TOP)).map((p, i) => {
               const on = pick?.productNo === p.productNo, b = busy(p);
               return (
                 <tr key={p.productNo} className={on ? "on" : b ? "busy" : undefined} onClick={() => choose(p)}>
@@ -106,6 +110,7 @@ export function NewTab({ mall, say, onOpened }: { mall: string; say: (t: string)
             })}</tbody>
           </table>
         )}
+        {rows.length > TOP && <button type="button" className={s.more} aria-expanded={wAll} onClick={() => setWAll(!wAll)}>{wAll ? "접기 ▴" : `더보기 (${rows.length - TOP}개) ▾`}</button>}
       </section>
 
       {/* ① 어떤 상품을 열까요? 휴대폰 목록 */}
@@ -119,7 +124,7 @@ export function NewTab({ mall, say, onOpened }: { mall: string; say: (t: string)
               <button type="button" className={mSort === "cart" ? "on" : undefined} onClick={() => setMSort("cart")}>장바구니{mSort === "cart" ? " ↓" : ""}</button>
               <button type="button" className={mSort === "alert" ? "on" : undefined} onClick={() => setMSort("alert")}>알림{mSort === "alert" ? " ↓" : ""}</button>
             </div>
-            {(all ? mRows : mRows.slice(0, 8)).map((p) => {
+            {(all ? mRows : mRows.slice(0, TOP)).map((p) => {
               const on = pick?.productNo === p.productNo, b = busy(p);
               return (
                 <button key={p.productNo} type="button" className={`op-mrow${on ? " on" : ""}${b ? " busy" : ""}`} aria-pressed={on} disabled={b} onClick={() => choose(p)}>
@@ -129,7 +134,7 @@ export function NewTab({ mall, say, onOpened }: { mall: string; say: (t: string)
                 </button>
               );
             })}
-            {mRows.length > 8 && <button type="button" className="op-more" onClick={() => setAll(!all)}>{all ? "접기" : `상품 ${mRows.length}개 모두 보기 ›`}</button>}
+            {mRows.length > TOP && <button type="button" className="op-more" aria-expanded={all} onClick={() => setAll(!all)}>{all ? "접기 ▴" : `더보기 (${mRows.length - TOP}개) ▾`}</button>}
           </>
         )}
       </section>

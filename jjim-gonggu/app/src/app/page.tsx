@@ -94,8 +94,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
   const axisMax = step * 4;
   const axis = (v: number) => (v >= 10_000 ? `${num(v / 10_000)}만` : num(v));
 
-  // 다음 공구 후보: 공구 열기와 같은 관심 데이터에서 많은 순 4개
-  const cands = (radar?.rows ?? []).slice(0, 4);
+  // 다음 공구 후보: 공구 열기와 같은 관심 데이터에서 많은 순 4개. 공구를 연 적 있는 상품(진행 중 · 끝난 공구 모두)은 뺀다
+  const openedNos = new Set(camps.map((c) => c.productNo));
+  const cands = (radar?.rows ?? []).filter((r) => !openedNos.has(r.productNo)).slice(0, 4);
   const candMax = Math.max(1, ...cands.map((r) => r.alert + r.cart));
 
   // 공구 관리 표
@@ -195,7 +196,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
         <section className="dash-table" aria-labelledby="dash-table-t">
           <div className="row"><h2 id="dash-table-t">공구 관리</h2><a href="/campaigns">{summary} →</a></div>
           {camps.length === 0 ? (
-            <div className="empty"><img src="/logo.svg" alt="" /><b>아직 연 공구가 없어요</b><p className="muted">고객이 많이 담아 둔 상품으로 첫 공구를 열어 보세요.</p></div>
+            <div className="empty"><img src="/logo.svg" alt="" /><b>아직 연 공구가 없어요</b><p className="muted">고객이 많이 담아 둔 상품으로 첫 공구를 열어 보세요.</p><a className="btn brand" href="/campaigns?tab=new">첫 공구 열기</a></div>
           ) : (
             <table>
               <thead><tr><th>상품</th><th>상태</th><th className="n">신청</th><th className="n hide-sm">목표</th><th className="hide-sm">달성률</th><th className="n hide-sm">공구가</th><th className="n">마감</th></tr></thead>

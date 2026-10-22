@@ -1,9 +1,10 @@
 "use client";
 
-// 공구 취소 확인 창 (#66). 되돌릴 수 없다는 것과 결과(신청자 안내 문자 · 안 나간 초대 문자 · 새 공구)를 보여 주고, 이유를 꼭 받는다.
+// 공구 취소 확인 창 (#66). 화면 가운데에 뜬다. 되돌릴 수 없다는 것과 결과(신청자 안내 문자 · 안 나간 초대 문자 · 새 공구)를 보여 주고, 이유를 꼭 받는다.
 // 처리는 서버(#65)가 한다: 모집 중이고 마감 전일 때만, 이유가 없으면 400. 운영자 화면도 같은 부품을 쓴다.
 
 import { useEffect, useState } from "react";
+import s from "./center-dialog.module.css";
 
 /** 취소 이유 최대 길이. 서버(lib/engine/cancel.ts CANCEL_REASON_MAX)와 같다 */
 const REASON_MAX = 300;
@@ -25,9 +26,8 @@ export function CancelSheet({ productName, pledgers, onClose, onConfirm }: {
     try { await onConfirm(reason.trim()); } finally { setBusy(false); }
   };
   return (
-    <div className="sheet" role="dialog" aria-modal="true" aria-labelledby="cancel-title" onClick={() => !busy && onClose()}>
-      <div className="in" onClick={(e) => e.stopPropagation()}>
-        <div className="grab" />
+    <div className={s.backdrop} role="dialog" aria-modal="true" aria-labelledby="cancel-title" onClick={() => !busy && onClose()}>
+      <div className={s.box} onClick={(e) => e.stopPropagation()}>
         <h2 id="cancel-title">공구를 취소할까요?</h2>
         <p style={{ margin: 0, wordBreak: "keep-all" }}><b>{productName}</b> 공구를 취소하면 되돌릴 수 없어요.</p>
         <ul className="small" style={{ margin: 0, paddingLeft: 18, display: "grid", gap: 4, wordBreak: "keep-all" }}>

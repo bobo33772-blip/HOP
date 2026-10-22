@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { ConsoleProvider, useToast } from "../console/provider";
 import { ListTab } from "../console/campaign-list";
-import { DemandPanel } from "../console/demand-panel";
 import { NewTab } from "../console/radar-picker";
 import { ProfileCard } from "../console/profile-card";
 import type { Mall } from "../console/types";
@@ -62,8 +61,6 @@ export default function SellerConsole({ mallId, initialTab, initialOpen, scopes,
           <ConsoleProvider api={API}>
             {tab !== "profile" && <ProfileCard mall={mall} onSaved={() => { say("저장했어요"); load(); }} say={say} />}
             {tab === "list" && <ListTab mall={mallId} openId={openId} setOpenId={setOpenId} say={say} goNew={() => setTab("new")} />}
-            {/* 고객이 기다리는 상품 (#92): 예전 모니터링(수요 레이더). 모니터링은 매출 통계로 바뀌었다 */}
-            {tab === "list" && <div className="only-w"><DemandPanel /></div>}
             {tab === "new" && <NewTab mall={mallId} say={say} onOpened={(id) => { setOpenId(id); setTab("list"); }} />}
             {/* 쇼핑몰 설정 (시안 3): 왼쪽 쇼핑몰 정보 · 카페24 권한, 오른쪽 화면 밝기 */}
             {tab === "profile" && (
