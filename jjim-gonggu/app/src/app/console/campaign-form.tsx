@@ -101,7 +101,7 @@ export function CampaignForm({ mall, p, say, onOpened, onStep }: { mall: string;
               <div className="op-aud">
                 <div><span>알림 신청</span><b>{pv.audience.alert}명</b></div>
                 <div><span>장바구니</span><b>{pv.audience.cart}명</b></div>
-                <div><span>중복 제외 (알림 신청, 장바구니 중복)</span><b>{pv.audience.unique}명</b></div>
+                <div><span>제외 (알림 신청, 장바구니 중복)</span><b>{pv.audience.unique}명</b></div>
                 <div className="hl"><span>{pv.audience.consentChecked ? "문자 발송 대상 (수신 동의)" : "초대 대상 (최대)"}</span><b>{pv.audience.reachable}명</b></div>
               </div>
               <ul className="op-facts">
