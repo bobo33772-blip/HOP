@@ -111,7 +111,7 @@ corepack pnpm typecheck
 | 경로 | 내용 |
 |---|---|
 | [`jjim-gonggu/app/`](jjim-gonggu/app/README.md) | **찜꽁 서버** — 판매자 화면 · 관리자 화면 · 손님 위젯 · 공구 엔진을 한 서버에서 |
-| [`jjim-gonggu/app/docs/`](jjim-gonggu/app/docs/) | 단계 계획(ROADMAP) · 화면 규칙(DESIGN) · 카페24 설정 · 배포 안내 |
+| [`jjim-gonggu/app/docs/`](jjim-gonggu/app/docs/) | 단계 계획(ROADMAP) · 화면 규칙(DESIGN) · [기능 기록](jjim-gonggu/app/docs/features/README.md)(왜 만들었나 · 가정) · 카페24 설정 · 배포 안내 |
 | [`jjim-gonggu/store/`](jjim-gonggu/store/README.md) | 카페24 앱스토어 제출 자료 (설명 · 권한 소명 · 스크린샷) |
 | [`jjim-gonggu/plans/`](jjim-gonggu/README.md) | 기획서 (팀원용 · 투자자용) |
 
