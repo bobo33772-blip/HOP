@@ -24,6 +24,10 @@ describe("생산 결정 수량", () => {
 
 describe("공구 개설 검증", () => {
   it("정상 입력은 통과", () => expect(validateCampaignInput(base, LIST, now)).toEqual([]));
+  it("생산 메모는 100자까지 (#133)", () => {
+    expect(validateCampaignInput({ ...base, productionNote: "가".repeat(100) }, LIST, now)).toEqual([]);
+    expect(hasErrors(validateCampaignInput({ ...base, productionNote: "가".repeat(101) }, LIST, now))).toBe(true);
+  });
   it("공구가가 정가 이상이면 오류", () => expect(hasErrors(validateCampaignInput({ ...base, dealPrice: 50_000 }, LIST, now))).toBe(true));
   it("원가 미만은 확인 체크가 있어야 열 수 있고, 그때는 경고로 남는다", () => {
     expect(hasErrors(validateCampaignInput({ ...base, dealPrice: 20_000 }, LIST, now))).toBe(true);

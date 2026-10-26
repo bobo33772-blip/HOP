@@ -15,6 +15,7 @@ export interface Detail {
   messages: { id: string; kind: string; recipients: number; content: string; status: "scheduled" | "sending" | "sent" | "failed"; sendAfter: string; sentAt: string | null; error: string | null }[];
   issues: { id: number; at: string; kind: string; detail: unknown }[];
   // 미달 공구만: '그래도 살래요' 표시 수와 그래도 진행할 수 있는 기간
+  order: { moq: number | null; costPrice: number | null; productionNote: string | null }; // 발주 결정 보조 (#133)
   proceed: { proceedUntil: string | null; proceedOpen: boolean; wanted: { members: number; qty: number }; payWindowHours: number; costPrice: number | null } | null;
 }
 export interface RadarRow { productNo: number; name: string; price: number; soldOut: boolean; alert: number; cart: number }

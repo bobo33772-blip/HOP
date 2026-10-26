@@ -136,6 +136,8 @@ export async function campaignDetail(ctx: Ctx, id: string, mallId?: string) {
     messages: messages.map((m) => ({ id: m.id, kind: m.kind, recipients: m.recipients.length, content: m.content, status: m.status, sendAfter: m.sendAfter, sentAt: m.sentAt, error: m.error })),
     issues: mallId ? [] : issues, // 판매자에게는 내부 확인 목록을 보여 주지 않는다
     // 미달 공구: '그래도 살래요' 표시 수와 그래도 진행할 수 있는 기간 (원가는 판매자 본인 · 운영자에게만)
+    // 발주 결정 보조 (#133): 판매자 본인 · 운영자에게만 (공개 리포트에는 넣지 않는다)
+    order: { moq: c.moq, costPrice: c.costPrice, productionNote: c.productionNote },
     proceed: c.state === "failed"
       ? { ...proceedInfo(c, ctx.clock.now()), wanted: await stillWanted(ctx, c.id), payWindowHours: c.payWindowHours, costPrice: c.costPrice }
       : null,
