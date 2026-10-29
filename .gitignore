@@ -13,6 +13,7 @@ coverage/
 *.tsbuildinfo
 
 # 개인 도구 설정
-.claude/
+.claude/*
+!.claude/settings.json
 .DS_Store
 Thumbs.db
