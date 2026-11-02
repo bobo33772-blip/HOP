@@ -11,6 +11,7 @@ import { kst, won } from "./format";
 import { outcome, scenarios, payRateOf, targetForMoq, type Level, type ScenarioBase } from "@/lib/core/scenario";
 import { ScenarioPick, ScenarioResult, AutoFilled } from "./scenario";
 import { OpenConfirmSheet } from "./open-confirm-sheet";
+import { PRODUCTION_NOTE_MAX } from "@/lib/core/campaign";
 
 const kstDay = (ms: number) => new Date(ms + 9 * 3_600_000).toISOString().slice(0, 10);
 
@@ -42,12 +43,12 @@ export function CampaignForm({ mall, p, say, onOpened, onStep }: { mall: string;
       setNow(t);
       setCostFrom(def?.costPrice != null ? def.costFrom : null);
       setDef(def);
-      setF({ targetQty: "30", dealPrice: String(Math.round((p.price * 0.75) / 500) * 500), costPrice: def?.costPrice != null ? String(def.costPrice) : "", moq: def?.moq != null ? String(def.moq) : "", perMemberLimit: String(def?.perMemberLimit ?? 2), deadline: `${kstDay(dl)}T14:00`, payWindowHours: String(def?.payWindowHours ?? 72), shipEta: kstDay(dl + 14 * 86_400_000), confirmBelowCost: false });
+      setF({ targetQty: "30", dealPrice: String(Math.round((p.price * 0.75) / 500) * 500), costPrice: def?.costPrice != null ? String(def.costPrice) : "", moq: def?.moq != null ? String(def.moq) : "", productionNote: "", perMemberLimit: String(def?.perMemberLimit ?? 2), deadline: `${kstDay(dl)}T14:00`, payWindowHours: String(def?.payWindowHours ?? 72), shipEta: kstDay(dl + 14 * 86_400_000), confirmBelowCost: false });
     }).catch((e) => say(e.message));
   }, [a, p.price, p.productNo, say]);
 
   const input = (v: Record<string, string | boolean>) => ({
-    productNo: p.productNo, targetQty: v.targetQty, dealPrice: v.dealPrice, costPrice: v.costPrice, moq: v.moq, perMemberLimit: v.perMemberLimit,
+    productNo: p.productNo, targetQty: v.targetQty, dealPrice: v.dealPrice, costPrice: v.costPrice, moq: v.moq, productionNote: v.productionNote, perMemberLimit: v.perMemberLimit,
     deadlineAt: v.deadline ? new Date(`${v.deadline}:00+09:00`).toISOString() : "", payWindowHours: v.payWindowHours, shipEta: v.shipEta, confirmBelowCost: v.confirmBelowCost,
   });
   // 조건이 바뀌면 0.7초 뒤 미리보기를 다시 받는다
@@ -127,6 +128,7 @@ export function CampaignForm({ mall, p, say, onOpened, onStep }: { mall: string;
     price: <label key="p">공구가 (원)<input type="number" min={0} step={500} value={String(f.dealPrice)} onChange={set("dealPrice")} /><span className="hint">정가보다 낮아야 해요{off ? ` · ${off}% 할인` : ""}</span></label>,
     cost: <label key="c">원가 (1개당, 원)<input type="number" min={0} step={500} value={String(f.costPrice)} onChange={(e) => { setCostFrom(null); set("costPrice")(e); }} /><span className="hint">{costFrom === "cafe24" ? "카페24 공급가에서 불러왔어요. 포장 · 배송비가 있으면 더해 주세요" : costFrom === "last" ? "지난 공구에 적은 원가예요" : "고객에게 보이지 않아요. 마진 계산에만 써요"}</span></label>,
     moq: <label key="q">최소 생산 수량 (선택)<input type="number" min={1} value={String(f.moq)} onChange={set("moq")} /><span className="hint">가마 1회분 · 원단 1롤처럼 한 번에 만들어야 하는 수량 · 고객에게 보이지 않아요</span></label>,
+    note: <label key="n" className="op-wide">생산 메모 (선택)<input maxLength={PRODUCTION_NOTE_MAX} placeholder="예: 가마 11월 1회분 예약 · 원단 1롤 50장" value={String(f.productionNote ?? "")} onChange={set("productionNote")} /><span className="hint">고객에게 보이지 않아요. 공구가 끝나면 발주를 정할 때 확정 수량과 같이 보여 드려요</span></label>,
     limit: <label key="l">1인 최대 수량<input type="number" min={1} max={5} value={String(f.perMemberLimit)} onChange={set("perMemberLimit")} /><span className="hint">1 ~ 5개</span></label>,
     deadline: <label key="d">마감 일시<input type="datetime-local" value={String(f.deadline)} onChange={set("deadline")} /><span className="hint">한국 시간 · 이 시각에 목표 달성 여부를 판정해요</span></label>,
     pay: <label key="w">결제 기간<select value={String(f.payWindowHours)} onChange={set("payWindowHours")}><option value="72">달성 후 72시간</option><option value="48">달성 후 48시간</option></select></label>,
@@ -142,7 +144,7 @@ export function CampaignForm({ mall, p, say, onOpened, onStep }: { mall: string;
           <h2 id="op-s2">2 조건 정하기 <span>· {p.name} · 정가 {won(p.price)}</span></h2>
           {filled}
           {pick}
-          <div className="form op-form">{fields.target}{fields.price}{fields.cost}{fields.moq}{fields.limit}{fields.deadline}{fields.pay}{fields.ship}{fields.below}</div>
+          <div className="form op-form">{fields.target}{fields.price}{fields.cost}{fields.moq}{fields.note}{fields.limit}{fields.deadline}{fields.pay}{fields.ship}{fields.below}</div>
           {note && <p className="op-note">{note}</p>}
         </section>
         <section className="op-card op-pad" aria-labelledby="op-s3">
@@ -196,8 +198,8 @@ export function CampaignForm({ mall, p, say, onOpened, onStep }: { mall: string;
             <span className="t"><span>모집 마감{dlDays != null ? ` · ${picked && picked.deadline === f.deadline ? picked.days : dlDays}일 뒤` : ""}</span><input type="datetime-local" value={String(f.deadline)} onChange={set("deadline")} /></span>
           </label>
         </div>
-        <button type="button" className="op-link" aria-expanded={more} onClick={() => setMore(!more)}>{more ? "접기" : "원가 · 최소 생산 수량 · 1인 최대 수량 · 결제 기간 · 출고일 더 정하기"}</button>
-        {more && <div className="form op-more-f">{fields.cost}{fields.moq}{fields.limit}{fields.pay}{fields.ship}{fields.below}</div>}
+        <button type="button" className="op-link" aria-expanded={more} onClick={() => setMore(!more)}>{more ? "접기" : "원가 · 최소 생산 수량 · 생산 메모 · 1인 최대 · 결제 기간 · 출고일 더 정하기"}</button>
+        {more && <div className="form op-more-f">{fields.cost}{fields.moq}{fields.note}{fields.limit}{fields.pay}{fields.ship}{fields.below}</div>}
         {note && <p className="small">{note}</p>}
         {result}
         <div className="callout op-result">

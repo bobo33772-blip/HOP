@@ -13,6 +13,7 @@ export interface CampaignInput {
   dealPrice: number;
   costPrice?: number | null; // 원가 (선택, 고객에게 안 보임)
   moq?: number | null; // 최소 생산 수량 (선택, 고객에게 안 보임, #124)
+  productionNote?: string | null; // 생산 메모 (선택, 고객에게 안 보임, #133)
   perMemberLimit: number;
   deadlineAt: Date;
   payWindowHours: number; // 48 | 72
@@ -28,6 +29,7 @@ export interface Issue {
 
 export const PAY_WINDOW_OPTIONS = [48, 72] as const;
 export const MAX_PER_MEMBER = 5;
+export const PRODUCTION_NOTE_MAX = 100;
 const HOUR = 3_600_000;
 const MIN_RECRUIT_HOURS = 24;
 const MAX_OPEN_DAYS = 30;
@@ -50,6 +52,7 @@ export function validateCampaignInput(input: CampaignInput, listPrice: number, n
   }
   if (input.moq != null && (!isInt(input.moq) || input.moq < 1)) err("moq", "최소 생산 수량은 1개 이상 정수로 입력해 주세요. 없으면 비워 두세요.");
   else if (input.moq != null && isInt(input.targetQty) && input.targetQty < input.moq) warn("targetQty", `목표 수량이 최소 생산 수량(${input.moq}개)보다 적어요. 목표를 채워도 ${input.moq}개를 만들어야 해서 남는 재고가 생길 수 있어요.`);
+  if (input.productionNote != null && input.productionNote.length > PRODUCTION_NOTE_MAX) err("productionNote", `생산 메모는 ${PRODUCTION_NOTE_MAX}자까지 적을 수 있어요.`);
   if (!isInt(input.perMemberLimit) || input.perMemberLimit < 1 || input.perMemberLimit > MAX_PER_MEMBER) err("perMemberLimit", `1인 최대 수량은 1~${MAX_PER_MEMBER}개로 정해 주세요.`);
   else if (isInt(input.targetQty) && input.perMemberLimit > input.targetQty) warn("perMemberLimit", "1인 한도가 목표 수량보다 커요.");
   if (!(PAY_WINDOW_OPTIONS as readonly number[]).includes(input.payWindowHours)) err("payWindowHours", "결제 기간은 48시간 또는 72시간이에요.");

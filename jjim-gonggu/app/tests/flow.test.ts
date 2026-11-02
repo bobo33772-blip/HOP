@@ -12,7 +12,8 @@ import { buildReport, pilotScorecard } from "@/lib/engine/report";
 import { tick } from "@/lib/engine/scheduler";
 import { purgeExpired } from "@/lib/engine/retention";
 import { proceedCampaign, setStillWanted, stillWanted } from "@/lib/engine/proceed";
-import { productDefaults } from "@/lib/console-actions";
+import { campaignDetail, productDefaults } from "@/lib/console-actions";
+import { parseCampaignInput } from "@/lib/engine/campaigns";
 import type { Ctx } from "@/lib/engine/context";
 import { MALL, PRODUCT, baseInput, openAndFill, pledge, range, setup } from "./helpers";
 
@@ -64,6 +65,18 @@ describe("공구 열기 칸 미리 채우기 (#124 · #125)", () => {
     await tick(env.ctx);
     expect((await getCampaign(env.ctx, c.id)).state).toBe("settled");
     expect((await productDefaults(env.ctx, MALL, 101)).history).toMatchObject({ payRate: 25 / 40, avgQty: 1, campaigns: 1 });
+  });
+});
+
+describe("발주 결정 보조 (#133)", () => {
+  it("생산 메모를 저장하고, 공구 상세(판매자 · 운영자)에 최소 생산 수량 · 원가와 같이 내려 준다. 공개 리포트에는 없다", async () => {
+    const env = await setup();
+    expect(parseCampaignInput({ productionNote: "  가마 11월 1회분  " }).productionNote).toBe("가마 11월 1회분");
+    expect(parseCampaignInput({ productionNote: "   " }).productionNote).toBeNull();
+    const { campaign } = await openCampaign(env.ctx, "seller", MALL, { ...baseInput(env.clock), moq: 30, productionNote: "가마 11월 1회분 예약" });
+    const d = await campaignDetail(env.ctx, campaign.id, MALL);
+    expect(d.order).toEqual({ moq: 30, costPrice: 28500, productionNote: "가마 11월 1회분 예약" });
+    expect(JSON.stringify(d.report)).not.toContain("가마 11월");
   });
 });
 

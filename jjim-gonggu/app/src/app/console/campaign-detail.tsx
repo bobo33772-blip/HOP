@@ -9,6 +9,7 @@ import type { Detail } from "./types";
 import { chip, kst, msgKind, pct, smsError, won } from "./format";
 import { DECISION_CONFIRM_RATIO, decisionNeedsConfirm } from "@/lib/core/campaign";
 import { CancelSheet } from "./cancel-sheet";
+import { orderAdvice, type OrderOption } from "@/lib/core/order";
 
 const MSG_STATUS = { sent: ["발송", "ok"], failed: ["실패", "bad"], scheduled: ["예약", "warn"], sending: ["보내는 중", "open"] } as const;
 const ISSUE_LABEL: Record<string, string> = {
@@ -29,6 +30,7 @@ export function CampaignDetail({ id, say, onChanged }: { id: string; say: (t: st
   const [newPrice, setNewPrice] = useState("");
   const [belowCost, setBelowCost] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [picked, setPicked] = useState<OrderOption["key"] | null>(null);
   const load = useCallback(async () => {
     const [detail, clock] = await Promise.all([a.call<Detail>("GET", `${a.campaignBase}/${id}`), a.call<{ now: string }>("GET", a.now)]);
     setD(detail);
@@ -51,6 +53,13 @@ export function CampaignDetail({ id, say, onChanged }: { id: string; say: (t: st
     try { await navigator.clipboard.writeText(u); say("리포트 링크를 복사했어요"); } catch { say(u); }
   };
   const todo = buildTodo(d, now);
+  // 발주 결정 보조 (#133): 확정 수량을 최소 생산 수량 · 생산 메모와 맞춰 읽어 주고 선택지를 준다 (규칙, AI 아님)
+  const advice = orderAdvice({
+    state: c.state, confirmedQty: r.confirmed.qty, unpaidMembers: r.confirmed.unpaidMembers, payUntilText: c.payUntil ? kst(c.payUntil) : null,
+    moq: d.order.moq, costPrice: d.order.costPrice, dealPrice: c.dealPrice, listPrice: c.listPrice, note: d.order.productionNote,
+  });
+  const choose = (o: OrderOption) => { setPicked(o.key); setDq(String(o.qty)); setDn(o.note); setBigOk(false); };
+  const adviceText = advice && <div className="od-say">{advice.lines.map((l) => <p key={l}>{l}</p>)}</div>;
   const judged = c.state === "reached" || c.state === "settled";
   const daysTo = (iso: string | null) => (iso && now ? Math.max(0, Math.ceil((new Date(iso).getTime() - now) / 86_400_000)) : null);
   const dd = (iso: string | null) => { const n = daysTo(iso); return n == null ? "" : n === 0 ? "D-DAY" : `D-${n}`; };
@@ -145,10 +154,21 @@ export function CampaignDetail({ id, say, onChanged }: { id: string; say: (t: st
             <b>{isAdmin ? "원씽 기록: 판매자가 이 확정 수량으로 생산·발주를 결정했나요?" : "확정 뒤 생산 · 발주 결정"}</b>
             {c.decision ? <p style={{ margin: 0 }}>기록됨: {c.decision.qty}개 · {c.decision.note} <span className="small">({kst(c.decision.at)})</span></p> : (
               <>
-                <span className="muted">확정 수량 {r.confirmed.qty}개를 보고 만들 수량과 근거(발주서 번호 등)를 기록해요.</span>
+                {adviceText}
+                {advice && advice.options.length > 0 && (
+                  <div className="od-opts" role="group" aria-label="발주 선택지">
+                    {advice.options.map((o) => (
+                      <button key={o.key} type="button" className={`od-opt${picked === o.key ? " on" : ""}`} aria-pressed={picked === o.key} onClick={() => choose(o)}>
+                        <b>{o.label}</b>
+                        {o.detail.map((t) => <small key={t}>{t}</small>)}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <span className="muted">{advice?.options.length ? "고르면 아래 수량 · 근거가 채워져요. 발주서 번호 등을 덧붙이고 '결정 기록'을 눌러 주세요." : `확정 수량 ${r.confirmed.qty}개를 보고 만들 수량과 근거(발주서 번호 등)를 기록해요.`}</span>
                 <div className="form">
                   {/* 확정 수량이 미리 채워져 있어 누르면 전체 선택: 이어 치면 29 → 2930이 되는 실수를 막는다 */}
-                  <label>생산 · 발주 수량<input type="number" min={1} value={dq} onFocus={(e) => e.currentTarget.select()} onChange={(e) => { setDq(e.target.value); setBigOk(false); }} /></label>
+                  <label>생산 · 발주 수량<input type="number" min={1} value={dq} onFocus={(e) => e.currentTarget.select()} onChange={(e) => { setDq(e.target.value); setBigOk(false); setPicked(null); }} /></label>
                   <label>확인 근거<input maxLength={300} placeholder="발주서 번호, 가마 일정 등" value={dn} onChange={(e) => setDn(e.target.value)} /></label>
                 </div>
                 {big && bigOk && <p className="small" role="alert">확정 수량({r.confirmed.qty}개)의 {DECISION_CONFIRM_RATIO}배가 넘어요. 최소 생산 단위 때문이라면 그대로 기록하고, 잘못 쳤다면 수량을 고쳐 주세요.</p>}
@@ -164,6 +184,7 @@ export function CampaignDetail({ id, say, onChanged }: { id: string; say: (t: st
         ) : (c.state === "open" || c.state === "reached") && (
           <div className="cd-box only-w">
             <b>확정 뒤 생산 · 발주 결정</b>
+            {c.state === "reached" && adviceText}
             <span className="muted">결제 기간이 끝나 확정되면 여기에서 생산 수량과 근거(발주서 번호 등)를 기록해요.</span>
             <span className="cd-ph"><span>생산 · 발주 수량</span><span>확인 근거</span></span>
           </div>

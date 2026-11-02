@@ -43,6 +43,13 @@
       "when": 1792650938799,
       "tag": "0005_campaign_moq",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792998728394,
+      "tag": "0006_production_note",
+      "breakpoints": true
     }
   ]
 }

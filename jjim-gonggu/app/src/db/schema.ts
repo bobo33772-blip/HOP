@@ -72,6 +72,7 @@ export const campaigns = pgTable("campaigns", {
   dealPrice: integer("deal_price").notNull(),
   costPrice: integer("cost_price"),
   moq: integer("moq"), // 최소 생산 수량 (선택, #124). 다음 공구에서 미리 채운다
+  productionNote: text("production_note"), // 생산 메모 (선택, #133). 예: 가마 11월 1회분 예약. 고객에게 안 보이고 발주를 정할 때 보여 준다
   targetQty: integer("target_qty").notNull(),
   perMemberLimit: integer("per_member_limit").notNull(),
   deadlineAt: timestamp("deadline_at", { withTimezone: true }).notNull(),

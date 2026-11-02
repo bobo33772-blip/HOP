@@ -139,7 +139,7 @@ export async function openCampaign(ctx: Ctx, actor: string, mallId: string, inpu
     campaign = await ctx.db.transaction(async (tx) => {
       const [c] = await tx.insert(schema.campaigns).values({
         mallId, productNo: pv.product.productNo, productName: pv.product.name, listPrice: pv.product.price, dealPrice: input.dealPrice,
-        costPrice: input.costPrice ?? null, moq: input.moq ?? null, targetQty: input.targetQty, perMemberLimit: input.perMemberLimit, deadlineAt: deadline,
+        costPrice: input.costPrice ?? null, moq: input.moq ?? null, productionNote: input.productionNote || null, targetQty: input.targetQty, perMemberLimit: input.perMemberLimit, deadlineAt: deadline,
         payWindowHours: input.payWindowHours, shipEta: input.shipEta, state: "open", couponNo,
         reportToken: randomBytes(18).toString("base64url"), openedAt: now,
       }).returning();
@@ -221,6 +221,7 @@ export function parseCampaignInput(b: Record<string, unknown>): CampaignInput {
     dealPrice: num(b.dealPrice),
     costPrice: b.costPrice === "" || b.costPrice == null ? null : Number(b.costPrice),
     moq: b.moq === "" || b.moq == null ? null : Number(b.moq),
+    productionNote: b.productionNote == null ? null : String(b.productionNote).trim() || null,
     perMemberLimit: num(b.perMemberLimit),
     deadlineAt: new Date(String(b.deadlineAt ?? "")),
     payWindowHours: num(b.payWindowHours),
