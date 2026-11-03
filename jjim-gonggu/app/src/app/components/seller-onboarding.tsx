@@ -1,15 +1,16 @@
 "use client";
 
 // 판매자 첫 화면 온보딩: 로고가 천천히 나타난 뒤, '찜꽁 사장님 셀러 가이드라인'(#94, 찜꽁 위젯 기준)의
-// 핵심 원칙과 1~5단계를 여섯 장면으로 보여 준다. 큰 마우스 커서가 직접 움직이고 눌러서 "이렇게 하면 돼요"를 보여 주고, 하트 캐릭터가 말풍선으로 쉽게 설명한다.
-// - 처음 한 번은 저절로 열리고(이 기기에 기록), 홈의 "찜꽁 사용법 보기"로 언제든 다시 본다.
+// 핵심 원칙과 1~7단계를 여덟 장면으로 보여 준다. 큰 마우스 커서가 직접 움직이고 눌러서 "이렇게 하면 돼요"를 보여 주고, 하트 캐릭터가 말풍선으로 쉽게 설명한다.
+// v2(지금 MVP 기준): 공구 열기는 조건 시나리오 3가지(#128) · 결제율 안내(#53), 그리고 결제 기간 → 확정 수량 → 발주 결정(#134)까지 한 바퀴를 보여 준다.
+// - 처음 한 번은 저절로 열리고(이 기기에 기록, v2로 바뀌어 v1을 본 사장님에게도 한 번 더 열린다), 홈의 "찜꽁 사용법 보기"로 언제든 다시 본다.
 // - 움직임 줄이기 설정이면 커서 움직임 없이 장면의 마지막 모습만 보여 준다.
 // - 화면 속 쇼핑몰 · 카페24 관리자 · 찜꽁 화면은 설명용 그림이다(실제 데이터 아님). 카페24 자체 재입고 알림은 쓰지 않는다(#94).
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import s from "./seller-onboarding.module.css";
 
-const SEEN_KEY = "jjimkkong-onboarding-v1";
+const SEEN_KEY = "jjimkkong-onboarding-v2";
 
 type Fx = Record<string, string | number | boolean>;
 type Step =
@@ -31,8 +32,9 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // ---- 장면 (셀러 가이드라인 #94: 핵심 원칙 + 1~5단계를 아주 쉽게) ----
 
-/** 관리 화면 모양 틀: 위쪽 경로(메뉴 · 단계)를 커서가 차례로 누르면 아래 칸이 열린다. jj면 찜꽁 화면(분홍 막대), 아니면 카페24 관리자 */
-function Admin({ path, fx, done, jj, children }: { path: string[]; fx: Fx; done?: string; jj?: boolean; children: React.ReactNode }) {
+/** 관리 화면 모양 틀: 위쪽 경로(메뉴 · 단계)를 커서가 차례로 누르면 아래 칸이 열린다. jj면 찜꽁 화면(분홍 막대), 아니면 카페24 관리자.
+ *  reveal: 경로를 몇 번째까지 누르면 아래 칸을 여는지 (기본: 끝까지) */
+function Admin({ path, fx, done, jj, reveal, children }: { path: string[]; fx: Fx; done?: string; jj?: boolean; reveal?: number; children: React.ReactNode }) {
   const m = Number(fx.m ?? 0);
   return (
     <div className={s.admin}>
@@ -44,7 +46,7 @@ function Admin({ path, fx, done, jj, children }: { path: string[]; fx: Fx; done?
           ))}
         </div>
       )}
-      <div className={`${s.panel} ${m >= path.length ? s.show : ""}`}>{children}</div>
+      <div className={`${s.panel} ${m >= (reveal ?? path.length) ? s.show : ""}`}>{children}</div>
     </div>
   );
 }
@@ -156,33 +158,90 @@ const SCENES: Scene[] = [
   },
   {
     title: "4단계 · 공구 열기",
-    say: "상품을 고르고, 몇 개 모이면 만들지 정해 '공구 열기'! 기다리던 손님에게 초대 문자가 저절로 가요.",
-    tip: "공구 열기 › 상품 고르기 › 조건 정하기 › 미리보기에서 초대 대상을 확인하고 열어요. 결제는 아직 받지 않아요.",
+    say: "상품을 고르면 찜꽁이 조건 세 가지를 계산해 줘요. 골라서 '공구 열기'! 기다리던 손님에게 초대 문자가 저절로 가요.",
+    tip: "신청은 결제가 아니에요. 결제율 60%로 보면 30개를 확정하려면 신청 50개가 모여야 해요. 결제는 목표를 채운 뒤에 받아요.",
     steps: [
-      { wait: 300 }, ...walk(3), { at: "qty" }, { click: true }, { set: { sf: true } }, { type: "30", into: "qty" }, { wait: 250 },
+      { wait: 300 }, ...walk(2), { wait: 350 }, { at: "sc-best" }, { click: true }, { set: { pick: "best" } }, { wait: 550 }, { set: { hint: true } }, { wait: 900 },
+      { at: "p3", ms: 700 }, { click: true }, { set: { m: 3 } }, { wait: 300 },
       { at: "open" }, { click: true }, { set: { sent: true } }, { wait: 1100 }, { set: { done: true } },
     ],
+    view: (fx) => {
+      // 실제 화면처럼 '미리보기'로 넘어가면 조건 고르기 칸은 접고 미리보기만 보여 준다 (장면 틀 높이 안에 들어가게)
+      const preview = Number(fx.m ?? 0) >= 3;
+      return (
+        <Admin path={["상품 고르기", "조건 정하기", "미리보기"]} fx={fx} jj reveal={2}>
+          {!preview && (
+            <div className={s.scRow} role="group" aria-label="공구 조건 시나리오">
+              {([["sc-fast", "⚡", "빠르게 많이 모으기"], ["sc-best", "💰", "이익 최대"], ["sc-moq", "📦", "최소 생산 수량 꼭 채우기"]] as const).map(([t, icon, name]) => (
+                <span key={t} data-t={t} className={`${s.scCard} ${fx.pick === t.slice(3) ? s.scOn : ""}`}><i aria-hidden="true">{icon}</i>{name}</span>
+              ))}
+            </div>
+          )}
+          {fx.pick && <div className={s.setRow}><span>{preview ? "💰 공구가 · 목표 · 마감" : "공구가 · 목표 · 마감"}</span><b>39,000원 · 30개 · 7일</b></div>}
+          {fx.hint && !preview && <p className={s.hint}>결제율 60%면 신청 <b>50개</b> → 30개 확정</p>}
+          {/* 휴대폰에서도 장면 틀 안에 들어가게: 초대 대상은 버튼 이름에, 누르면 버튼 자리에 '공구 열림' 도장 */}
+          {preview && !fx.done && <span data-t="open" className={s.sendBtn}>공구 열기 · 초대 46명 예약 (중복 빼고)</span>}
+          {fx.done && <div className={s.statusOk}><b>공구 열림</b> · 초대 문자 46명 예약 ✓</div>}
+          {fx.sent && !fx.done && <span className={s.plane} aria-hidden="true">✉️</span>}
+        </Admin>
+      );
+    },
+  },
+  {
+    title: "5단계 · 마감 전에 재고 넣기",
+    say: "신청 50개로 목표를 채웠어요! 마감 시각 전에 재고를 넣어 주세요. 그래야 쿠폰 받은 손님이 주문할 수 있어요.",
+    tip: "카페24 관리자 › 상품 › 상품 관리에서 재고를 넣어요. 결제 기간이 끝나면 다시 품절로 돌려 두세요.",
+    steps: [
+      { wait: 300 }, ...walk(3), { at: "stock" }, { click: true }, { set: { sf: true } }, { type: "50", into: "stock" }, { wait: 400 }, { set: { done: true } },
+    ],
     view: (fx) => (
-      <Admin path={["상품 고르기", "조건 정하기", "미리보기"]} fx={fx} jj>
-        <div className={s.setRow}><span>목표 수량</span><span data-t="qty" className={`${s.input} ${s.small} ${fx.sf ? s.focus : ""}`}>{String(fx.qty ?? "")}<i className={fx.sf && !fx.sent ? s.caret : ""} />개</span></div>
-        <span data-t="open" className={s.sendBtn}>공구 열기</span>
-        {fx.done && <div className={s.statusOk}><b>공구 열림</b> · 초대 문자 46명 예약 ✓</div>}
-        {fx.sent && !fx.done && <span className={s.plane} aria-hidden="true">✉️</span>}
+      <Admin path={["상품", "상품 관리", "상품 수정"]} fx={fx} done="주문 받을 준비 ✓">
+        <div className={s.goalBadge}>🎉 목표 달성 · 신청 50개 / 목표 30개</div>
+        <div className={s.setRow}><span>재고 수량</span><span data-t="stock" className={`${s.input} ${s.small} ${fx.sf ? s.focus : ""}`}>{String(fx.stock ?? "0")}<i className={fx.sf && !fx.done ? s.caret : ""} />개</span></div>
+        {fx.done && <div className={s.statusOk}>쿠폰 받은 손님이 이제 주문할 수 있어요 ✓</div>}
       </Admin>
     ),
   },
   {
-    title: "5단계 · 마감 전에 재고 넣기",
-    say: "목표를 채웠어요! 마감 날, 마감 시각 전에 재고를 넣어 주세요. 그래야 쿠폰 받은 손님이 주문할 수 있어요.",
-    tip: "결제 기간이 끝나면 다시 품절로 돌려 두세요. 결제된 만큼만 만들면 재고 걱정 끝!",
+    title: "6단계 · 결제 기간에 확정 수량 보기",
+    say: "쿠폰 받은 손님이 72시간 안에 결제해요. 결제 완료 막대가 차오르고, 결제 기간이 끝나면 그 숫자가 '확정 수량'이 돼요.",
+    tip: "공구 관리에서 공구를 눌러 봐요. 목표에 못 미쳐도 '그래도 살래요' 손님이 있으면 '그래도 진행'을 고를 수 있어요.",
     steps: [
-      { wait: 300 }, ...walk(3), { at: "stock" }, { click: true }, { set: { sf: true } }, { type: "30", into: "stock" }, { wait: 400 }, { set: { done: true } },
+      { wait: 500 }, { at: "paid" }, { set: { paid: 6 } }, { wait: 300 }, { set: { paid: 13 } }, { wait: 300 }, { set: { paid: 19 } }, { wait: 300 },
+      { set: { paid: 24 } }, { wait: 300 }, { set: { paid: 27 } }, { wait: 700 }, { set: { closed: true } }, { at: "settled" }, { set: { glow: true } },
+    ],
+    view: (fx) => {
+      const paid = Number(fx.paid ?? 0);
+      return (
+        <Admin path={[]} fx={fx} jj>
+          <div className={s.resRow}><span>워싱 린넨 이불</span><span className={`${s.chip} ${fx.closed ? s.chipDone : ""}`}>{fx.closed ? "확정" : "달성 · 결제 기간"}</span></div>
+          <div className={s.barRow}><span>신청</span><span className={s.bar}><i style={{ width: "100%" }} /></span><b>50개</b></div>
+          <div className={s.barRow} data-t="paid"><span>결제 완료</span><span className={s.bar}><i className={s.barPaid} style={{ width: `${(paid / 50) * 100}%` }} /></span><b key={paid} className={s.bump}>{paid}개</b></div>
+          {fx.closed && <div data-t="settled" className={`${s.statusOk} ${fx.glow ? s.glow : ""}`}>결제 기간 끝 · <b>확정 수량 27개</b></div>}
+        </Admin>
+      );
+    },
+  },
+  {
+    title: "7단계 · 확정 수량으로 발주하기",
+    say: "확정 27개, 최소 생산 30개에는 3개 모자라요. 찜꽁이 선택지를 줘요. 30개를 만들고 남는 3개는 정가로 팔 수도 있어요!",
+    tip: "고르면 수량과 근거가 채워져요. 발주서 번호나 가마 일정을 덧붙여 '결정 기록'을 누르면 끝이에요.",
+    steps: [
+      { wait: 400 }, { set: { read: true } }, { wait: 900 }, { at: "moq" }, { click: true }, { set: { pick: "moq", qty: "30" } }, { wait: 600 },
+      { at: "rec" }, { click: true }, { set: { done: true } },
     ],
     view: (fx) => (
-      <Admin path={["상품", "상품 관리", "상품 수정"]} fx={fx} done="주문 받을 준비 ✓">
-        <div className={s.goalBadge}>🎉 공구 목표 달성 · 30 / 30개</div>
-        <div className={s.setRow}><span>재고 수량</span><span data-t="stock" className={`${s.input} ${s.small} ${fx.sf ? s.focus : ""}`}>{String(fx.stock ?? "0")}<i className={fx.sf && !fx.done ? s.caret : ""} />개</span></div>
-        {fx.done && <div className={s.statusOk}>쿠폰 받은 손님이 이제 주문할 수 있어요 ✓</div>}
+      <Admin path={[]} fx={fx} jj>
+        <b className={s.boxTitle}>확정 뒤 생산 · 발주 결정</b>
+        {fx.read && <p className={s.readout}>확정 수량은 <b>27개</b>예요. 생산 메모의 최소 생산 수량 <b>30개</b>에 3개 모자라요.</p>}
+        <div className={s.optRow} role="group" aria-label="발주 선택지">
+          <span data-t="confirmed" className={`${s.opt} ${fx.pick === "confirmed" ? s.optOn : ""}`}><b>확정 27개로 발주</b><small>최소 생산보다 적어요</small></span>
+          <span data-t="moq" className={`${s.opt} ${fx.pick === "moq" ? s.optOn : ""}`}><b>최소 생산 30개로 발주</b><small>남는 3개는 정가로 판매</small></span>
+        </div>
+        {/* 장면 틀 높이 안에 들어가게: 고른 수량은 버튼 이름에, 누르면 버튼 자리에 기록 도장 */}
+        {fx.done
+          ? <div className={s.statusOk}>{String(fx.qty)}개로 결정 기록됨 ✓ 결제된 만큼 만드니 재고 걱정 끝!</div>
+          : <span data-t="rec" className={s.sendBtn}>{fx.qty ? `${String(fx.qty)}개로 결정 기록` : "결정 기록"}</span>}
       </Admin>
     ),
   },
@@ -218,7 +277,7 @@ function Intro({ onStart }: { onStart: () => void }) {
 
 export default function SellerOnboarding() {
   const [open, setOpen] = useState(false);
-  const [scene, setScene] = useState(-1); // -1: 로고 인트로, 0~4: 장면, 5: 끝
+  const [scene, setScene] = useState(-1); // -1: 로고 인트로, 0~(장면 수-1): 장면, 장면 수: 끝
   const [run, setRun] = useState(0); // 다시 보기
   const [fx, setFx] = useState<Fx>({});
   const [cur, setCur] = useState({ x: 40, y: 40, clicking: false, hidden: true });
@@ -350,8 +409,10 @@ export default function SellerOnboarding() {
                   <li>품절 상품 숨기지 않기 (진열함 · 판매함)</li>
                   <li>쇼핑몰에서 찜꽁 위젯 확인</li>
                   <li>매주 고객이 기다리는 상품 보기</li>
-                  <li>공구 열기</li>
+                  <li>공구 열기 (조건 세 가지 중 고르기)</li>
                   <li>마감 전에 재고 넣기</li>
+                  <li>결제 기간에 확정 수량 보기</li>
+                  <li>확정 수량으로 발주하기</li>
                 </ol>
                 <button type="button" className={s.start} onClick={close}>시작하기 →</button>
                 <button type="button" className={s.ghost} onClick={() => go(0)}>처음부터 다시 보기</button>
