@@ -5,7 +5,7 @@ import { and, asc, count, desc, eq, inArray, sum } from "drizzle-orm";
 import { schema } from "@/db";
 import type { Ctx } from "./engine/context";
 import { audit, UserError } from "./engine/context";
-import { isValidOptOutNumber } from "./core/messaging";
+import { formatOptOutNumber, optOutProblem } from "./core/messaging";
 import { getCampaign, getMall, type Campaign } from "./engine/campaigns";
 import { buildReport } from "./engine/report";
 import { discountOf, mallRatesFrom } from "./core/scenario";
@@ -31,13 +31,19 @@ export async function mallProfile(ctx: Ctx, mallId: string) {
 export async function saveMallProfile(ctx: Ctx, actor: string, mallId: string, b: Record<string, unknown>) {
   await getMall(ctx, mallId);
   const brandName = String(b.brandName ?? "").trim().slice(0, 40);
-  const optOutNumber = String(b.optOutNumber ?? "").trim().slice(0, 20);
+  const optOutRaw = String(b.optOutNumber ?? "").trim().slice(0, 20);
   const smsSender = String(b.smsSender ?? "").trim().slice(0, 20);
-  if (!brandName || !isValidOptOutNumber(optOutNumber) || !/^[0-9-]{8,20}$/.test(smsSender)) {
-    throw new UserError("bad_profile", !isValidOptOutNumber(optOutNumber) && brandName && /^[0-9-]{8,20}$/.test(smsSender)
-      ? "무료수신거부 번호는 080으로 시작하는 번호여야 해요. 휴대폰 · 일반 전화번호는 고객이 돈을 내야 해서 광고 문자에 쓸 수 없어요."
-      : "브랜드명, 문자 발신번호, 무료수신거부 번호(080)를 확인해 주세요.");
+  const optOut = optOutProblem(optOutRaw);
+  if (!brandName || optOut || !/^[0-9-]{8,20}$/.test(smsSender)) {
+    // 무엇이 틀렸는지 정확히 알려 준다 (080으로 시작하는데 "080으로 시작해야 해요"라고 하지 않게)
+    const only080 = optOut && brandName && /^[0-9-]{8,20}$/.test(smsSender);
+    throw new UserError("bad_profile", !only080
+      ? "브랜드명, 문자 발신번호, 무료수신거부 번호(080)를 확인해 주세요."
+      : optOut === "length"
+        ? "무료수신거부 번호의 자릿수를 확인해 주세요. 080 다음에 7~8자리예요 (예: 080-123-4567)."
+        : "무료수신거부 번호는 080으로 시작하는 번호여야 해요. 휴대폰 · 일반 전화번호는 고객이 돈을 내야 해서 광고 문자에 쓸 수 없어요.");
   }
+  const optOutNumber = formatOptOutNumber(optOutRaw);
   // 카페24는 등록된 발신번호로만 문자를 보낸다 → 목록을 받을 수 있으면 그 안의 번호인지 확인한다
   const senders = await registeredSenders(ctx, mallId);
   if (senders && !senders.some((s) => digits(s.number) === digits(smsSender))) {
