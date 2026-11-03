@@ -72,7 +72,7 @@
 
 /* ---- 무대 (설명용 그림 화면) ---- */
 .stage {
-  position: relative; height: 292px; border-radius: 16px; overflow: hidden; border: 1px solid var(--line);
+  position: relative; height: 320px; border-radius: 16px; overflow: hidden; border: 1px solid var(--line);
   background: var(--soft); user-select: none;
 }
 .stage button { font: inherit; cursor: default; }
@@ -145,7 +145,7 @@
 
 @media (max-width: 420px) {
   .sheet { padding: 16px 12px 12px; border-radius: 18px; }
-  .stage { height: 284px; }
+  .stage { height: 312px; }
   .head h2 { font-size: 18px; }
   .bubble { font-size: 14px; }
   .product { grid-template-columns: 38% 1fr; gap: 10px; }
@@ -200,3 +200,31 @@
 .pbuy { display: block; text-align: center; border-radius: 9px; padding: 7px 4px; font-size: 12px; font-weight: 700; background: var(--soft); color: var(--muted); }
 .monTitle { flex: 1; align-self: center; font-weight: 800; font-size: 15px; }
 .goalBadge { justify-self: start; padding: 5px 11px; border-radius: 99px; font-size: 13px; font-weight: 800; background: color-mix(in srgb, var(--success) 14%, var(--surface)); color: var(--success); }
+
+/* ---- v2 장면: 공구 조건 시나리오 3가지 · 결제율 안내 · 결제 기간 막대 · 발주 선택지 (지금 MVP 화면을 줄여 그린 설명용 그림) ---- */
+.scRow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.scCard { display: grid; gap: 2px; justify-items: center; text-align: center; padding: 8px 4px; border: 1px solid var(--line); border-radius: 10px; font-size: 12px; font-weight: 700; line-height: 1.3; word-break: keep-all; color: var(--fg2); transition: border-color .25s, background .25s, box-shadow .25s; }
+.scCard i { font-style: normal; font-size: 18px; }
+.scOn { border-color: var(--brand); background: var(--brand-soft); color: var(--fg); box-shadow: 0 0 0 2px var(--brand); }
+.hint { margin: 0; padding: 7px 10px; border-radius: 10px; font-size: 13px; line-height: 1.45; word-break: keep-all; background: var(--soft); color: var(--fg2); animation: fadeUp .35s ease both; }
+.hint b { color: var(--fg); }
+.chip { padding: 3px 9px; border-radius: 99px; font-size: 12px; font-weight: 800; background: var(--brand-soft); color: var(--brand-ink, var(--brand)); white-space: nowrap; }
+.chipDone { background: color-mix(in srgb, var(--success) 14%, var(--surface)); color: var(--success); animation: stamp .35s cubic-bezier(.2, .9, .3, 1.5) both; }
+.barRow { display: grid; grid-template-columns: 64px minmax(0, 1fr) 48px; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+.barRow b { text-align: right; font-variant-numeric: tabular-nums; }
+.bar { height: 12px; border-radius: 99px; background: var(--soft); overflow: hidden; }
+.bar i { display: block; height: 100%; border-radius: 99px; background: color-mix(in srgb, var(--brand) 45%, var(--surface)); transition: width .35s ease; }
+.bar .barPaid { background: var(--success); }
+.boxTitle { font-size: 14px; }
+.readout { margin: 0; font-size: 13px; line-height: 1.5; word-break: keep-all; color: var(--fg2); animation: fadeUp .35s ease both; }
+.readout b { color: var(--fg); }
+.optRow { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.opt { display: grid; gap: 2px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; font-size: 12.5px; line-height: 1.35; word-break: keep-all; transition: border-color .25s, background .25s, box-shadow .25s; }
+.opt small { color: var(--muted); font-size: 11.5px; }
+.optOn { border-color: var(--brand); background: var(--brand-soft); box-shadow: 0 0 0 2px var(--brand); }
+@media (max-width: 420px) {
+  /* 4단계 시나리오 카드가 좁은 폭에서 두 줄로 늘어 장면 틀을 넘지 않게 */
+  .scCard { padding: 6px 3px; font-size: 11px; line-height: 1.25; gap: 1px; }
+  .scCard i { font-size: 15px; }
+  .hint { padding: 6px 9px; font-size: 12.5px; }
+}
