@@ -12,7 +12,7 @@ import { buildReport, pilotScorecard } from "@/lib/engine/report";
 import { tick } from "@/lib/engine/scheduler";
 import { purgeExpired } from "@/lib/engine/retention";
 import { proceedCampaign, setStillWanted, stillWanted } from "@/lib/engine/proceed";
-import { campaignDetail, productDefaults } from "@/lib/console-actions";
+import { campaignDetail, productDefaults, saveMallProfile } from "@/lib/console-actions";
 import { parseCampaignInput } from "@/lib/engine/campaigns";
 import type { Ctx } from "@/lib/engine/context";
 import { MALL, PRODUCT, baseInput, openAndFill, pledge, range, setup } from "./helpers";
@@ -666,5 +666,19 @@ describe("미달 뒤 그래도 진행 (#23)", () => {
     await expect(proceedCampaign(env.ctx, "op", c.id, {})).rejects.toThrow(/기간이 지났어요/);
     expect((await getCampaign(env.ctx, c.id)).state).toBe("failed");
     expect((await myPledge(env.ctx, c.id, tok("m2"))).campaign.proceedOpen).toBe(false);
+  });
+});
+
+describe("쇼핑몰 설정 (광고 문자 정보)", () => {
+  it("080 번호는 하이픈 위치가 달라도 받아서 080-XXX-XXXX로 저장하고, 자릿수가 틀리면 자릿수를 알려 준다", async () => {
+    const env = await setup();
+    // 모의 쇼핑몰의 카페24 등록 발신번호는 02-000-0000
+    await saveMallProfile(env.ctx, "op", MALL, { brandName: "온결", smsSender: "02-000-0000", optOutNumber: "080-1234-567" });
+    const [m] = await env.db.select().from(schema.malls).where(eq(schema.malls.mallId, MALL));
+    expect(m.optOutNumber).toBe("080-123-4567");
+    await expect(saveMallProfile(env.ctx, "op", MALL, { brandName: "온결", smsSender: "02-000-0000", optOutNumber: "080-123-456" })).rejects.toThrow(/자릿수/);
+    await expect(saveMallProfile(env.ctx, "op", MALL, { brandName: "온결", smsSender: "02-000-0000", optOutNumber: "010-1234-5678" })).rejects.toThrow(/080으로 시작/);
+    // 카페24에 등록되지 않은 발신번호는 받지 않는다 (화면의 '발신번호가 없어요' 상황)
+    await expect(saveMallProfile(env.ctx, "op", MALL, { brandName: "온결", smsSender: "02-1234-5678", optOutNumber: "080-123-4567" })).rejects.toThrow(/등록된 번호만/);
   });
 });

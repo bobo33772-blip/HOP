@@ -35,5 +35,21 @@ export function formatAdMessage({ mallName, body, optOutNumber }: AdMessageInput
   return `(광고)${mallName}\n${clean}\n무료수신거부 ${optOutNumber}`;
 }
 
-/** 광고 문자의 수신거부는 받는 사람이 돈을 내지 않아야 한다(정보통신망법 시행령 제61조) → 080 무료 수신거부 번호만 받는다. 휴대폰 · 일반 전화번호는 거부 (카페24 심사) */
-export const isValidOptOutNumber = (s: string | null | undefined) => /^080-?[0-9]{3,4}-?[0-9]{4}$/.test((s ?? "").trim());
+/** 광고 문자의 수신거부는 받는 사람이 돈을 내지 않아야 한다(정보통신망법 시행령 제61조) → 080 무료 수신거부 번호만 받는다. 휴대폰 · 일반 전화번호는 거부 (카페24 심사).
+ *  하이픈 · 띄어쓰기 위치는 보지 않고 숫자만 본다: 080 + 7~8자리 (080-1234-567과 080-123-4567은 같은 번호) */
+const optOutDigits = (s: string | null | undefined) => (s ?? "").replace(/[\s-]/g, "");
+
+/** 무료수신거부 번호가 왜 안 되는지: not_080(080 번호가 아님) · length(080인데 자릿수가 틀림) · 문제없으면 null */
+export function optOutProblem(s: string | null | undefined): "not_080" | "length" | null {
+  const d = optOutDigits(s);
+  if (!/^080[0-9]*$/.test(d)) return "not_080";
+  return /^080[0-9]{7,8}$/.test(d) ? null : "length";
+}
+
+export const isValidOptOutNumber = (s: string | null | undefined) => optOutProblem(s) === null;
+
+/** 저장 · 문자에 쓰는 모양으로 맞춘다: 080-123-4567 (8자리면 080-1234-5678). 올바른 번호에만 쓴다 */
+export function formatOptOutNumber(s: string): string {
+  const r = optOutDigits(s).slice(3);
+  return `080-${r.slice(0, r.length - 4)}-${r.slice(-4)}`;
+}

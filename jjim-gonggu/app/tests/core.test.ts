@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { decisionNeedsConfirm, hasErrors, validateCampaignInput, type CampaignInput } from "@/lib/core/campaign";
 import { canCancel, checkPledge, EXPECTED_PAY_RATE, expectedConfirmed, pledgesNeeded } from "@/lib/core/pledge";
-import { formatAdMessage, isNightKst, isValidOptOutNumber, nextAllowedSendTime } from "@/lib/core/messaging";
+import { formatAdMessage, formatOptOutNumber, isNightKst, isValidOptOutNumber, nextAllowedSendTime, optOutProblem } from "@/lib/core/messaging";
 import { canOpenAnother, successFee } from "@/lib/core/billing";
 
 const now = new Date("2026-10-06T03:00:00Z"); // KST 12:00
@@ -95,6 +95,20 @@ describe("광고 문자 규칙", () => {
     expect(isValidOptOutNumber("010-1234-5678")).toBe(false);
     expect(isValidOptOutNumber("02-000-0000")).toBe(false);
     expect(isValidOptOutNumber("1588-0000")).toBe(false);
+  });
+  it("080 번호는 하이픈 위치와 관계없이 숫자로 본다 · 080-XXX-XXXX 모양으로 맞춰 저장한다", () => {
+    // 판매자가 080-1234-567로 적어도 숫자는 080-123-4567과 같다 (카페24 080 번호는 080 + 7자리)
+    expect(isValidOptOutNumber("080-1234-567")).toBe(true);
+    expect(isValidOptOutNumber("080 123 4567")).toBe(true);
+    expect(isValidOptOutNumber("080-1234-5678")).toBe(true); // 8자리 번호도 받는다
+    expect(isValidOptOutNumber("080-123-456")).toBe(false); // 자릿수 모자람
+    expect(formatOptOutNumber("080-1234-567")).toBe("080-123-4567");
+    expect(formatOptOutNumber("0801234567")).toBe("080-123-4567");
+    expect(formatOptOutNumber("080-1234-5678")).toBe("080-1234-5678");
+    // 거절 이유를 정확히: 080이 아니면 080 안내, 080인데 자릿수가 틀리면 자릿수 안내
+    expect(optOutProblem("010-1234-5678")).toBe("not_080");
+    expect(optOutProblem("080-123-456")).toBe("length");
+    expect(optOutProblem("080-1234-567")).toBeNull();
   });
   it("(광고) 표기와 수신거부 안내 강제", () => {
     const m = formatAdMessage({ mallName: "도윤백", body: "(광고) 장바구니에 담아 두신 숄더백 공구가 열렸어요", optOutNumber: "080-000-0000" });
